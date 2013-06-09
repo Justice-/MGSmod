@@ -158,9 +158,16 @@ DRINK("long island iced tea",	8, 100,	c_brown,  itm_bottle_glass,
 A blend of incredibly strong-flavored liquors that somehow tastes\n\
 like none of them.");
 
+//CAT-mgs:
+DRINK("beer",           60, 35, c_brown,  itm_can_drink,
+         16, 4,  0, -4, -1,  2,  1, 10, &iuse::alcohol,   ADD_ALCOHOL, "\
+Best served cold, in a glass, and with a lime - but you're not that lucky.");
+
+//CAT-mgs:
 DRINK("beer",           60, 35, c_brown,  itm_keg,
          16, 4,  0, -4, -1,  2,  1, 10, &iuse::alcohol,   ADD_ALCOHOL, "\
 Best served cold, in a glass, and with a lime - but you're not that lucky.");
+
 
 DRINK("bleach",		20, 18,	c_white,  itm_jug_plastic,
 	-96, 0,  0,  0, -8,  0,  1,-30,&iuse::blech,	ADD_NULL, "\
@@ -2339,6 +2346,11 @@ AMMO("40mm concussive",     10,400,AT_40MM,	c_ltred,	STEEL,
 A 40mm grenade with a concussive explosion.",
 mfb(AMMO_EXPLOSIVE));
 
+AMMO("66mm HEAT", 0, 0, AT_66MM,        c_red,  STEEL,
+     1,  1,  5,  20,  40,  8, 15, 1, "\
+A 60mm High Explosive Anti Tank round. They can blow through up to two feet of concrete.",
+mfb(AMMO_EXPLOSIVE_BIG)|mfb(AMMO_TRAIL));
+
 //  NAME		   RAR PRC TYPE		COLOR		MAT
 AMMO("40mm frag",           8, 450,AT_40MM,	c_ltred,	STEEL,
 //	VOL WGT DMG  AP RNG ACC REC COUNT
@@ -2370,6 +2382,7 @@ AMMO("40mm flashbang",      8, 400,AT_40MM,	c_ltred,	STEEL,
 A 40mm grenade with a flashbang load. It will detonate with a blast of light\n\
 and sound, designed to blind, deafen, and disorient anyone nearby.",
 mfb(AMMO_FLASHBANG));
+
 
 AMMO("H&K 12mm",	 2, 500,AT_12MM,		c_red,	STEEL,
 	 1,  10, 25, 12, 70,  9, 7,  20, "\
@@ -2508,7 +2521,8 @@ ammunition.",
 color,LIQUID,1,1,0,0,0,effects,ammo_type,dmg,AP,accuracy,recoil,range,count))
 FUEL("gasoline",	0,  50,   AT_GAS,	c_ltred,
 //	DMG  AP RNG ACC REC COUNT
-	 5,  5,  4,  0,  0,  200, "\
+//CAT-mgs: range 4 -> 10
+	 5,  5,  10,  0,  0,  200, "\
 Gasoline is a highly flammable liquid. When under pressure, it has the\n\
 potential for violent explosion.",
 mfb(AMMO_FLAME)|mfb(AMMO_STREAM));
@@ -2528,7 +2542,7 @@ color,mat1,mat2,volume,wgt,melee_dam,0,to_hit,flags,skill,ammo,dmg,accuracy,\
 recoil,durability,burst,clip,reload_time))
 
 //  NAME		RAR PRC COLOR		MAT1	MAT2
-GUN("nail gun",		12, 100,c_ltblue,	IRON,	MNULL,
+GUN("Nail gun",		12, 100,c_ltblue,	IRON,	MNULL,
 //	SKILL		AMMO	VOL WGT MDG HIT DMG ACC REC DUR BST CLIP RELOAD
     "pistol",	AT_NAIL, 4, 22, 12,  1,  0, 20,  0,  8,  5, 100, 450, "\
 A tool used to drive nails into wood or other material. It could also be\n\
@@ -2541,7 +2555,7 @@ Popular among children. It's fairly accurate, but BBs deal nearly no damage.\n\
 It could be used to practice your rifle skill up to level 1.",
 0);
 
-GUN("crossbow",		 2,1000,c_green,	IRON,	WOOD,
+GUN("Crossbow",		 2,1000,c_green,	IRON,	WOOD,
 	"archery",	AT_BOLT, 6,  9, 11,  1,  0, 18,  0,  6,  0,  1, 800, "\
 A slow-loading hand weapon that launches bolts. Stronger people can reload\n\
 it much faster. Bolts fired from this weapon have a good chance of remaining\n\
@@ -2549,7 +2563,7 @@ intact for re-use.",
 mfb(IF_STR_RELOAD));
 
 //  NAME		RAR PRC COLOR		MAT1	MAT2
-GUN("compound bow",      2,1400,c_yellow,       STEEL,  PLASTIC,
+GUN("Compound bow",      2,1400,c_yellow,       STEEL,  PLASTIC,
 //	SKILL		AMMO	VOL WGT MDG HIT DMG ACC REC DUR BST CLIP RELOAD
         "archery",     AT_ARROW,12, 8,  8,  1,  0, 20,  0,  6,  0,  1, 100, "\
 A bow with wheels that fires high velocity arrows. Weaker people can use\n\
@@ -2557,34 +2571,34 @@ compound bows more easily. Arrows fired from this weapon have a good chance\n\
 of remaining intact for re-use. It requires 8 strength to fire",
 mfb(IF_STR8_DRAW)|mfb(IF_RELOAD_AND_SHOOT));
 
-GUN("longbow",           5, 800,c_yellow,       WOOD,   MNULL,
+GUN("Longbow",           5, 800,c_yellow,       WOOD,   MNULL,
         "archery",     AT_ARROW,8, 4, 10,  0,  0, 12,  0,  6,  0,  1,  80, "\
 A six-foot wooden bow that fires feathered arrows. This takes a fair amount\n\
 of strength to draw. Arrows fired from this weapon have a good chance of\n\
 remaining intact for re-use. It requires 10 strength to fire",
 mfb(IF_STR10_DRAW)|mfb(IF_RELOAD_AND_SHOOT));
 
-GUN("pipe rifle: .22",	0,  800,c_ltblue,	IRON,	WOOD,
+GUN("Pipe rifle: .22",	0,  800,c_ltblue,	IRON,	WOOD,
 "rifle",	AT_22,	 9, 13, 10,  2, -2, 15,  2,  6,  0,  1, 250, "\
 A home-made rifle. It is simply a pipe attached to a stock, with a hammer to\n\
 strike the single round it holds.",
 0);
 
 //  NAME		RAR PRC COLOR		MAT1	MAT2
-GUN("pipe rifle: 9mm",	0,  900,c_ltblue,	IRON,	WOOD,
+GUN("Pipe rifle: 9mm",	0,  900,c_ltblue,	IRON,	WOOD,
 //	SKILL		AMMO	VOL WGT MDG HIT DMG ACC REC DUR BST CLIP RELOAD
 	"rifle",	AT_9MM,	10, 16, 10,  2, -2, 15,  2,  6,  0,  1, 250, "\
 A home-made rifle. It is simply a pipe attached to a stock, with a hammer to\n\
 strike the single round it holds.",
 0);
 
-GUN("pipe SMG: 9mm",	0, 1050,c_ltblue,	IRON,	WOOD,
+GUN("Pipe SMG: 9mm",	0, 1050,c_ltblue,	IRON,	WOOD,
 	"smg",		AT_9MM,  5,  8,  6, -1,  0, 30,  6,  5,  4, 10, 400, "\
 A home-made machine pistol. It features a rudimentary blowback system, which\n\
 allows for small bursts.",
 mfb(IF_MODE_BURST));
 
-GUN("pipe SMG: .45",	0, 1150,c_ltblue,	IRON,	WOOD,
+GUN("Pipe SMG: .45",	0, 1150,c_ltblue,	IRON,	WOOD,
 	"smg",		AT_45,	 6,  9,  7, -1,  0, 30,  6,  5,  3,  8, 400, "\
 A home-made machine pistol. It features a rudimentary blowback system, which\n\
 allows for small bursts.",
@@ -2694,14 +2708,14 @@ The Norinco manufactured Tokarev TT-30 is the standard sidearm of the\n\
 Chinese military, it does not see extensive use outside of China.",
 0);
 
-GUN("sawn-off shotgun",	 1, 700,c_red,	IRON,	WOOD,
+GUN("Sawn-off shotgun",	 1, 700,c_red,	IRON,	WOOD,
 //	SKILL		AMMO	VOL WGT MDG HIT DMG ACC REC DUR BST CLIP
 	"shotgun",	AT_SHOT, 6, 10, 14, 2,  4,  40, 15, 4,   0,   2, 100, "\
 The barrels of shotguns are often sawed in half to make it more maneuverable\n\
 and concealable. This has the added effect of reducing accuracy greatly.",
 mfb(IF_RELOAD_ONE));
 
-GUN("sawn-off Saiga 12",	 1, 700,c_red,	IRON,	WOOD,
+GUN("Sawn-off Saiga 12",	 1, 700,c_red,	IRON,	WOOD,
 //	SKILL		AMMO	VOL WGT MDG HIT DMG ACC REC DUR BST CLIP
 	"shotgun",	AT_SHOT, 6, 10, 14,  2,  4, 40, 15,  4,  0,  10, 100, "\
 The Saiga-12 shotgun is designed on the same Kalishnikov pattern as the AK47\n\
@@ -2711,7 +2725,7 @@ but making it more portable",
 mfb(IF_MODE_BURST));
 
 //  NAME		RAR PRC COLOR	MAT1	MAT2
-GUN("single barrel shotgun",1,600,c_red,IRON,	WOOD,
+GUN("Single barrel shotgun",1,600,c_red,IRON,	WOOD,
 //	SKILL		AMMO	VOL WGT MDG HIT DMG ACC REC DUR BST CLIP
 	"shotgun",	AT_SHOT,12, 20, 14,  3,  0,  6,  5,  6,  0,  1, 100, "\
 An old shotgun, possibly antique. It is little more than a barrel, a wood\n\
@@ -2719,7 +2733,7 @@ stock, and a hammer to strike the cartridge. Its simple design keeps it both\n\
 light and accurate.",
 0);
 
-GUN("double barrel shotgun",2,1050,c_red,IRON,	WOOD,
+GUN("Double barrel shotgun",2,1050,c_red,IRON,	WOOD,
 	"shotgun",	AT_SHOT,12, 26, 15,  3,  0,  7,  4,  7,  2,  2, 100, "\
 An old shotgun, possibly antique. It is little more than a pair of barrels,\n\
 a wood stock, and a hammer to strike the cartridges.",
@@ -2985,23 +2999,23 @@ GUN("NX-17 charge rifle",1,12000,c_magenta,STEEL, PLASTIC,
 A multi-purpose rifle, designed for use in conjunction with a unified power\n\
 supply, or UPS. It does not reload normally; instead, press fire once to\n\
 start charging it from your UPS, then again to unload the charge.",
-mfb(IF_CHARGE));
+mfb(IF_CHARGE)|mfb(IF_NO_UNLOAD)); 
 
 //  NAME		RAR PRC COLOR	 MAT1	MAT2
-GUN("simple flamethr.",1,1600,c_pink,	STEEL,	PLASTIC,
+GUN("Simple flamethr.",1,1600,c_pink,	STEEL,	PLASTIC,
 //	SKILL		AMMO	VOL WGT MDG HIT DMG ACC REC DUR BST CLIP RELOAD
 	"shotgun",	AT_GAS,  16,  8,  8, -1, -5,  6,  0,  6,  0,800, 800, "\
 A simple, home-made flamethrower. While its capacity is not superb, it is\n\
 more than capable of igniting terrain and monsters alike.",
 mfb(IF_FIRE_100));
 
-GUN("flamethrower",	 1,3800,c_pink,	STEEL,	MNULL,
+GUN("Flamethrower",	 1,3800,c_pink,	STEEL,	MNULL,
 	"shotgun",	AT_GAS,  20, 14, 10, -2,  0,  4,  0,  8,  4,1600, 900, "\
 A large flamethrower with substantial gas reserves. Very menacing and\n\
 deadly.",
 mfb(IF_FIRE_100));
 
-GUN("tube 40mm launcher",0, 400,c_ltred,STEEL,	WOOD,
+GUN("Tube 40mm launcher",0, 400,c_ltred,STEEL,	WOOD,
 	"launcher",	AT_40MM,12, 20, 13, -1,  0, 16,  0,  6, 0,  1, 350, "\
 A simple, home-made grenade launcher. Basically a tube with a pin firing\n\
 mechanism to activate the grenade.",
@@ -3030,22 +3044,30 @@ of single-shot grenade launchers by allowing sustained heavy firepower.\n\
 However, it is still slow to reload and must be used with careful planning.",
 mfb(IF_RELOAD_ONE)|mfb(IF_MODE_BURST));
 
+GUN("M72 LAW", 200,8500,c_ltred,STEEL,  MNULL,
+//  SKILL    AMMO  VOL WGT MDG HIT DMG ACC REC DUR BST CLIP RELOAD
+  "launcher",  AT_66MM, 12, 13,  6,  0,  0, 12,  5,  9,  0,  1, 150, "\
+A single use rocket launcher, developed during WW2 as a countermeasure\n\
+to the increasing prevalance of tanks. Once fired, it cannot be reloaded\n\
+and must be disposed of.",
+mfb(IF_NO_UNLOAD)|mfb(IF_BACKBLAST)); 
+
 //  NAME		    RAR PRC COLOR		MAT1	MAT2
-GUN("coilgun",		1, 200,c_ltblue,	IRON,	MNULL,
+GUN("Coilgun",		1, 200,c_ltblue,	IRON,	MNULL,
 //	SKILL		AMMO	VOL WGT MDG HIT DMG ACC REC DUR BST CLIP RELOAD
 	"pistol",	AT_NAIL, 6, 30, 10, -1,  8, 10,  0,  5,  0, 100, 600, "\
 A homemade gun, using electromagnets to accelerate a ferromagnetic\n\
 projectile to high velocity. Powered by UPS.",
 mfb(IF_USE_UPS));
 
-GUN("H&K G80 Railgun",		2,9200,c_ltblue,STEEL,	MNULL,
+GUN("H&K G80 railgun",		2,9200,c_ltblue,STEEL,	MNULL,
 	"rifle",	AT_12MM,12, 36, 12,  1,  5,  15, 0,  8,  0, 20, 550, "\
 Developed by Heckler & Koch in 2033, the railgun magnetically propels\n\
 a ferromagnetic projectile using an alternating current. This makes it\n\
 silent while still deadly. Powered by UPS.",
 mfb(IF_USE_UPS));
 
-GUN("Boeing XM-P Plasma Rifle",		1,13000,c_ltblue,STEEL,	MNULL,
+GUN("Plasma rifle",		1,13000,c_ltblue,STEEL,	MNULL,
 	"rifle",	AT_PLASMA,15, 40, 12, 1,  5,  5, 0,  8,  5, 25, 700, "\
 Boeing developed the focused plasma weaponry together with DARPA. It heats\n\
 hydrogen to create plasma and envelops it with polymers to reduce blooming.\n\
@@ -3053,7 +3075,7 @@ While powerful, it suffers from short range. Powered by UPS.",
 mfb(IF_USE_UPS)|mfb(IF_MODE_BURST));
 
 //  NAME		RAR PRC COLOR	MAT1	MAT2
-GUN("Shotgun Revolver",1,600,c_red,IRON,	WOOD,
+GUN("Shotgun revolver",1,600,c_red,IRON,	WOOD,
 //	SKILL		AMMO	VOL WGT MDG HIT DMG ACC REC DUR BST CLIP
 	"shotgun",	AT_SHOT,12, 24, 14,  3,  0,  6,  5,  6,  0,  6, 100, "\
 A shotgun modified to use a revolver cylinder mechanism, it can hold\n\
@@ -4247,8 +4269,7 @@ can't compare to a proper hammer.");
 //    NAME		RAR PRC SYM COLOR	MAT1	MAT2
 TOOL("stone axe",	 8, 105,'/', c_ltgray,	WOOD,	STONE,
 // VOL WGT DAM CUT HIT MAX DEF USE SEC FUEL	REVERT	  FUNCTION
-	17, 19, 15, 18,  0, 0, 0, 0, 0, AT_NULL, itm_null, &iuse::lumber,
-0, "\
+	17, 19, 15, 18,  0, 0, 0, 0, 0, AT_NULL, itm_null, &iuse::lumber, 0, "\
 A sharpened stone affixed to a stick, works passably well as ane axe\n\
 but really can't compare to a proper axe..");
 
@@ -4264,16 +4285,24 @@ to dig shallow pits, but not deep ones.");
 
 //  NAME        RAR PRC SYM  COLOR  MAT1    MAT
 TOOL("shelter kit",	17, 65, ';', c_green,	WOOD,	LEATHER,
-	 40,  20,  4,  0, -3, 0, 0, 0, 0, AT_NULL, itm_null, &iuse::shelter,
-0, "\
+	 40,  20,  4,  0, -3, 0, 0, 0, 0, AT_NULL, itm_null, &iuse::shelter, 0, "\
 A small shelter, made of sticks and skins. (a)ctivate it to place.");
 
 //  NAME        RAR PRC SYM  COLOR  MAT1    MAT
 TOOL("damaged shelter kit",	17, 65, ';', c_green,	WOOD,	LEATHER,
-	 40,  20,  4,  0, -3, 0, 0, 0, 0, AT_NULL, itm_null, &iuse::none,
-0, "\
+	 40,  20,  4,  0, -3, 0, 0, 0, 0, AT_NULL, itm_null, &iuse::none, 0, "\
 A small shelter, made of sticks and skins. (a)ctivate it to place.\n\
 This shelter has been damaged, and needs repairs.");
+
+
+TOOL("M72 LAW (packed)", 30, 500, ')', c_red, STEEL, MNULL,
+// VOL WGT DAM CUT HIT MAX DEF USE SEC FUEL  REVERT    FUNCTION
+    6, 13,  6,  0,  0, 1,   1,  1,  0, AT_66MM, itm_null, &iuse::LAW, 0,"\
+An M72 LAW, packed in its storage form. (a)ctivate it to pop it out\n\
+and make it ready to fire. Once activated, it cannot be repacked.");
+
+
+
 // BIONICS
 // These are the modules used to install new bionics in the player.  They're
 // very simple and straightforward; a difficulty, followed by a NULL-terminated
@@ -4847,6 +4876,7 @@ std::string ammo_name(ammotype t)
   case AT_3006:   return ".30-06";
   case AT_308:	  return ".308";
   case AT_40MM:   return "40mm grenade";
+  case AT_66MM:   return "High Explosive Anti Tank Warhead";
   case AT_GAS:	  return "gasoline";
   case AT_THREAD: return "thread";
   case AT_BATT:   return "batteries";
@@ -4881,6 +4911,7 @@ itype_id default_ammo(ammotype guntype)
  case AT_308:	return itm_308;
  case AT_3006:	return itm_270;
  case AT_40MM:  return itm_40mm_concussive;
+ case AT_66MM:  return itm_66mm_HEAT;
  case AT_BATT:	return itm_battery;
  case AT_FUSION:return itm_laser_pack;
  case AT_12MM:  return itm_12mm;

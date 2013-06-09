@@ -14,6 +14,7 @@ enum vehicle_controls {
  control_cancel
 };
 
+
 vehicle::vehicle(game *ag, vhtype_id type_id): g(ag), type(type_id)
 {
     posx = 0;
@@ -39,6 +40,15 @@ vehicle::vehicle(game *ag, vhtype_id type_id): g(ag), type(type_id)
         }
     }
     precalc_mounts(0, face.dir());
+
+//CAT-mgs:
+   numTur= 0;
+   for(int i= 0; i < 9; i++)
+   {
+	cat_turret[i]= -1;
+	turret_on[i]= false;
+   }
+
 }
 
 vehicle::~vehicle()
@@ -196,34 +206,65 @@ void vehicle::init_state(game* g)
     }
 }
 
+//CAT-mgs: *** vvv
 std::string vehicle::use_controls()
 {
  std::vector<vehicle_controls> options_choice;
  std::vector<std::string> options_message;
 
- // Alway have this option
- options_choice.push_back(toggle_cruise_control);
- options_message.push_back((cruise_on) ? "Disable cruise control" : "Enable cruise control");
+//CAT-mgs: Alway have this option? No
+// options_choice.push_back(toggle_cruise_control);
+// options_message.push_back((cruise_on) ? "Disable cruise control" : "Enable cruise control");
 
+ numTur= 0;
+ char cat_str[80];
  bool has_lights = false;
  bool has_turrets = false;
  for (int p = 0; p < parts.size(); p++) {
+
   if (part_flag(p, vpf_light))
    has_lights = true;
-  else if (part_flag(p, vpf_turret))
-   has_turrets = true;
+  else 
+  if(part_flag(p, vpf_turret))
+  {
+	has_turrets = true;
+	if(numTur < 9)
+	{
+		cat_turret[numTur]= p;
+		numTur++;
+	}
+  }
  }
 
  // Lights if they are there - Note you can turn them on even when damaged, they just don't work
- if (has_lights) {
+ if(has_lights) {
   options_choice.push_back(toggle_lights);
   options_message.push_back((lights_on) ? "Turn off headlights" : "Turn on headlights");
  }
 
- // Turrents: off or burst mode
- if (has_turrets) {
-  options_choice.push_back(toggle_turrets);
-  options_message.push_back((0 == turret_mode) ? "Switch turrets to burst mode" : "Disable turrets");
+  // Turrents: off or burst mode
+ if(has_turrets) {
+
+	for(int i=0; i < numTur; i++)
+	{
+		int fleft= 0;
+		int amt= part_info(cat_turret[i]).fuel_type;
+		if(amt != AT_GAS && amt != AT_PLASMA)
+		{
+			if(parts[cat_turret[i]].items.size() > 0)
+				fleft= parts[cat_turret[i]].items[0].charges;
+		}
+		else
+			fleft= fuel_left(amt);
+
+		if(turret_on[i])
+			sprintf(cat_str, "Disable %d: %s (%d)", i+1, part_info(cat_turret[i]).name, fleft);
+		else
+			sprintf(cat_str, "Enable %d: %s (%d)", i+1, part_info(cat_turret[i]).name, fleft);
+
+		options_choice.push_back(toggle_turrets);
+		options_message.push_back(cat_str);
+	}
  }
 
  options_choice.push_back(control_cancel);
@@ -232,6 +273,7 @@ std::string vehicle::use_controls()
  int select = menu_vec("Vehicle controls", options_message);
 
  std::string message;
+
  switch(options_choice[select - 1]) {
   case toggle_cruise_control:
    cruise_on = !cruise_on;
@@ -241,11 +283,21 @@ std::string vehicle::use_controls()
    lights_on = !lights_on;
    message = (lights_on) ? "Headlights turned on" : "Headlights turned off";
    break;
+
+//CAT-mgs:
   case toggle_turrets:
-   if (++turret_mode > 1)
-    turret_mode = 0;
-   message = (0 == turret_mode) ? "Turrets: Disabled" : "Turrets: Burst mode";
+
+	if(turret_on[select-2]) 		
+		sprintf(cat_str, "Disabled %d: %s", select-1, part_info(cat_turret[select-2]).name);
+	else
+		sprintf(cat_str, "Enabled %d: %s", select-1, part_info(cat_turret[select-2]).name);
+
+	turret_on[select-2]= !turret_on[select-2];
+
+	message = cat_str;
    break;
+
+
   case control_cancel:
    break;
  }
@@ -588,7 +640,27 @@ void vehicle::print_part_desc (void *w, int y1, int width, int p, int hl)
               nom << (parts[pl[i]].bigness) << "\" ";
            }
         }
+//CAT: abaraba
         nom << part_info(pl[i]).name;
+
+        if(part_flag(pl[i], vpf_fuel_tank)) 
+		nom << " (" <<parts[pl[i]].amount << ")";
+  
+	  if(part_flag(pl[i], vpf_turret))
+	  {
+		int fleft= 0;
+		int amt= part_info(pl[i]).fuel_type;
+		if(amt != AT_GAS && amt != AT_PLASMA)
+		{
+			if(parts[pl[i]].items.size() > 0)
+				fleft= parts[pl[i]].items[0].charges;
+		}
+		else
+			fleft= fuel_left(amt);
+
+		nom << " (" << fleft << ")";		
+	  }
+
         std::string partname = nom.str();
 
         bool armor = part_flag(pl[i], vpf_armor);
@@ -1076,7 +1148,7 @@ void vehicle::thrust (int thd)
     bool thrusting = true;
     if(velocity){ //brake?
        int sgn = velocity < 0? -1 : 1;
-       thrusting = sgn == thd;
+       thrusting= (sgn == thd);
     }
 
     if (thrusting)
@@ -1126,15 +1198,16 @@ void vehicle::thrust (int thd)
 
     int accel = acceleration();
     int max_vel = max_velocity();
-    int brake = 30 * k_mass();
-    int brk = abs(velocity) * brake / 100;
-    if (brk < accel)
-        brk = accel;
-    if (brk < 10 * 100)
-        brk = 10 * 100;
-    int vel_inc = (thrusting? accel : brk) * thd;
-    if(thd == -1 && thrusting) // reverse accel.
-       vel_inc = .6 * vel_inc;
+
+//CAT-mgs: *** vvv 
+//...brake should be proportional to number of wheels
+//not proportional to velcoity, rather inverse
+    int brake = 200+ (int)(accel/5);
+
+//CAT: mass is less when it's more, huh?
+//    g->add_msg("acc: %d, brk: %d", accel, brake);
+
+    int vel_inc = (thrusting? accel : brake) * thd;
     if ((velocity > 0 && velocity + vel_inc < 0) ||
         (velocity < 0 && velocity + vel_inc > 0))
         stop ();
@@ -1654,10 +1727,19 @@ void vehicle::gain_moves (int mp)
                     g->m.add_field(g, x + ix, y + iy, fd_smoke, rng(2, 4));
     }
 
-    if (turret_mode) // handle turrets
-        for (int p = 0; p < parts.size(); p++)
-            fire_turret (p);
+
+//CAT-mgs: handle turrets
+    if(numTur > 0) 
+    {
+	for(int i= 0; i < numTur; i++)
+	{
+	    if(turret_on[i])
+		fire_turret (cat_turret[i]);
+	}
+    }
+
 }
+
 
 void vehicle::find_external_parts ()
 {
@@ -1709,8 +1791,7 @@ void vehicle::refresh_insides ()
         int p = external_parts[ep];
         if (part_with_feature(p, vpf_roof) < 0 || parts[p].hp <= 0)
         { // if there's no roof (or it's broken) -- it's outside!
-/*            debugmsg ("part%d/%d(%s)%d,%d no roof=false", p, external_parts.size(),
-                      part_info(p).name, parts[p].mount_dx, parts[p].mount_dy);*/
+
             parts[p].inside = false;
             continue;
         }
@@ -1743,9 +1824,6 @@ void vehicle::refresh_insides ()
             }
             if (!cover)
             {
-/*                debugmsg ("part%d/%d(%s)%d,%d nb#%d(%s) no cover=false", p, external_parts.size(),
-                          part_info(p).name, parts[p].mount_dx, parts[p].mount_dy,
-                          i, parts_n3ar.size()> 0? part_info(parts_n3ar[0]).name : "<no part>");*/
                 parts[p].inside = false;
                 break;
             }
@@ -1896,29 +1974,33 @@ void vehicle::leak_fuel (int p)
 
 void vehicle::fire_turret (int p, bool burst)
 {
-    if (!part_flag (p, vpf_turret))
-        return;
+
     it_gun *gun = dynamic_cast<it_gun*> (g->itypes[part_info(p).item]);
     if (!gun)
         return;
+
     int charges = burst? gun->burst : 1;
     if (!charges)
         charges = 1;
     int amt = part_info (p).fuel_type;
     if (amt == AT_GAS || amt == AT_PLASMA)
     {
+//CAT-mgs: 20 -> 100
         if (amt == AT_GAS)
-            charges = 20; // hacky
-        int fleft = fuel_left (amt);
+            charges = 100; // hacky
+	  else
+	  if(amt == AT_PLASMA)
+		charges *= 10; // hacky, too
+
+        int fleft = fuel_left (amt) - charges;
         if (fleft < 1)
             return;
         it_ammo *ammo = dynamic_cast<it_ammo*>(g->itypes[amt == AT_GAS? itm_gasoline : itm_plasma]);
         if (!ammo)
             return;
+
         if (fire_turret_internal (p, *gun, *ammo, charges))
         { // consume fuel
-            if (amt == AT_PLASMA)
-                charges *= 10; // hacky, too
             for (int p = 0; p < parts.size(); p++)
             {
                 if (part_flag(p, vpf_fuel_tank) &&
@@ -1940,12 +2022,17 @@ void vehicle::fire_turret (int p, bool burst)
             if (!ammo || ammo->type != amt ||
                 parts[p].items[0].charges < 1)
                 return;
+
             if (charges > parts[p].items[0].charges)
                 charges = parts[p].items[0].charges;
+
             if (fire_turret_internal (p, *gun, *ammo, charges))
             { // consume ammo
                 if (charges >= parts[p].items[0].charges)
+		{
+		    parts[p].items[0].charges= 0;
                     parts[p].items.erase (parts[p].items.begin());
+		}
                 else
                     parts[p].items[0].charges -= charges;
             }
@@ -1960,27 +2047,39 @@ bool vehicle::fire_turret_internal (int p, it_gun &gun, it_ammo &ammo, int charg
     // code copied form mattack::smg, mattack::flamethrower
     int t, fire_t;
     monster *target = 0;
-    int range = ammo.type == AT_GAS? 5 : 12;
+
+//CAT-mgs:
+    int range = (ammo.type == AT_GAS) ? 12 : 24;
     int closest = range + 1;
     for (int i = 0; i < g->z.size(); i++)
     {
         int dist = rl_dist(x, y, g->z[i].posx, g->z[i].posy);
-        if (g->z[i].friendly == 0 && dist < closest &&
-            g->m.sees(x, y, g->z[i].posx, g->z[i].posy, range, t))
+
+//CAT-mgs: don't shoot me, primary
+        if( dist > (int)(range/4)
+		&& ( abs(g->z[i].posx - g->u.posx) > 2 
+			&& abs(g->z[i].posy - g->u.posy) > 2 )
+		&& g->z[i].friendly == 0 && dist < closest 
+		&& g->m.sees(x, y, g->z[i].posx, g->z[i].posy, range, t) )
         {
             target = &(g->z[i]);
             closest = dist;
             fire_t = t;
         }
     }
-    if (!target)
+
+    if(!target)
         return false;
 
     std::vector<point> traj = line_to(x, y, target->posx, target->posy, fire_t);
-    for (int i = 0; i < traj.size(); i++)
-        if (traj[i].x == g->u.posx && traj[i].y == g->u.posy)
-            return false; // won't shoot at player
-    if (g->u_see(x, y, t))
+
+//CAT-mgs: don't shoot me, secondary
+    for(int i = 0; i < traj.size(); i++)
+        if( traj[i].x == g->u.posx
+			&& traj[i].y == g->u.posy )
+		return false; 
+
+    if(g->u_see(x, y, t))
         g->add_msg("The %s fires its %s!", name.c_str(), part_info(p).name);
     player tmp;
     tmp.name = std::string("The ") + part_info(p).name;
@@ -1996,12 +2095,21 @@ bool vehicle::fire_turret_internal (int p, it_gun &gun, it_ammo &ammo, int charg
     it_ammo curam = ammo;
     tmp.weapon.curammo = &curam;
     tmp.weapon.charges = charges;
-    g->fire(tmp, target->posx, target->posy, traj, true);
-    if (ammo.type == AT_GAS)
+
+//CAT-mgs: don't shoot me, ultimate (handled in 'ranged.cpp')
+    tmp.moves= -99;	
+
+//CAT: no burst for flamethrower -> ammo.type != AT_GAS
+    g->fire(tmp, target->posx, target->posy, traj, ammo.type != AT_GAS);
+
+//CAT-mgs: trail already done in 'ranged.cpp'
+/*
+    if(ammo.type == AT_GAS)
     {
         for (int i = 0; i < traj.size(); i++)
-            g->m.add_field(g, traj[i].x, traj[i].y, fd_fire, 1);
+            g->m.add_field(g, traj[i].x, traj[i].y, fd_fire, 9);
     }
+*/
 
     return true;
 }

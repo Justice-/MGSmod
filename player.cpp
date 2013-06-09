@@ -427,12 +427,25 @@ void player::update_bodytemp(game *g) // TODO bionics, diseases and humidity (no
     if (heat_intensity > 0 && g->u_see(posx + j, posy + k, l)) {
      // Ensure fire_dist >=1 to avoid divide-by-zero errors.
      int fire_dist = std::max(1, std::max(j, k));
-     if (frostbite_timer[i] > 0) frostbite_timer[i] -= heat_intensity - fire_dist / 2;
-     temp_conv += 50 * heat_intensity / (fire_dist * fire_dist);
-     blister_count += heat_intensity / (fire_dist * fire_dist);
+     if (frostbite_timer[i] > 0) 
+		frostbite_timer[i] -= heat_intensity - fire_dist / 2;
+
+//CAT: doesn't seem to work?
+//CAT-mgs: after release addition, plus change
+	temp_conv += 900 * heat_intensity /(1 + fire_dist);
+      blister_count += heat_intensity / (fire_dist * fire_dist);
     }
    }
   }
+
+//CAT: doesn't seem to work?
+//CAT: manually added fix from main build after 0.3 release
+// Fire (it is very dangerous to be on fire for long, as it directly increases body temperature, not temp_conv)
+  if(has_disease(DI_ONFIRE))
+	temp_cur[i] += 250;
+  if((g->m.field_at(posx, posy).type == fd_fire && g->m.field_at(posx, posy).density > 2) || g->m.tr_at(posx, posy) == tr_lava) 
+	temp_cur[i] += 250;
+
   // Weather
   if (g->weather == WEATHER_SUNNY && !g->m.is_indoor(posx, posy)) temp_conv += 1000;
   if (g->weather == WEATHER_CLEAR && !g->m.is_indoor(posx, posy)) temp_conv += 500;
@@ -529,7 +542,6 @@ void player::update_bodytemp(game *g) // TODO bionics, diseases and humidity (no
 	if(temp_before < BODYTEMP_HOT && temp_after > BODYTEMP_HOT)
 		g->add_msg("You feel your %s getting hot.", body_part_name(body_part(i), -1).c_str());
   }
-
 //CAT-mgs: ***^^^***
 
 
@@ -2092,10 +2104,13 @@ void player::charge_power(int amount)
   power_level = 0;
 }
 
+//CAT-g: makes no difference?
+// used by lm.generate in 'game.cpp'
 float player::active_light()
 {
  float lumination = 0;
 
+/*
  int flashlight = active_item_charges(itm_flashlight_on);
  if (flashlight > 0)
   lumination = std::min(100, flashlight * 5); // Will do for now
@@ -2103,6 +2118,7 @@ float player::active_light()
   lumination = 60;
  else if (has_artifact_with(AEP_GLOW))
   lumination = 25;
+*/
 
  return lumination;
 }
@@ -4793,8 +4809,12 @@ void player::read(game *g, char ch)
   g->add_msg("It's bad idea to read while driving.");
   return;
  }
+
 // Check if reading is okay
- if (g->light_level() < 8 && LL_LIT > g->lm.at(0, 0)) {
+//CAT-g: read under candle light
+// if (g->light_level() < 8 && LL_LIT > g->lm.at(0, 0)) {
+ if (g->light_level() < 3 && g->lm.at(0, 0) < LL_LIT) {
+
   g->add_msg("It's too dark to read!");
   return;
  }

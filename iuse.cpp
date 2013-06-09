@@ -450,9 +450,14 @@ void iuse::caff(game *g, player *p, item *it, bool t)
 
 void iuse::alcohol(game *g, player *p, item *it, bool t)
 {
- int duration = 680 - (10 * p->str_max); // Weaker characters are cheap drunks
+//CAT-mgs:
+ int duration = 590 - (10 * p->str_max); // Weaker characters are cheap drunks
+ if(duration < 100)
+	duration= 100;
+
  if (p->has_trait(PF_LIGHTWEIGHT))
   duration += 300;
+
  p->pkill += 8;
  p->add_disease(DI_DRUNK, duration, g);
 }
@@ -658,7 +663,7 @@ void iuse::marloss(game *g, player *p, item *it, bool t)
 // If we have the marloss in our veins, we are a "breeder" and will spread
 // alien lifeforms.
  if (p->has_trait(PF_MARLOSS)) {
-  g->add_msg_if_player(p,"As you eat the berry, you have a near-religious experience, feeling at one with your surroundings...");
+  g->add_msg_if_player(p,"As you eat the berry, you start feeling as one with your surroundings...");
   p->add_morale(MORALE_MARLOSS, 100, 1000);
   p->hunger = -100;
   monster goo(g->mtypes[mon_blob]);
@@ -3520,6 +3525,23 @@ void iuse::pda_flashlight(game *g, player *p, item *it, bool t)
   it->active = false;
  }
 }
+
+
+//CAT-mgs: ***
+void iuse::LAW(game *g, player *p, item *it, bool t)
+{
+
+//CAT-s: reload2
+ playSound(35);
+
+ g->add_msg_if_player(p,"You pull the activating lever, readying the LAW to fire.");
+ it->make(g->itypes[itm_law]);
+
+ // When converting a tool to a gun, you need to set the current ammo type, this is usually done when a gun is reloaded.
+ it->curammo = dynamic_cast<it_ammo*>(g->itypes[itm_66mm_HEAT]);
+ it->charges++;
+}
+
 
 /* MACGUFFIN FUNCTIONS
  * These functions should refer to it->associated_mission for the particulars

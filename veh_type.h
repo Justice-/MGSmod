@@ -72,6 +72,8 @@ enum vpart_id
     vp_m249,
     vp_flamethrower,
     vp_plasmagun,
+//CAT-mgs:
+    vp_law,
 
 // plating -- special case. mounted as internal, work as first line
 // of defence and gives color to external part
@@ -265,12 +267,16 @@ const vpart_info vpart_list[num_vparts] =
     { "solar panel", '#', c_yellow,  'x', c_yellow, 10, 20, 30, 0, itm_solar_panel, 6,
         mfb(vpf_over)  | mfb(vpf_solar_panel) },
 
-    { "mounted M249",         't', c_cyan,    '#', c_cyan,    80, 400, 0, AT_223, itm_m249, 6,
+    { "mounted M249",         'T', c_cyan,    '#', c_cyan,    80, 400, 0, AT_223, itm_m249, 6,
         mfb(vpf_over)  | mfb(vpf_turret) | mfb(vpf_cargo) },
-    { "mounted flamethrower", 't', c_dkgray,  '#', c_dkgray,  80, 400, 0, AT_GAS, itm_flamethrower, 7,
+    { "mounted Flamethrower", 'F', c_ltred,  '#', c_ltred,  80, 400, 0, AT_GAS, itm_flamethrower, 7,
         mfb(vpf_over)  | mfb(vpf_turret) },
-    { "mounted plasma gun", 't', c_ltblue,    '#', c_ltblue,    80, 400, 0, AT_PLASMA, itm_plasma_rifle, 7,
+    { "mounted Plasma gun", 'P', c_ltblue,    '#', c_ltblue,    80, 400, 0, AT_PLASMA, itm_plasma_rifle, 7,
         mfb(vpf_over)  | mfb(vpf_turret) },
+//CAT-mgs:
+    { "mounted M72 LAW",         'R', c_red,    '#', c_red,    80, 400, 0, AT_66MM, itm_law, 7,
+        mfb(vpf_over)  | mfb(vpf_turret) | mfb(vpf_cargo) },
+
 
     { "steel plating",     ')', c_ltcyan, ')', c_ltcyan, 100, 1000, 0, 0, itm_steel_plate, 3,
         mfb(vpf_internal) | mfb(vpf_armor) },
@@ -313,3 +319,4 @@ enum vhtype_id
 };
 
 #endif
+

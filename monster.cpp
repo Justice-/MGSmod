@@ -338,10 +338,10 @@ bool monster::is_fleeing(player &u)
 //CAT-mgs: ***
 monster_attitude monster::attitude(player *u)
 {
- if (friendly != 0)
+ if(friendly != 0)
 	return MATT_FRIEND;
-
- if (has_effect(ME_RUN))
+ else
+ if(has_effect(ME_RUN))
 	return MATT_FLEE;
 
  int effective_anger  = anger;
@@ -369,10 +369,8 @@ monster_attitude monster::attitude(player *u)
 	}
 
 //CAT-mgs: make the game easier
-//... depending on time, on skills, on monster time
-//...connect with character loudness 
+//...connect with character loudness: done
       effective_anger -= rl_dist(posx, posy, u->posx, u->posy)*3;
-
  }
 
  if(effective_morale < 0)
@@ -385,11 +383,11 @@ monster_attitude monster::attitude(player *u)
 
  if(effective_anger < 0)
 	return MATT_IGNORE;
-
+ else
  if(effective_anger < 10)
 	return MATT_FOLLOW;
-
- return MATT_ATTACK;
+ else
+	return MATT_ATTACK;
 }
 
 

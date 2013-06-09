@@ -33,16 +33,18 @@ void light_map::generate(game* g, int x, int y, float natural_light, float lumin
     // In bright light indoor light exists to some degree
     if (!is_outside(sx - x, sy - y))
      lm[sx - x + SEEX][sy - y + SEEY] = LIGHT_AMBIENT_LOW;
-//CAT-l: let sun or moonlight shine
+
+//CAT-g: let sun or moonlight shine
     else
      lm[sx - x + SEEX][sy - y + SEEY]= g->turn.sunlight();
    }
   }
  }
 
- // Apply player light sources
- if (luminance > LIGHT_AMBIENT_LOW)
-  apply_light_source(g->u.posx, g->u.posy, x, y, luminance);
+//CAT-g: makes no difference? 
+// Apply player light sources
+// if (luminance > LIGHT_AMBIENT_LOW)
+//  apply_light_source(g->u.posx, g->u.posy, x, y, luminance);
 
  for(int sx = x - LIGHTMAP_RANGE_X; sx <= x + LIGHTMAP_RANGE_X; ++sx) {
   for(int sy = y - LIGHTMAP_RANGE_Y; sy <= y + LIGHTMAP_RANGE_Y; ++sy) {
@@ -68,25 +70,27 @@ void light_map::generate(game* g, int x, int y, float natural_light, float lumin
 
    if (items.size() == 1 &&
        items[0].type->id == itm_flashlight_on)
-    apply_light_source(sx, sy, x, y, 20);
-
-   if(terrain == t_lava)
-    apply_light_source(sx, sy, x, y, 50);
-
-   if(terrain == t_console)
-    apply_light_source(sx, sy, x, y, 3);
-
-   if (items.size() == 1 &&
-       items[0].type->id == itm_candle_lit)
-    apply_light_source(sx, sy, x, y, 4);
-
-   if(terrain == t_emergency_light)
-    apply_light_source(sx, sy, x, y, 3);
+    apply_light_source(sx, sy, x, y, 20); 
 
 //CAT-g:
    if(items.size() == 1 &&
        items[0].type->id == itm_torch_lit)
-    apply_light_source(sx, sy, x, y, 10);
+    apply_light_source(sx, sy, x, y, 9);
+
+   if (items.size() == 1 &&
+       items[0].type->id == itm_candle_lit)
+    apply_light_source(sx, sy, x, y, 4); 
+
+
+   if(terrain == t_lava)
+    apply_light_source(sx, sy, x, y, 48);
+
+   if(terrain == t_console)
+    apply_light_source(sx, sy, x, y, 3);
+
+   if(terrain == t_emergency_light)
+    apply_light_source(sx, sy, x, y, 3);
+
 
 
    // TODO: [lightmap] Attach light brightness to fields

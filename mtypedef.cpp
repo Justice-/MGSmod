@@ -72,8 +72,9 @@ mon("wolf",	species_mammal, 'w',	c_dkgray,	MS_MEDIUM,	FLESH,
 	&mdeath::normal,	&mattack::none, "\
 A vicious and fast pack hunter."
 );
-FLAGS(MF_SEES, MF_HEARS, MF_SMELLS, MF_ANIMAL, MF_WARM, MF_FUR, MF_HIT_AND_RUN, MF_KEENNOSE, MF_BLEED, MF_ATTACKMON), MF_BONES;
-ANGER(MTRIG_TIME, MTRIG_PLAYER_WEAK, MTRIG_HURT, MF_VIS50);
+FLAGS(MF_SEES, MF_HEARS, MF_SMELLS, MF_ANIMAL, MF_WARM, MF_FUR, MF_HIT_AND_RUN, MF_KEENNOSE, MF_BLEED, MF_ATTACKMON, MF_VIS50, MF_BONES);
+//CAT-mgs: sound
+ANGER(MTRIG_SOUND, MTRIG_TIME, MTRIG_PLAYER_WEAK, MTRIG_HURT);
 PLACATE(MTRIG_MEAT);
 FEARS(MTRIG_FIRE, MTRIG_FRIEND_DIED);
 CATEGORIES(MC_WILDLIFE);
@@ -229,6 +230,8 @@ hundreds of writhing tongues. Most of its\n\
 enormous body is hidden underground."
 );
 FLAGS(MF_DIGS, MF_HEARS, MF_GOODHEARING, MF_DESTROYS, MF_WARM, MF_LEATHER);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("giant worm",species_worm, 'S',	c_pink,		MS_LARGE,	FLESH,
 //  dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -240,6 +243,8 @@ earthworm, but the end has split into a\n\
 large, fanged mouth."
 );
 FLAGS(MF_DIGS, MF_HEARS, MF_GOODHEARING, MF_WARM, MF_LEATHER);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("half worm",species_worm, 's',	c_pink,		MS_MEDIUM,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -260,6 +265,8 @@ rage."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_SMELLS, MF_STUMBLES, MF_WARM, MF_BASHES, MF_POISON, MF_BLEED, MF_NO_BREATHE, MF_VIS40);
 CATEGORIES(MC_CLASSIC);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("zombie cop",	species_zombie, 'Z',	c_blue,	MS_MEDIUM,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -271,6 +278,8 @@ up to fight the infection."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_SMELLS, MF_STUMBLES, MF_WARM, MF_BASHES, MF_POISON, MF_BLEED, MF_NO_BREATHE, MF_VIS30);
 CATEGORIES(MC_CLASSIC);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("shrieker zombie",species_zombie, 'Z',c_magenta,	MS_MEDIUM,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -280,6 +289,8 @@ This zombie's jaw has been torn off, leaving\n\
 a gaping hole from mid-neck up."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_SMELLS, MF_STUMBLES, MF_WARM, MF_BASHES, MF_POISON, MF_NO_BREATHE, MF_VIS50);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("spitter zombie",species_zombie, 'Z',c_yellow,	MS_MEDIUM,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -291,6 +302,8 @@ yellow fluid."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_SMELLS, MF_STUMBLES, MF_WARM, MF_BASHES, MF_POISON,
       MF_ACIDPROOF, MF_NO_BREATHE, MF_VIS40);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("shocker zombie",species_zombie,'Z',c_ltcyan,	MS_MEDIUM,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -302,6 +315,8 @@ lightning."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_SMELLS, MF_STUMBLES, MF_WARM, MF_BASHES, MF_POISON,
       MF_ELECTRIC, MF_CBM, MF_NO_BREATHE,  MF_VIS40);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("smoker zombie",species_zombie,'Z',c_ltgray,	MS_MEDIUM,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -312,6 +327,8 @@ thick, obfuscating smoke."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_SMELLS, MF_STUMBLES, MF_WARM, MF_BASHES, MF_POISON,
       MF_HARDTOSHOOT, MF_FRIENDLY_SPECIAL, MF_NO_BREATHE, MF_VIS40);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("fresh zombie",species_zombie, 'Z',	c_ltred,	MS_MEDIUM,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -324,6 +341,8 @@ humans ever could."
 FLAGS(MF_SEES, MF_HEARS, MF_SMELLS, MF_STUMBLES, MF_WARM, MF_BASHES, MF_POISON,
       MF_HIT_AND_RUN, MF_NO_BREATHE, MF_VIS50);
 CATEGORIES(MC_CLASSIC);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("zombie brute",species_zombie, 'Z',	c_red,		MS_MEDIUM,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -333,6 +352,8 @@ A hideous beast of a zombie, bulging with\n\
 distended muscles on both arms and legs."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_SMELLS, MF_STUMBLES, MF_WARM, MF_BASHES, MF_POISON, MF_NO_BREATHE, MF_VIS40);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("zombie hulk",species_zombie, 'Z',	c_blue,		MS_HUGE,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -343,6 +364,8 @@ A zombie that has somehow grown to the size of\n\
 );
 FLAGS(MF_SEES, MF_HEARS, MF_SMELLS, MF_STUMBLES, MF_WARM, MF_BASHES,
       MF_DESTROYS, MF_POISON, MF_ATTACKMON, MF_LEATHER, MF_NO_BREATHE, MF_VIS50);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("fungal zombie",species_fungus, 'Z',c_ltgray,	MS_MEDIUM,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -353,6 +376,8 @@ mouth and eyes, and thick gray mold grows all\n\
 over its translucent flesh."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_SMELLS, MF_STUMBLES, MF_WARM, MF_BASHES, MF_POISON, MF_NO_BREATHE, MF_VIS30);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("boomer",	species_zombie, 'Z',	c_pink,		MS_LARGE,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -363,6 +388,8 @@ horrible odor, and putrid, pink sludge drips\n\
 from its mouth."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_SMELLS, MF_STUMBLES, MF_WARM, MF_BASHES, MF_POISON, MF_NO_BREATHE, MF_VIS40);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("fungal boomer",species_fungus, 'B',c_ltgray,	MS_LARGE,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -373,6 +400,8 @@ gray mold. Its flesh is translucent and gray,\n\
 and it dribbles a gray sludge from its mouth."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_SMELLS, MF_STUMBLES, MF_WARM, MF_BASHES, MF_POISON, MF_NO_BREATHE, MF_VIS30);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("skeleton",	species_zombie, 'Z',	c_white,	MS_MEDIUM,	STONE,
 //	 dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -383,6 +412,8 @@ rotten scraps of flesh, somehow still in\n\
 motion."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_BLEED, MF_HARDTOSHOOT, MF_NO_BREATHE, MF_VIS30);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("zombie necromancer",species_zombie, 'Z',c_dkgray,	MS_MEDIUM,	FLESH,
 //	 dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -393,7 +424,9 @@ eyes.  As you look at it, you're gripped by a\n\
 feeling of dread and terror."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_SMELLS, MF_STUMBLES, MF_WARM, MF_BASHES, MF_POISON, MF_NO_BREATHE, MF_NO_BREATHE, MF_VIS50);
-ANGER(MTRIG_HURT, MTRIG_PLAYER_WEAK);
+//CAT-mgs: sound
+ANGER(MTRIG_HURT, MTRIG_PLAYER_WEAK, MTRIG_SOUND);
+
 
 mon("zombie scientist",species_zombie, 'Z',c_ltgray,	MS_MEDIUM,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -405,6 +438,8 @@ than most zombies, but more resourceful too."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_SMELLS, MF_STUMBLES, MF_WARM, MF_BASHES, MF_POISON, MF_BLEED,
       MF_ACIDPROOF, MF_NO_BREATHE, MF_VIS50);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("zombie soldier",	species_zombie,	'Z',c_ltblue,	MS_MEDIUM,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -417,6 +452,8 @@ most zombies."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_SMELLS, MF_WARM, MF_BASHES, MF_POISON, MF_BLEED, MF_NO_BREATHE, MF_VIS30);
 CATEGORIES(MC_CLASSIC);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("grabber zombie",	species_zombie,	'Z',c_green,	MS_MEDIUM,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -428,6 +465,8 @@ at its surroundings as it moves."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_SMELLS, MF_STUMBLES, MF_WARM, MF_BASHES, MF_POISON, MF_BLEED,
       MF_GRABS, MF_NO_BREATHE, MF_VIS30);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("master zombie",	species_zombie, 'M',c_yellow,	MS_MEDIUM,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -438,7 +477,8 @@ dust surrounding it.  It also seems to have\n\
 a better grasp of movement than most..."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_SMELLS, MF_WARM, MF_BASHES, MF_POISON, MF_NO_BREATHE, MF_VIS50);
-ANGER(MTRIG_HURT, MTRIG_PLAYER_WEAK);
+ANGER(MTRIG_HURT, MTRIG_PLAYER_WEAK, MTRIG_SOUND);
+
 
 mon("scarred zombie",	species_zombie, 'Z',	c_yellow,	MS_MEDIUM,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -450,6 +490,8 @@ much harder to damage than an ordinary zombie\n\
 but moves a bit slower"
 );
 FLAGS(MF_SEES, MF_HEARS, MF_SMELLS, MF_STUMBLES, MF_WARM, MF_BASHES, MF_POISON, MF_NO_BREATHE, MF_VIS30);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
  mon("child zombie",species_zombie, 'z',	c_ltgreen,	MS_SMALL,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -461,7 +503,8 @@ a twinge of remorse looking at it."
 FLAGS(MF_SEES, MF_HEARS, MF_SMELLS, MF_STUMBLES, MF_WARM, MF_BASHES, MF_BLEED,
       MF_POISON, MF_GUILT, MF_NO_BREATHE, MF_VIS30);
 CATEGORIES(MC_CLASSIC);
-
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 // PLANTS & FUNGI
 mon("triffid",	species_plant, 'F',	c_ltgreen,	MS_MEDIUM,	VEGGY,
@@ -474,6 +517,8 @@ supporting a flower-like head with a sharp\n\
 sting within."
 );
 FLAGS(MF_HEARS, MF_SMELLS, MF_BASHES, MF_NOHEAD);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("young triffid",species_plant, 'f',	c_ltgreen,	MS_SMALL,	VEGGY,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -484,6 +529,8 @@ has not yet developed bark, but its sting\n\
 is still sharp and deadly."
 );
 FLAGS(MF_HEARS, MF_SMELLS, MF_NOHEAD);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("queen triffid",species_plant, 'F',	c_red,		MS_LARGE,	VEGGY,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -495,6 +542,8 @@ moves, plant matter drops off its body\n\
 and immediately takes root."
 );
 FLAGS(MF_HEARS, MF_SMELLS, MF_BASHES, MF_NOHEAD);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("creeper hub",species_plant, 'V',	c_dkgray,	MS_MEDIUM,	VEGGY,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -536,6 +585,8 @@ the middle."
 );
 FLAGS(MF_HEARS, MF_GOODHEARING, MF_NOHEAD, MF_HARDTOSHOOT, MF_GRABS,
       MF_SWIMS, MF_PLASTIC);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("triffid heart",species_plant, 'T',	c_red,		MS_HUGE,	VEGGY,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -558,6 +609,8 @@ mobility and a weak attack."
 );
 ANGER(MTRIG_PLAYER_CLOSE, MTRIG_PLAYER_WEAK);
 FLAGS(MF_HEARS, MF_SMELLS, MF_POISON, MF_NO_BREATHE, MF_NOHEAD);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 // This is a "dormant" fungaloid that doesn't waste CPU cycles ;)
 mon("fungaloid",species_fungus, 'F',	c_ltgray,	MS_MEDIUM,	VEGGY,
@@ -570,6 +623,8 @@ tendrils extend from the base, allowing\n\
 mobility and a weak attack."
 );
 FLAGS(MF_HEARS, MF_SMELLS, MF_POISON, MF_NO_BREATHE, MF_NOHEAD);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("young fungaloid",species_fungus, 'f',c_ltgray,	MS_SMALL,	VEGGY,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -581,6 +636,8 @@ covered in thorns; it also moves faster than\n\
 full-grown fungaloids."
 );
 FLAGS(MF_HEARS, MF_SMELLS, MF_POISON, MF_NO_BREATHE, MF_NOHEAD);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("spore",	species_fungus, 'o',	c_ltgray,	MS_TINY,	VEGGY,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -622,6 +679,8 @@ across the ground like a mass of living\n\
 oil."
 );
 FLAGS(MF_SMELLS, MF_HEARS, MF_GOODHEARING, MF_NOHEAD, MF_POISON, MF_NO_BREATHE, MF_ACIDPROOF);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("small blob",species_nether, 'o',	c_dkgray,	MS_SMALL,	LIQUID,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -632,6 +691,8 @@ across the ground like a mass of living\n\
 oil."
 );
 FLAGS(MF_SMELLS, MF_HEARS, MF_GOODHEARING, MF_NOHEAD, MF_POISON, MF_NO_BREATHE, MF_ACIDPROOF);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 // CHUDS & SUBWAY DWELLERS
 mon("C.H.U.D.",	species_none, 'S',	c_ltgray,	MS_MEDIUM,	FLESH,
@@ -644,6 +705,8 @@ the subways."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_WARM, MF_BASHES, MF_HUMAN, MF_VIS40, MF_BONES);
 FEARS(MTRIG_HURT, MTRIG_FIRE);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("one-eyed mutant",species_none, 'S',c_ltred,	MS_MEDIUM,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -654,6 +717,8 @@ hair and a grapefruit-sized bloodshot eye."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_WARM, MF_BASHES, MF_HUMAN, MF_BONES);
 FEARS(MTRIG_HURT, MTRIG_FIRE);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("crawler mutant",species_none, 'S',	c_red,		MS_LARGE,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -665,6 +730,8 @@ body across the ground."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_SMELLS, MF_WARM, MF_BASHES, MF_POISON, MF_HUMAN, MF_VIS40, MF_BONES);
 FEARS(MTRIG_HURT, MTRIG_FIRE);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("sewer fish",species_none, 's',	c_ltgreen,	MS_SMALL,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -695,6 +762,8 @@ scampers quickly across the ground, squeaking\n\
 hungrily."
 );
 FLAGS(MF_SEES, MF_SMELLS, MF_HEARS, MF_WARM, MF_SWIMS, MF_ANIMAL, MF_FUR, MF_VIS40, MF_BONES);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("rat king",species_mammal, 'S',	c_dkgray,	MS_MEDIUM,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -704,6 +773,10 @@ A group of several rats, their tails\n\
 knotted together in a filthy mass.  A wave\n\
 of nausea washes over you in its presence."
 );
+FLAGS(MF_SEES, MF_SMELLS, MF_HEARS, MF_WARM, MF_SWIMS, MF_ANIMAL, MF_FUR, MF_VIS40, MF_BONES);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
+
 
 // SWAMP CREATURES
 mon("giant mosquito",species_insect, 'y',c_ltgray,	MS_SMALL,	FLESH,
@@ -715,6 +788,8 @@ its face dominated by a long, spear-tipped\n\
 proboscis."
 );
 FLAGS(MF_SMELLS, MF_HEARS, MF_STUMBLES, MF_VENOM, MF_FLIES, MF_HIT_AND_RUN);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("giant dragonfly",species_insect, 'y',c_ltgreen,	MS_SMALL,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -734,6 +809,8 @@ dozens of thin legs, a pair of venomous\n\
 pincers attached to its head."
 );
 FLAGS(MF_SMELLS, MF_HEARS, MF_POISON, MF_VENOM);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("giant frog",species_none, 'F',	c_green,	MS_LARGE,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -744,6 +821,8 @@ much as you imagine it might eye an insect."
 );
 FLAGS(MF_SEES, MF_SMELLS, MF_HEARS, MF_SWIMS, MF_LEATHER, MF_VIS40, MF_BONES);
 FEARS(MTRIG_HURT);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("giant slug",species_none, 'S',	c_yellow,	MS_HUGE,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -765,6 +844,8 @@ a set of mandibles that look more suited for\n\
 digging than fighting."
 );
 FLAGS(MF_HEARS, MF_SMELLS, MF_POISON, MF_DIGS);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("dermatik",	species_insect, 'i',	c_red,		MS_TINY,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -776,6 +857,8 @@ threatening, but has a large ovipositor in\n\
 place of a sting."
 );
 FLAGS(MF_HEARS, MF_SMELLS, MF_STUMBLES, MF_POISON, MF_FLIES);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 
 // SPIDERS
@@ -787,6 +870,8 @@ A large, brown spider, which moves quickly\n\
 and aggresively."
 );
 FLAGS(MF_SMELLS, MF_HEARS, MF_VENOM);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("web spider",species_insect, 's',	c_yellow,	MS_SMALL,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -797,6 +882,8 @@ in webs, waiting for prey to become\n\
 entangled before pouncing and biting."
 );
 FLAGS(MF_SMELLS, MF_HEARS, MF_VENOM, MF_WEBWALK);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("jumping spider",species_insect, 's',c_white,	MS_SMALL,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -808,6 +895,8 @@ instantaneously move from one place to\n\
 another."
 );
 FLAGS(MF_SMELLS, MF_HEARS, MF_VENOM, MF_HIT_AND_RUN);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("trap door spider",species_insect, 's',c_blue,	MS_MEDIUM,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -819,6 +908,8 @@ wait for prey to fall in and become trapped\n\
 in its webs."
 );
 FLAGS(MF_SMELLS, MF_HEARS, MF_VENOM, MF_WEBWALK);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("black widow",species_insect, 's',	c_dkgray,	MS_SMALL,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -842,6 +933,8 @@ round mouth lined with dagger-like teeth."
 );
 FLAGS(MF_SMELLS, MF_HEARS, MF_GOODHEARING, MF_DESTROYS, MF_POISON, MF_SUNDEATH,
       MF_ACIDPROOF, MF_ACIDTRAIL);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("Amigara horror",species_none, 'H',	c_white,	MS_LARGE,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -853,6 +946,8 @@ grotesquely stretched out, and its limbs are\n\
 distorted to the point of being tentacles."
 );
 FLAGS(MF_SMELLS, MF_HEARS, MF_SEES, MF_STUMBLES, MF_HARDTOSHOOT);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 // This "dog" is, in fact, a disguised Thing
 mon("dog",	species_nether, 'd',	c_white,	MS_SMALL,	FLESH,
@@ -863,6 +958,8 @@ A medium-sized domesticated dog, gone feral."
 );
 FLAGS(MF_SEES, MF_SMELLS, MF_HEARS, MF_ANIMAL, MF_WARM, MF_FUR,
       MF_FRIENDLY_SPECIAL);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("tentacle dog",species_nether, 'd',	c_dkgray,	MS_MEDIUM,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -872,6 +969,8 @@ A dog's body with a mass of ropy, black\n\
 tentacles extending from its head."
 );
 FLAGS(MF_SEES, MF_SMELLS, MF_HEARS, MF_BASHES);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("Thing",	species_nether, 'H',	c_dkgray,	MS_LARGE,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -882,6 +981,8 @@ sprout tentacles rapidly."
 );
 FLAGS(MF_SMELLS, MF_HEARS, MF_NOHEAD, MF_BASHES, MF_SWIMS, MF_ATTACKMON,
       MF_PLASTIC, MF_ACIDPROOF);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("human snail",species_none, 'h',	c_green,	MS_LARGE,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -901,6 +1002,8 @@ A human body, but with its limbs, neck, and\n\
 hair impossibly twisted."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_GOODHEARING, MF_POISON, MF_HUMAN, MF_VIS40);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("vortex",	species_none, 'v',	c_white,	MS_SMALL,	POWDER,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -911,6 +1014,8 @@ of morphing mass at its center."
 );
 FLAGS(MF_HEARS, MF_GOODHEARING, MF_STUMBLES, MF_NOHEAD, MF_HARDTOSHOOT,
       MF_FLIES, MF_PLASTIC, MF_NO_BREATHE, MF_FRIENDLY_SPECIAL);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 // NETHER WORLD INHABITANTS
 mon("flying polyp",species_nether, 'H',	c_dkgray,	MS_HUGE,	FLESH,
@@ -922,6 +1027,8 @@ that flies through the air swiftly."
 );
 FLAGS(MF_SMELLS, MF_HEARS, MF_GOODHEARING, MF_NOHEAD, MF_BASHES, MF_FLIES,
       MF_ATTACKMON, MF_PLASTIC, MF_NO_BREATHE, MF_HIT_AND_RUN);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("hunting horror",species_nether, 'h',c_dkgray,	MS_SMALL,	MNULL,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -934,6 +1041,8 @@ writhing."
 );
 FLAGS(MF_SEES, MF_SMELLS, MF_HEARS, MF_NOHEAD, MF_HARDTOSHOOT, MF_FLIES,
       MF_PLASTIC, MF_SUNDEATH, MF_NO_BREATHE, MF_HIT_AND_RUN);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("Mi-go",	species_nether, 'H',	c_pink,		MS_MEDIUM,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -945,6 +1054,8 @@ appendages and a head covered with waving\n\
 antennae."
 );
 FLAGS(MF_SEES, MF_SMELLS, MF_HEARS, MF_WARM, MF_BASHES, MF_POISON, MF_NO_BREATHE, MF_VIS50);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("yugg",	species_nether, 'H',	c_white,	MS_HUGE,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -957,6 +1068,8 @@ pink mouth, lined with rows of fangs."
 );
 FLAGS(MF_SEES, MF_SMELLS, MF_HEARS, MF_BASHES, MF_DESTROYS, MF_POISON, MF_VENOM, MF_NO_BREATHE,
       MF_DIGS, MF_VIS40);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("gelatinous blob",species_nether, 'O',c_ltgray,	MS_LARGE,	LIQUID,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -967,6 +1080,8 @@ oozes slowly across the ground, small\n\
 chunks falling off of its sides."
 );
 FLAGS(MF_SMELLS, MF_HEARS, MF_PLASTIC, MF_NO_BREATHE, MF_NOHEAD);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("flaming eye",species_nether, 'E',	c_red,		MS_MEDIUM,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -988,6 +1103,8 @@ scampers across the ground, panting and\n\
 grunting."
 );
 FLAGS(MF_SEES, MF_SMELLS, MF_HEARS, MF_WARM, MF_BASHES, MF_HIT_AND_RUN, MF_NO_BREATHE, MF_VIS50, MF_BONES);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("gracken",species_nether, 'G',      c_white,        MS_MEDIUM,      FLESH,
 //      dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -999,6 +1116,8 @@ fast they appear as nothing but\n\
 blurs."
 );
 FLAGS(MF_SMELLS, MF_HEARS, MF_WARM, MF_NO_BREATHE, MF_ANIMAL);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 
 mon("blank body",species_nether, 'h',	c_white,	MS_MEDIUM,	FLESH,
@@ -1011,6 +1130,8 @@ features save for a perfectly round\n\
 mouth."
 );
 FLAGS(MF_SMELLS, MF_HEARS, MF_WARM, MF_ANIMAL, MF_SUNDEATH, MF_NO_BREATHE, MF_HUMAN, MF_BONES);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("Gozu",	species_nether, 'G',	c_white,	MS_MEDIUM,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -1022,6 +1143,8 @@ milky white drool dripping from its mouth,\n\
 wearing only a pair of white underwear."
 );
 FLAGS(MF_SEES, MF_SMELLS, MF_HEARS, MF_WARM, MF_BASHES, MF_ANIMAL, MF_FUR, MF_NO_BREATHE, MF_VIS30, MF_BONES);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("shadow",	species_nether,'S',	c_dkgray,	MS_TINY,	MNULL,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -1033,6 +1156,9 @@ softly as it moves."
 FLAGS(MF_SEES, MF_HEARS, MF_GOODHEARING, MF_SMELLS, MF_NOHEAD, MF_HARDTOSHOOT,
       MF_GRABS, MF_WEBWALK, MF_FLIES, MF_PLASTIC, MF_SUNDEATH, MF_ELECTRIC,
       MF_ACIDPROOF, MF_HIT_AND_RUN, MF_NO_BREATHE, MF_VIS50);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
+
 
 // The hub
 mon("breather",	species_nether,'O',	c_pink,		MS_MEDIUM,	MNULL,
@@ -1094,6 +1220,8 @@ quickly across the ground, two electric\n\
 prods at the ready."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_GOODHEARING, MF_ELECTRONIC, MF_NO_BREATHE, MF_VIS50);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("secubot",	species_robot, 'R',	c_dkgray,	MS_SMALL,	STEEL,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -1105,6 +1233,8 @@ a large machine gun type weapon.  It is\n\
 heavily armored."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_BASHES, MF_ATTACKMON, MF_ELECTRONIC, MF_NO_BREATHE, MF_VIS50);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("copbot",	species_robot, 'R',	c_dkgray,	MS_MEDIUM,	STEEL,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -1115,6 +1245,8 @@ set of three omniwheels.  It has a nightstick\n\
 readied, and appears to be well-armored."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_BASHES, MF_ATTACKMON, MF_ELECTRONIC, MF_NO_BREATHE, MF_VIS50);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("molebot",	species_robot, 'R',	c_brown,	MS_MEDIUM,	STEEL,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -1126,6 +1258,8 @@ ground it can attack with its large, spike-\n\
 covered head."
 );
 FLAGS(MF_HEARS, MF_GOODHEARING, MF_DIGS, MF_NO_BREATHE, MF_ELECTRONIC);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("tripod robot",species_robot, 'R',	c_white,	MS_LARGE,	STEEL,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -1136,6 +1270,8 @@ legs.  It has a pair of spiked tentacles, as\n\
 well as a flamethrower mounted on its head."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_GOODHEARING, MF_BASHES, MF_NO_BREATHE, MF_ELECTRONIC);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("chicken walker",species_robot, 'R',c_red,		MS_LARGE,	STEEL,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -1147,6 +1283,8 @@ facing backwards.  It's armed with a\n\
 nasty-looking machine gun."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_BASHES, MF_NO_BREATHE, MF_ELECTRONIC);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("tankbot",	species_robot, 'R',	c_blue,		MS_HUGE,	STEEL,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -1159,6 +1297,8 @@ deadly weapons."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_GOODHEARING, MF_NOHEAD, MF_BASHES, MF_DESTROYS,
       MF_ATTACKMON, MF_NO_BREATHE, MF_ELECTRONIC);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("turret",	species_robot, 't',	c_ltgray,	MS_SMALL,	STEEL,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -1191,6 +1331,8 @@ uncertain legs, possessed with an\n\
 unstoppable rage."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_SMELLS, MF_STUMBLES, MF_NO_BREATHE, MF_VIS40);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("giant bee",species_hallu, 'a',	c_yellow,	MS_MEDIUM,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -1219,6 +1361,8 @@ mon("your mother",species_hallu, '@',	c_white,	MS_MEDIUM,	FLESH,
 Mom?"
 );
 FLAGS(MF_SEES, MF_HEARS, MF_NO_BREATHE, MF_SMELLS, MF_GUILT);
+//CAT-mgs: sound anger
+ANGER(MTRIG_PLAYER_CLOSE, MTRIG_SOUND);
 
 mon("generator", species_none, 'G',	c_white,	MS_LARGE,	STEEL,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq

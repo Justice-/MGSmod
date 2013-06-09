@@ -132,6 +132,7 @@ class iuse
   void rag              (game *g, player *p, item *it, bool t);
   void pda              (game *g, player *p, item *it, bool t);
   void pda_flashlight   (game *g, player *p, item *it, bool t);
+  void LAW              (game *g, player *p, item *it, bool t);
 
 // MACGUFFINS
   void mcg_note		(game *g, player *p, item *it, bool t);

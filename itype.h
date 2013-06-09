@@ -41,7 +41,8 @@ itm_fire, itm_toolset, itm_apparatus,
 itm_water, itm_water_clean, itm_sewage, itm_salt_water, itm_oj, itm_apple_cider,
  itm_energy_drink, itm_cola, itm_rootbeer, itm_milk, itm_V8, itm_broth,
  itm_soup_veggy, itm_soup_meat, itm_whiskey, itm_vodka, itm_gin, itm_rum, itm_tequila, itm_triple_sec,
- itm_long_island, itm_beer, itm_bleach,
+//CAT-mgs:
+ itm_long_island, itm_beer, itm_beer_keg, itm_bleach,
  itm_ammonia, itm_mutagen, itm_purifier, itm_tea, itm_coffee, itm_blood,
 // Monster Meats
  itm_bone, itm_plant_sac, itm_meat, itm_veggy, itm_human_flesh, itm_veggy_wild, itm_meat_tainted, itm_veggy_tainted,
@@ -148,7 +149,7 @@ itm_ring, itm_necklace,
  itm_45_acp, itm_45_jhp, itm_45_super, itm_57mm, itm_46mm, itm_762_m43,
  itm_762_m87, itm_223, itm_556, itm_556_incendiary, itm_270, itm_3006,
  itm_3006_incendiary, itm_308, itm_762_51, itm_762_51_incendiary,
- itm_laser_pack, itm_40mm_concussive, itm_40mm_frag, itm_40mm_incendiary,
+ itm_laser_pack, itm_40mm_concussive, itm_66mm_HEAT, itm_40mm_frag, itm_40mm_incendiary,
  itm_40mm_teargas, itm_40mm_smoke, itm_40mm_flashbang, itm_12mm, itm_plasma,
  itm_charge_shot,
  itm_shot_hull,
@@ -171,8 +172,9 @@ itm_nailgun, itm_bbgun, itm_crossbow, itm_compbow, itm_longbow, itm_rifle_22,
  itm_hk_g36, itm_ak47, itm_fn_fal, itm_acr, itm_ar15, itm_m4a1, itm_scar_l,
  itm_scar_h, itm_steyr_aug, itm_m249, itm_v29, itm_ftk93, itm_nx17,
  itm_flamethrower_simple, itm_flamethrower, itm_launcher_simple, itm_m79,
- itm_m320, itm_mgl, itm_coilgun, itm_hk_g80, itm_plasma_rifle,
+ itm_m320, itm_mgl, itm_law, itm_coilgun, itm_hk_g80, itm_plasma_rifle,
  itm_revolver_shotgun,
+
 // Gun modifications
 itm_silencer, itm_grip, itm_barrel_big, itm_barrel_small, itm_barrel_rifled,
  itm_clip, itm_clip2, itm_spare_mag, itm_stablizer, itm_blowback, itm_autofire,
@@ -218,7 +220,8 @@ itm_lighter, itm_sewing_kit, itm_scissors, itm_hammer, itm_extinguisher,
  itm_boltcutters, itm_mop, itm_picklocks, itm_pickaxe, itm_spray_can, itm_rag,
  itm_pda, itm_pda_flashlight, itm_pockknife, itm_needle_bone,
  itm_primitive_hammer, itm_primitive_axe, itm_primitive_shovel, itm_digging_stick,
-  itm_shelter_kit, itm_damaged_shelter_kit,
+  itm_shelter_kit, itm_damaged_shelter_kit, itm_law_packed,
+
 // Bionics containers
 itm_bionics_battery,
  //power sources
@@ -294,6 +297,7 @@ AT_22, AT_9MM, AT_762x25, AT_38, AT_40, AT_44, AT_45,
 AT_57, AT_46,
 AT_762, AT_223, AT_3006, AT_308,
 AT_40MM,
+AT_66MM,
 AT_GAS,
 AT_FUSION,
 AT_MUSCLE,
@@ -336,6 +340,8 @@ IF_SHOCK,   // Stuns and damages enemies, powers up shockers.
 
 IF_UNARMED_WEAPON, // Counts as an unarmed weapon
 IF_NO_UNWIELD, // Impossible to unwield, e.g. bionic claws
+IF_NO_UNLOAD,  // Cannot be unloaded. For Fusion rifles and other ammo generating weapons.
+IF_BACKBLAST, // Spawns with ammo, used for non reloadable guns. Like the LAW.
 
 // Weapon mode flags
 IF_MODE_AUX, // A gunmod with a firing mode

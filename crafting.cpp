@@ -1526,7 +1526,8 @@ void game::craft()
      tab = CC_WEAPON;
     else
      tab = craft_cat(int(tab) + 1);
-    redraw = true;
+
+     redraw = true;
     break;
    case DirectionS:
     line++;

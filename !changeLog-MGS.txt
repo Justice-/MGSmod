@@ -1,0 +1,69 @@
+- Metal Gear ZK-Mk.3
+- enable/disable turrets individually
+- show available ammo for mounted turrets
+- show fuel tanks charges in constr. menu
+- range based mounted turrets targeting
+- prevent burst turrets shoot player
+- new flame bursts and trail effects
+- new explosion animations
+- mountable M72 LAW rocket launcher
+- animation for rockets smoke trails
+- beer also in cans not just in kegs
+- added moon phase indicator
+- extended monsters reaction to noise
+- read with wielded torch and candle light
+- added range info when looking arround
+- some bugfixes from DDA v0.4 main bracnh
+- some additions from DDA v0.4 main bracnh
+- water sound effects: splash, swim, dive
+- game over will not delete save-file
+- combined looking around and shift-view
+- fixed remaining targeting bugs
+
+
+Cataclysm DDA version 0.3 + MGSmod rev.11
+FEATURES:
+- expanded weather effects: lightnings, rain puddles and snow piles (ice and oil unused) 
+- losing control when driving  depends on what are you driving over instead just driving skill
+- loosing control when driving can happen easier when driving over rain and snow puddles 
+
+BUG FIXES:
+- no more constant crashes (DDA ver 0.3)
+- dynamic spawning working (DDA ver 0.3)
+- missing help windows visible (DDA ver 0.2)
+- fixed invisible debug messages (DDA ver 0.2)
+- various windows refreshing properly (ver 0.2)
+- more rendering optimisation (DDA ver 0.2 & 0.3)
+
+MODIFICATIONS:
+- driving without even one tire will make a trail of rubbled dirt/road behind vehicle
+- monsters shorter senses,  to make possible to sneak around and between them
+- there are less monsters in both dynamic and static spawning, game's a bit easier   
+- improved and simplified targeting auto-shit view, and also re-centring 
+- improved some old and added some new sound effects
+
+
+
+*** Cataclysm DDA version 0.2 + MGSmod rev.07
+
+FEATURES:
+- music and sound effects
+- rounded lights for carrying light sources and on the ground
+- automatically shifts view forward to see more road when driving
+- automatically shifts view to keep target and character on the screen 
+
+BUGFIXES:
+- working animations on Windows, sleeping &waiting "fast forward", as on Linux
+- optimised rendering, significant speed increase and much smoother game-play
+- flashlight to draw "gradual fade off" properly instead of only on one side
+- fixed disappearing headlights when car gets out of the view
+- included torch to give off light when dropped on the ground
+- show "Smash where?" and "Compare where?" messages
+
+CHANGES:
+- vehiecle headlights have increased range
+- instead of grey "#" character darkness is completely black
+- cruise speed does not turn off upon impact, just sets to zero
+- road yellow lines visible with night vision and under low light 
+- night vision with two shades of green, for lit and non-lit areas 
+- (Windows) some brighter colors and more similar to Linux version

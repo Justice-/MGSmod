@@ -2,6 +2,7 @@ data/audio/*
 save/*
 *.wav
 *.mp3
+*.ogg
 *.slo
 *.lo
 *.o

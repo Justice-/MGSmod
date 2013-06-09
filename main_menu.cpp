@@ -17,7 +17,7 @@ void game::print_menu(WINDOW* w_open, int iSel, const int iMenuOffsetX, int iMen
 //    for (int i = 1; i < 79; i++)
 //        mvwputch(w_open, 23, i, c_white, LINE_OXOX);
 
-    mvwprintz(w_open, 23, 5, c_ltblue, "Dark Days Ahead v0.3:MGSmod rev.11 *** Forum: www.cataclysmdda.com/smf");
+    mvwprintz(w_open, 23, 4, c_ltblue, "Cataclysm: Metal Gear Solid (rev.19) *** Forum: www.cataclysmdda.com/smf");
 
     int iLine = 0;
     const int iOffsetX1 = 3;
@@ -219,9 +219,11 @@ bool game::opening_screen()
 //    refresh();
 
 //CAT-mgs:
-sel2= 2;
-layer= 3;
- //   input = get_input();
+//sel2= 2;
+//layer= 3;
+
+//CAT-mgs: disable
+   input = get_input();
 
     if (input == DirectionN) {
      if (sel2 > 1)

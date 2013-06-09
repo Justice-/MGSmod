@@ -16,7 +16,6 @@
 #include "debug.h"
 #include "cursesdef.h"
 #include "options.h"
-#include "options.h"
 
 #define STREETCHANCE 2
 #define NUM_FOREST 250
@@ -913,10 +912,13 @@ int overmap::dist_from_city(point p)
 void overmap::draw(WINDOW *w, game *g, int z, int &cursx, int &cursy,
                    int &origx, int &origy, char &ch, bool blink)
 {
+
  bool legend = true, note_here = false, npc_here = false;
  std::string note_text, npc_name;
+
  int om_map_width = TERMX-28;
  int om_map_height = TERMY;
+
 
  int omx, omy;
  overmap hori, vert, diag; // Adjacent maps
@@ -955,10 +957,12 @@ void overmap::draw(WINDOW *w, game *g, int z, int &cursx, int &cursy,
   for (int i = -(om_map_width / 2); i < (om_map_width / 2); i++) {
     for (int j = -(om_map_height / 2);
          j <= (om_map_height / 2) + (ch == 'j' ? 1 : 0); j++) {
+
     omx = cursx + i;
     omy = cursy + j;
     see = false;
     npc_here = false;
+
     if (omx >= 0 && omx < OMAPX && omy >= 0 && omy < OMAPY) { // It's in-bounds
      cur_ter = ter(omx, omy, z);
      see = seen(omx, omy, z);
@@ -976,7 +980,11 @@ void overmap::draw(WINDOW *w, game *g, int z, int &cursx, int &cursy,
       }
      }
 // <Out of bounds placement>
-    } else if (omx < 0) {
+    } 
+
+
+//CAT-mgs: this doesn't get triggered vvv ?
+    else if (omx < 0) {
      omx += OMAPX;
      if (omy < 0 || omy >= OMAPY) {
       omy += (omy < 0 ? OMAPY : 0 - OMAPY);
@@ -992,7 +1000,9 @@ void overmap::draw(WINDOW *w, game *g, int z, int &cursx, int &cursy,
       if (note_here)
        note_text = hori.note(omx, omy, z);
      }
+
     } else if (omx >= OMAPX) {
+
      omx -= OMAPX;
      if (omy < 0 || omy >= OMAPY) {
       omy += (omy < 0 ? OMAPY : 0 - OMAPY);
@@ -1008,13 +1018,16 @@ void overmap::draw(WINDOW *w, game *g, int z, int &cursx, int &cursy,
       if (note_here)
        note_text = hori.note(omx, omy, z);
      }
+
     } else if (omy < 0) {
+
      omy += OMAPY;
      cur_ter = vert.ter(omx, omy, z);
      see = vert.seen(omx, omy, z);
      note_here = vert.has_note(omx, omy, z);
      if (note_here)
       note_text = vert.note(omx, omy, z);
+
     } else if (omy >= OMAPY) {
      omy -= OMAPY;
      cur_ter = vert.ter(omx, omy, z);
@@ -1022,8 +1035,12 @@ void overmap::draw(WINDOW *w, game *g, int z, int &cursx, int &cursy,
      note_here = vert.has_note(omx, omy, z);
      if (note_here)
       note_text = vert.note(omx, omy, z);
+
     } else
      debugmsg("No data loaded! omx: %d omy: %d", omx, omy);
+
+//CAT-mgs: this doesn't get triggered ^^^ ?
+
 // </Out of bounds replacement>
     if (see) {
      if (note_here && blink) {
@@ -1059,8 +1076,10 @@ void overmap::draw(WINDOW *w, game *g, int z, int &cursx, int &cursy,
     } else
       mvwputch    (w, (om_map_height / 2) + j, (om_map_width / 2) + i,
                    ter_color, ter_sym);
+
    }
   }
+
   if (target.x != -1 && target.y != -1 && blink &&
       (target.x < cursx - om_map_height / 2 ||
         target.x > cursx + om_map_height / 2  ||
@@ -1096,16 +1115,20 @@ void overmap::draw(WINDOW *w, game *g, int z, int &cursx, int &cursy,
    mvwputch(w, 0, npc_name.length(), c_white, LINE_XOXO);
    mvwprintz(w, 0, 0, c_yellow, npc_name.c_str());
   }
-  if (legend) {
+
+
+//CAT-mgs: legend
+
    cur_ter = ter(cursx, cursy, z);
-// Draw the vertical line
-   for (int j = 0; j < om_map_height; j++)
-    mvwputch(w, j, om_map_width, c_white, LINE_XOXO);
 // Clear the legend
    for (int i = om_map_width + 1; i < om_map_width + 55; i++) {
     for (int j = 0; j < om_map_height; j++)
      mvwputch(w, j, i, c_black, ' ');
    }
+
+// Draw the vertical line
+   for (int j = 0; j < om_map_height; j++)
+    mvwputch(w, j, om_map_width, c_white, LINE_XOXO);
 
    if (csee) {
     mvwputch(w, 1, om_map_width + 1, oterlist[ccur_ter].color, oterlist[ccur_ter].sym);
@@ -1126,8 +1149,7 @@ void overmap::draw(WINDOW *w, game *g, int z, int &cursx, int &cursy,
    mvwprintz(w, 22, om_map_width + 1, c_magenta, "D - Delete a note          ");
    mvwprintz(w, 23, om_map_width + 1, c_magenta, "L - List notes             ");
    mvwprintz(w, 24, om_map_width + 1, c_magenta, "Esc or q - Return to game  ");
-  }
-// Done with all drawing!
+
   wrefresh(w);
 }
 
@@ -1147,13 +1169,17 @@ point overmap::choose_point(game *g, int const zlevel)
   draw(w_map, g, zlevel, cursx, cursy, origx, origy, ch, blink);
   ch = input();
   int dirx, diry;
+
   if (ch != ERR)
-   blink = true;	// If any input is detected, make the blinkies on
+   blink = true;
+
   get_direction(g, dirx, diry, ch);
   if (dirx != -2 && diry != -2) {
    cursx += dirx;
    cursy += diry;
-  } else if (ch == '0') {
+  }
+  else
+  if (ch == '0') {
    cursx = origx;
    cursy = origy;
   } else if (ch == '\n')
@@ -1231,17 +1257,17 @@ point overmap::choose_point(game *g, int const zlevel)
      ch = '.';
     }
    }
-   if (found.x != -1) {
+
+   if (found.x != -1)
+   {
     cursx = found.x;
     cursy = found.y;
    }
-  }/* else if (ch == 't')  *** Legend always on for now! ***
-   legend = !legend;
-*/
-  else if (ch == ERR)	// Hit timeout on input, so make characters blink
-   blink = !blink;
- } while (ch != KEY_ESCAPE && ch != 'q' && ch != 'Q' && ch != ' ' &&
-          ch != '\n');
+  }
+
+ } while (ch != KEY_ESCAPE && ch != 'q' && ch != 'Q' 
+					&& ch != ' ' && ch != '\n');
+
  timeout(-1);
  werase(w_map);
  wrefresh(w_map);
@@ -1631,6 +1657,11 @@ bool overmap::build_lab(int x, int y, int z, int s)
                          ter(finalex, finaley, z) != ot_lab_core);
   ter(finalex, finaley, z) = ot_lab_finale;
  }
+
+//CAT-mgs: more excitement in the lab?
+//... not working, back to default
+// zg.push_back(mongroup("GROUP_LAB", (x * 2), (y * 2), z, s+90, 3000));
+
  zg.push_back(mongroup("GROUP_LAB", (x * 2), (y * 2), z, s, 400));
 
  return numstairs > 0;

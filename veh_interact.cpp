@@ -110,9 +110,12 @@ void veh_interact::exec (game *gm, vehicle *v, int x, int y)
             }
             if (sel_cmd != ' ')
                 finish = true;
+
             display_mode (' ');
         }
     }
+
+//CAT-g: 
     werase(w_grid);
     werase(w_mode);
     werase(w_msg);
@@ -127,7 +130,7 @@ void veh_interact::exec (game *gm, vehicle *v, int x, int y)
     delwin(w_parts);
     delwin(w_stats);
     delwin(w_list);
-    erase();
+//    erase();
 }
 
 int veh_interact::cant_do (char mode)
@@ -313,27 +316,39 @@ void veh_interact::do_repair(int reason)
 
 void veh_interact::do_refill(int reason)
 {
+//CAT-g:
     werase (w_msg);
+
     switch (reason)
     {
     case 1:
         mvwprintz(w_msg, 0, 1, c_ltred, "There's no fuel tank here.");
         wrefresh (w_msg);
-        return;
+	  return;		
+
     case 2:
         mvwprintz(w_msg, 0, 1, c_ltgray, "You need %s.", veh->fuel_name(veh->part_info(ptank).fuel_type).c_str());
         mvwprintz(w_msg, 0, 10, c_red, veh->fuel_name(veh->part_info(ptank).fuel_type).c_str());
         wrefresh (w_msg);
-        return;
-    default:;
+	  return;		
+
+    default:
+        mvwprintz(w_msg, 0, 1, c_ltred, "Tank refilled/full.");
+        wrefresh (w_msg);
     }
+
     sel_cmd = 'f';
     sel_part = ptank;
+
+//CAT-g: missing screen here?
+    display_mode (' ');
+    getch();
 }
 
 void veh_interact::do_remove(int reason)
 {
     werase (w_msg);
+
     if (g->u.morale_level() < MIN_MORALE_CRAFT)
     { // See morale.h
         mvwprintz(w_msg, 0, 1, c_ltred, "Your morale is too low to construct...");
@@ -444,6 +459,7 @@ void veh_interact::move_cursor (int dx, int dy)
     mvwputch (w_disp, cy+6, cx+6, obstruct? red_background(col) : hilite(col),
                       special_symbol(cpart >= 0? veh->part_sym (cpart) : ' '));
     wrefresh (w_disp);
+
     werase (w_parts);
     veh->print_part_desc (w_parts, 0, winw2, cpart, -1);
     wrefresh (w_parts);
@@ -468,13 +484,15 @@ void veh_interact::move_cursor (int dx, int dy)
             int p = parts_here[i];
             if (veh->parts[p].hp < veh->part_info(p).durability)
                 need_repair.push_back (i);
-            if (veh->part_flag(p, vpf_fuel_tank) && veh->parts[p].amount < veh->part_info(p).size)
+//CAT-mgs: remove -> && veh->parts[p].amount < veh->part_info(p).size
+            if (veh->part_flag(p, vpf_fuel_tank))
                 ptank = p;
         }
     }
     has_fuel = ptank >= 0? g->pl_refill_vehicle(*veh, ptank, true) : false;
-    werase (w_msg);
-    wrefresh (w_msg);
+//CAT-g:
+//    werase (w_msg);
+//    wrefresh (w_msg);
     display_mode (' ');
 }
 
@@ -761,8 +779,10 @@ void complete_vehicle (game *g)
         g->u.practice ("mechanics", (vpart_list[part].difficulty + dd) * 5 + 20);
         break;
     case 'f':
-        if (!g->pl_refill_vehicle(*veh, part, true))
-            debugmsg ("complete_vehicle refill broken");
+//CAT-mgs:
+//        if (!g->pl_refill_vehicle(*veh, part, true))
+//            debugmsg ("complete_vehicle refill broken");
+
         g->pl_refill_vehicle(*veh, part);
         break;
     case 'o':
@@ -802,6 +822,4 @@ void complete_vehicle (game *g)
     default:;
     }
 }
-
-
 

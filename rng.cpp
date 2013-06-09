@@ -3,6 +3,9 @@
 
 long rng(long low, long high)
 {
+//cat-mgs: crashes, why?
+//return low + (rand() % (int)(high - low + 1));
+
  return low + long((high - low + 1) * double(rand() / double(RAND_MAX + 1.0)));
 }
 

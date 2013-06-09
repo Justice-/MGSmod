@@ -192,7 +192,7 @@ void game::setup()
 //CAT-mgs:
   cat_lightning= false;
 
-// Start with some nice weather... WEATHER_CLEAR
+// Start with some nice weather... 
  weather = WEATHER_CLEAR; // WEATHER_LIGHTNING WEATHER_SNOWSTORM WEATHER_ACID_RAIN 
  nextweather = MINUTES(STARTING_MINUTES + 30); // Weather shift in 30
 
@@ -1439,11 +1439,6 @@ bool game::handle_action()
 //CAT-s:
    playSound(1);
    wait();
-   if (veh_ctrl) {
-    veh->turret_mode++;
-    if (veh->turret_mode > 1)
-     veh->turret_mode = 0;
-   }
    playSound(2);
    break;
 
@@ -1942,7 +1937,7 @@ void game::load(std::string name)
 //CAT-g: some message to clear message windown
  add_msg("I'm all out of bubblegum...");
 
- draw();
+// draw();
 }
 
 void game::save()
@@ -2652,27 +2647,53 @@ void game::draw()
   tername = tername.substr(0, 14);
  werase(w_location);
  mvwprintz(w_location, 0,  0, oterlist[cur_ter].color, tername.c_str());
+
+//CAT: *** vvv
  if (levz < 0)
   mvwprintz(w_location, 0, 18, c_ltgray, "Underground");
  else
-  mvwprintz(w_location, 0, 18, weather_data[weather].color,
-                               weather_data[weather].name.c_str());
- nc_color col_temp = c_blue;
- if (temperature >= 90)
-  col_temp = c_red;
- else if (temperature >= 75)
-  col_temp = c_yellow;
- else if (temperature >= 60)
-  col_temp = c_ltgreen;
- else if (temperature >= 50)
-  col_temp = c_cyan;
- else if (temperature >  32)
-  col_temp = c_ltblue;
- if (OPTIONS[OPT_USE_CELSIUS])
-  wprintz(w_location, col_temp, " %dC", int((temperature - 32) / 1.8));
- else
-  wprintz(w_location, col_temp, " %dF", temperature);
+ {
+	mvwprintz(w_location, 0, 18, 
+		weather_data[weather].color, weather_data[weather].name.c_str());
+
+	nc_color col_temp = c_blue;
+	if (temperature >= 90)
+ 	  col_temp = c_red;
+	else if (temperature >= 75)
+ 	  col_temp = c_yellow;
+	else if (temperature >= 60)
+ 	  col_temp = c_white;
+	else if (temperature >= 50)
+ 	  col_temp = c_ltblue;
+	else if (temperature >  32)
+	  col_temp = c_cyan;
+
+	if (OPTIONS[OPT_USE_CELSIUS])
+ 	  wprintz(w_location, col_temp, " %dC", int((temperature - 32) / 1.8));
+	else
+	   wprintz(w_location, col_temp, " %dF", temperature);
+
+//CAT-mgs:
+	if(turn.is_night())
+	{
+		switch(turn.moon())
+		{
+			case 0:
+				wprintz(w_location, c_blue, "  New Moon");
+			break;
+			case 1:
+				wprintz(w_location, c_ltblue, "  Half Moon");
+			break;
+			case 2:
+				wprintz(w_location, c_cyan, "  Full Moon");
+			break;
+		}
+	}
+ }
+
  wrefresh(w_location);
+//CAT: *** ^^^
+
 
  mvwprintz(w_status, 0, 41, c_white, "%s, day %d",
            season_name[turn.season].c_str(), turn.day + 1);
@@ -2691,7 +2712,6 @@ void game::draw()
 	static int time2growl= 0;
 	static bool oldOutside= false;
 
-
 	if(one_in(5) && (iPercent < 10) && (++time2growl > closeMonster*2))
 	{
 	   playSound(rng(13,22));
@@ -2699,6 +2719,12 @@ void game::draw()
 	}
 
 
+	if(u.underwater)
+	{
+		playMusic(7);
+		stopLoop(-99);
+	}
+	else
 	if(u.has_active_item(itm_mp3_on))
 	{
 		if(!mp3Track())
@@ -2721,6 +2747,7 @@ void game::draw()
 		{
 			playSound(55);
 			oldOutside= false;
+			stopLoop(-99);
 		}
 		playMusic(1);
 	}
@@ -2733,39 +2760,39 @@ void game::draw()
 			playSound(55);
 			oldOutside= true;
 		}
-		playMusic(3);
 
+		vehicle *veh = m.veh_at (u.posx, u.posy);
+
+		if(u.in_vehicle)
+		{
+			playLoop(51);
+			loopVolume((int)(abs(veh->velocity*2)/100)+10);
+		}
+		else
+		{
+			playMusic(3);
+
+			if(weather == WEATHER_DRIZZLE || weather == WEATHER_ACID_DRIZZLE)
+				playLoop(64);
+			else
+			if(weather == WEATHER_RAINY || weather == WEATHER_ACID_RAIN)
+				playLoop(65);
+			else
+			if(weather == WEATHER_THUNDER || weather == WEATHER_LIGHTNING) 
+				playLoop(66);
+			else
+			if(weather == WEATHER_SNOWSTORM) 
+				playLoop(67);
+			else
+				stopLoop(-99);
+		}
 	}
 	else
 	if(levz < 0)
 		playMusic(2);
-
-
-	vehicle *veh = m.veh_at (u.posx, u.posy);
-	if(u.in_vehicle)
-	{
-			playLoop(51);
-			loopVolume((int)(abs(veh->velocity*2)/100)+10);
-	}
-	else
-	if(m.is_outside(u.posx, u.posy))
-	{
-		if(weather == WEATHER_DRIZZLE || weather == WEATHER_ACID_DRIZZLE)
-			playLoop(64);
-		else
-		if(weather == WEATHER_RAINY || weather == WEATHER_ACID_RAIN)
-			playLoop(65);
-		else
-		if(weather == WEATHER_THUNDER || weather == WEATHER_LIGHTNING) 
-			playLoop(66);
-		else
-		if(weather == WEATHER_SNOWSTORM) 
-			playLoop(67);
-		else
-			stopLoop(-99);
-	}
 	else
 	   stopLoop(-99);
+
 
 //CAT-s: END *** 
  }
@@ -3169,7 +3196,7 @@ float game::natural_light_level()
 
 unsigned char game::light_level()
 {
- //already found the light level for now?
+
  if(turn == latest_lightlevel_turn)
   return latest_lightlevel;
 
@@ -3192,10 +3219,14 @@ unsigned char game::light_level()
     ret = (ret * (25 - turns_left)) / 25;
   }
  }
+
+//CAT-g: defines self-ilumination
+// ...similar but different to items on the ground handled in lightmap
+
  int flashlight = u.active_item_charges(itm_flashlight_on);
  if (ret < 10 && flashlight > 0) {
-/* additive so that low battery flashlights still increase the light level
-	rather than decrease it 						*/
+// additive so that low battery flashlights
+// still increase the light level rather than decrease it
   ret += flashlight;
   if (ret > 10)
    ret = 10;
@@ -3213,8 +3244,10 @@ unsigned char game::light_level()
  if (ret < 1)
   ret = 1;
 
+
  latest_lightlevel = ret;
  latest_lightlevel_turn = turn;
+
  return ret;
 }
 
@@ -3289,6 +3322,7 @@ faction* game::random_evil_faction()
  return &(factions[factions.size() - 1]);
 }
 
+//CAT-mgs: handle monster reaction here, or 'monster.cpp' as it is?
 bool game::sees_u(int x, int y, int &t)
 {
  // TODO: [lightmap] Apply default monster vison levels here
@@ -3312,9 +3346,10 @@ bool game::sees_u(int x, int y, int &t)
   else if(z[mondex].has_flag(MF_VIS50))
    range -= 10;
  }
+
  if( range <= 0)
   range = 1;
-
+ 
  return (!u.has_active_bionic(bio_cloak) &&
          !u.has_artifact_with(AEP_INVISIBLE) &&
          m.sees(x, y, u.posx, u.posy, range, t));
@@ -3469,7 +3504,7 @@ void game::mon_info()
     if (sees_u(z[i].posx, z[i].posy, j))
      mon_dangerous = true;
 
-//CAT-g:
+//CAT-g: what did I do here?
 //    if (rl_dist(u.posx, u.posy, z[i].posx, z[i].posy) <= iProxyDist)
 //     newseen++;
 
@@ -3691,125 +3726,79 @@ void game::cleanup_dead()
 
 }
 
+
+//CAT-mgs: ***** vvv ******
 void game::monmove()
 {
- cleanup_dead();
- for (int i = 0; i < z.size(); i++) {
-  if (i < 0 || i > z.size())
-  {
-   dbg(D_ERROR) << "game:monmove: Moving out of bounds monster! i "
-                << i << ", z.size() " << z.size();
-   debugmsg("Moving out of bounds monster! i %d, z.size() %d", i, z.size());
-  }
-  while (!z[i].dead && !z[i].can_move_to(m, z[i].posx, z[i].posy)) {
-// If we can't move to our current position, assign us to a new one
-   if (debugmon)
+   cleanup_dead();
+
+   for (int i = 0; i < z.size(); i++)
    {
-    dbg(D_ERROR) << "game:monmove: " << z[i].name().c_str()
-                 << " can't move to its location! (" << z[i].posx
-                 << ":" << z[i].posy << "), "
-                 << m.tername(z[i].posx, z[i].posy).c_str();
-    debugmsg("%s can't move to its location! (%d:%d), %s", z[i].name().c_str(),
-             z[i].posx, z[i].posy, m.tername(z[i].posx, z[i].posy).c_str());
+	while(!z[i].dead && !z[i].can_move_to(m, z[i].posx, z[i].posy))
+	{
+		bool okay = false;
+		int xdir = rng(1, 2) * 2 - 3, ydir = rng(1, 2) * 2 - 3; // -1 or 1
+		int startx = z[i].posx - 3 * xdir, endx = z[i].posx + 3 * xdir;
+		int starty = z[i].posy - 3 * ydir, endy = z[i].posy + 3 * ydir;
+
+		for(int x = startx; x != endx && !okay; x += xdir)
+		{
+		   for(int y = starty; y != endy && !okay; y += ydir)
+		   {
+			if(z[i].can_move_to(m, x, y))
+			{
+				z[i].posx = x;
+				z[i].posy = y;
+				okay = true;
+			}
+		   }
+		}
+
+		if(!okay)
+			z[i].dead = true;
+	}
+
+	if(!z[i].dead)
+	{
+		z[i].made_footstep = false;
+		z[i].process_effects(this);
+		z[i].process_triggers(this);
+		z[i].plan(this);
+
+		while(z[i].moves > 0 && !z[i].dead)
+			z[i].move(this);
+
+		if(z[i].hurt(0))
+		{	// Maybe we died...
+			kill_mon(i, false);
+			z[i].dead = true;
+		}
+		else
+		{
+			z[i].receive_moves();
+			m.mon_in_field(z[i].posx, z[i].posy, this, &(z[i]));
+
+			if(u.has_active_bionic(bio_alarm) && u.power_level >= 1 
+				&& rl_dist(u.posx, u.posy, z[i].posx, z[i].posy) <= 5)
+			{
+				u.power_level--;
+				add_msg("Your motion alarm goes off!");
+				cancel_activity_query("Your motion alarm goes off!");
+				if (u.has_disease(DI_SLEEP) || u.has_disease(DI_LYING_DOWN))
+				{
+					u.rem_disease(DI_SLEEP);
+					u.rem_disease(DI_LYING_DOWN);
+				}
+			}
+		}
+
+	}
    }
-   bool okay = false;
-   int xdir = rng(1, 2) * 2 - 3, ydir = rng(1, 2) * 2 - 3; // -1 or 1
-   int startx = z[i].posx - 3 * xdir, endx = z[i].posx + 3 * xdir;
-   int starty = z[i].posy - 3 * ydir, endy = z[i].posy + 3 * ydir;
-   for (int x = startx; x != endx && !okay; x += xdir) {
-    for (int y = starty; y != endy && !okay; y += ydir){
-     if (z[i].can_move_to(m, x, y)) {
-      z[i].posx = x;
-      z[i].posy = y;
-      okay = true;
-     }
-    }
-   }
-   if (!okay)
-    z[i].dead = true;
-  }
 
-  if (!z[i].dead) {
-   z[i].process_effects(this);
-   if (z[i].hurt(0))
-    kill_mon(i, false);
-  }
-
-  m.mon_in_field(z[i].posx, z[i].posy, this, &(z[i]));
-
-  while (z[i].moves > 0 && !z[i].dead) {
-   z[i].made_footstep = false;
-   z[i].plan(this);	// Formulate a path to follow
-   z[i].move(this);	// Move one square, possibly hit u
-   z[i].process_triggers(this);
-   m.mon_in_field(z[i].posx, z[i].posy, this, &(z[i]));
-   if (z[i].hurt(0)) {	// Maybe we died...
-    kill_mon(i, false);
-    z[i].dead = true;
-   }
-  }
-
-  if (!z[i].dead) {
-   if (u.has_active_bionic(bio_alarm) && u.power_level >= 1 &&
-       rl_dist(u.posx, u.posy, z[i].posx, z[i].posy) <= 5) {
-    u.power_level--;
-    add_msg("Your motion alarm goes off!");
-    cancel_activity_query("Your motion alarm goes off!");
-    if (u.has_disease(DI_SLEEP) || u.has_disease(DI_LYING_DOWN)) {
-     u.rem_disease(DI_SLEEP);
-     u.rem_disease(DI_LYING_DOWN);
-    }
-   }
-// We might have stumbled out of range of the player; if so, kill us
-   if (z[i].posx < 0 - (SEEX * MAPSIZE) / 6 ||
-       z[i].posy < 0 - (SEEY * MAPSIZE) / 6 ||
-       z[i].posx > (SEEX * MAPSIZE * 7) / 6 ||
-       z[i].posy > (SEEY * MAPSIZE * 7) / 6   ) {
-// Re-absorb into local group, if applicable
-    int group = valid_group((mon_id)(z[i].type->id), levx, levy, levz);
-    if (group != -1) {
-     cur_om.zg[group].population++;
-     if (cur_om.zg[group].population / pow(cur_om.zg[group].radius, 2.0) > 5 &&
-         !cur_om.zg[group].diffuse )
-      cur_om.zg[group].radius++;
-    } else if (MonsterGroupManager::Monster2Group((mon_id)(z[i].type->id)) != "GROUP_NULL") {
-     cur_om.zg.push_back(mongroup(MonsterGroupManager::Monster2Group((mon_id)(z[i].type->id)),
-                                  levx, levy, levz, 1, 1));
-    }
-    z[i].dead = true;
-   } else
-    z[i].receive_moves();
-  }
- }
-
-
-// cleanup_dead();
-
-//CAT-mgs: no NPCs - move
-/*
- for (int i = 0; i < active_npc.size(); i++) { 
-  int turns = 0;
-  if(active_npc[i].hp_cur[hp_head] <= 0 || active_npc[i].hp_cur[hp_torso] <= 0)
-	active_npc[i].die(this);
-  else {
-   active_npc[i].reset(this);
-   active_npc[i].suffer(this);
-   while (!active_npc[i].dead && active_npc[i].moves > 0 && turns < 10) {
-    turns++;
-    active_npc[i].move(this);
-    //build_monmap();
-   }
-   if (turns == 10) {
-    add_msg("%s's brain explodes!", active_npc[i].name.c_str());
-    active_npc[i].die(this);
-   }
-  }
- }
-*/
 
 //CAT-mgs: no NPCs - new move
- for(int i = 0; i < active_npc.size(); i++)
- { 
+   for(int i = 0; i < active_npc.size(); i++)
+   { 
 	if(active_npc[i].hp_cur[hp_head] <= 0 
 			|| active_npc[i].hp_cur[hp_torso] <= 0)
 		active_npc[i].die(this);
@@ -3817,26 +3806,32 @@ void game::monmove()
 	{
 	   active_npc[i].reset(this);
 	   active_npc[i].suffer(this);
-	   active_npc[i].move(this);
-	}
- }
 
- cleanup_dead();
+	   while(!active_npc[i].dead && active_npc[i].moves > 0 )
+		   active_npc[i].move(this);
+	}
+   }
+
 }
 
 
 void game::sound(int x, int y, int vol, std::string description)
 {
- vol *= 1.5; // Scale it a little
+//CAT-mgs: 
+ vol= vol*2; // Scale it a little
 // First, alert all monsters (that can hear) to the sound
  for (int i = 0; i < z.size(); i++) {
   if (z[i].can_hear()) {
    int dist = rl_dist(x, y, z[i].posx, z[i].posy);
-   int volume = vol - (z[i].has_flag(MF_GOODHEARING) ? int(dist / 2) : dist);
+//CAT-mgs:
+   int volume = vol - (z[i].has_flag(MF_GOODHEARING) ? int(dist / 8) : int(dist / 4));
+
+//CAT-mgs: it's getting accumulated?
    z[i].wander_to(x, y, volume);
    z[i].process_trigger(MTRIG_SOUND, volume);
   }
  }
+
 
 //CAT-mgs: check this
 // Loud sounds make the next spawn sooner!
@@ -3854,6 +3849,7 @@ void game::sound(int x, int y, int vol, std::string description)
   else
    nextspawn -= change;
  }
+
 // Next, display the sound as the player hears it
  if (description == "")
   return;	// No description (e.g., footsteps)
@@ -4031,37 +4027,59 @@ void game::explosion(int x, int y, int power, int shrapnel, bool fire)
    }
   }
  }
+
 // Draw the explosion
- for (int i = 1; i <= radius; i++) {
-  mvwputch(w_terrain, y - i + VIEWY - u.posy - u.view_offset_y,
-                      x - i + VIEWX - u.posx - u.view_offset_x, c_red, '/');
-  mvwputch(w_terrain, y - i + VIEWY - u.posy - u.view_offset_y,
-                      x + i + VIEWX - u.posx - u.view_offset_x, c_red,'\\');
-  mvwputch(w_terrain, y + i + VIEWY - u.posy - u.view_offset_y,
-                      x - i + VIEWX - u.posx - u.view_offset_x, c_red,'\\');
-  mvwputch(w_terrain, y + i + VIEWY - u.posy - u.view_offset_y,
-                      x + i + VIEWX - u.posx - u.view_offset_x, c_red, '/');
+//CAT-mgs:
+ nc_color cat_col= c_yellow;
+ mvwputch(w_terrain, y + VIEWY - u.posy - u.view_offset_y,
+		x + VIEWX - u.posx - u.view_offset_x, cat_col, '*');
+
+//CAT-mgs: *** vvv
+ for (int i = 1; i <= radius+1; i++) {
+
+  if(i > radius)
+	cat_col= c_ltred;
+  else
+  if(i > 2)
+	cat_col= c_red;
+
+  if(i != radius+1)
+  {
+	  mvwputch(w_terrain, y - i + VIEWY - u.posy - u.view_offset_y,
+                      x - i + VIEWX - u.posx - u.view_offset_x, cat_col, '*');
+	  mvwputch(w_terrain, y - i + VIEWY - u.posy - u.view_offset_y,
+                      x + i + VIEWX - u.posx - u.view_offset_x, cat_col,'*');
+	  mvwputch(w_terrain, y + i + VIEWY - u.posy - u.view_offset_y,
+                      x - i + VIEWX - u.posx - u.view_offset_x, cat_col,'*');
+	  mvwputch(w_terrain, y + i + VIEWY - u.posy - u.view_offset_y,
+                      x + i + VIEWX - u.posx - u.view_offset_x, cat_col, '*');
+  }
+
   for (int j = 1 - i; j < 0 + i; j++) {
    mvwputch(w_terrain, y - i + VIEWY - u.posy - u.view_offset_y,
-                       x + j + VIEWX - u.posx - u.view_offset_x, c_red,'-');
+                       x + j + VIEWX - u.posx - u.view_offset_x, cat_col,'*');
    mvwputch(w_terrain, y + i + VIEWY - u.posy - u.view_offset_y,
-                       x + j + VIEWX - u.posx - u.view_offset_x, c_red,'-');
+                       x + j + VIEWX - u.posx - u.view_offset_x, cat_col,'*');
    mvwputch(w_terrain, y + j + VIEWY - u.posy - u.view_offset_y,
-                       x - i + VIEWX - u.posx - u.view_offset_x, c_red,'|');
+                       x - i + VIEWX - u.posx - u.view_offset_x, cat_col,'*');
    mvwputch(w_terrain, y + j + VIEWY - u.posy - u.view_offset_y,
-                       x + i + VIEWX - u.posx - u.view_offset_x, c_red,'|');
+                       x + i + VIEWX - u.posx - u.view_offset_x, cat_col,'*');
+
   }
+
   wrefresh(w_terrain);
   nanosleep(&ts, NULL);
  }
 
+
 // The rest of the function is shrapnel
  if (shrapnel <= 0)
   return;
+
  int sx, sy, t, ijunk, tx, ty;
  std::vector<point> traj;
  ts.tv_sec = 0;
- ts.tv_nsec = BULLET_SPEED;	// Reset for animation of bullets
+ ts.tv_nsec = BULLET_SPEED/5;	
  for (int i = 0; i < shrapnel; i++) {
   sx = rng(x - 2 * radius, x + 2 * radius);
   sy = rng(y - 2 * radius, y + 2 * radius);
@@ -4075,7 +4093,7 @@ void game::explosion(int x, int y, int power, int shrapnel, bool fire)
     m.drawsq(w_terrain, u, traj[j - 1].x, traj[j - 1].y, false, true);
    if (u_see(traj[j].x, traj[j].y, ijunk)) {
     mvwputch(w_terrain, traj[j].y + VIEWY - u.posy - u.view_offset_y,
-                        traj[j].x + VIEWX - u.posx - u.view_offset_x, c_red, '`');
+                        traj[j].x + VIEWX - u.posx - u.view_offset_x, c_pink, '*');
     wrefresh(w_terrain);
     nanosleep(&ts, NULL);
    }
@@ -4137,7 +4155,7 @@ void game::flashbang(int x, int y)
     z[i].add_effect(ME_DEAF, 60 - dist * 4);
   }
  }
- sound(x, y, 12, "a huge boom!");
+ sound(x, y, 30, "a huge boom!");
 
 //CAT-s:
 	playSound(48);
@@ -4732,10 +4750,12 @@ bool game::pl_refill_vehicle (vehicle &veh, int part, bool test)
     switch (ftype)
     {
     case AT_PLUT:
-        fuel_per_charge = 1000;
+//CAT: 1000 -> 100
+        fuel_per_charge = 100;
         break;
     case AT_PLASMA:
-        fuel_per_charge = 100;
+//CAT: 100 -> 10
+        fuel_per_charge = 10;
         break;
     default:;
     }
@@ -4774,6 +4794,7 @@ bool game::pl_refill_vehicle (vehicle &veh, int part, bool test)
     return true;
 }
 
+
 void game::handbrake ()
 {
  vehicle *veh = m.veh_at (u.posx, u.posy);
@@ -4781,19 +4802,22 @@ void game::handbrake ()
   return;
  add_msg ("You pull a handbrake.");
  veh->cruise_velocity = 0;
- if (veh->last_turn != 0 && rng (15, 60) * 100 < abs(veh->velocity)) {
+
+//CAT-mgs: && rng (15, 60) * 100 < abs(veh->velocity)
+ if (veh->last_turn != 0) {
   veh->skidding = true;
   add_msg ("You lose control of %s.", veh->name.c_str());
-  veh->turn (veh->last_turn > 0? 60 : -60);
+  veh->turn (veh->last_turn > 0? 40 : -40);
  } else if (veh->velocity < 0)
   veh->stop();
  else {
-  veh->velocity = veh->velocity / 2 - 10*100;
+  veh->velocity-= (int)veh->velocity / 7;
   if (veh->velocity < 0)
       veh->stop();
  }
  u.moves = 0;
 }
+
 
 void game::exam_vehicle(vehicle &veh, int examx, int examy, int cx, int cy)
 {
@@ -4816,7 +4840,8 @@ void game::exam_vehicle(vehicle &veh, int examx, int examy, int cx, int cy)
         u.activity.values.push_back (vehint.sel_part); // values[6]
         u.moves = 0;
     }
-    refresh_all();
+//CAT-g:
+//    refresh_all();
 }
 
 // A gate handle is adjacent to a wall section, and next to that wall section on one side or
@@ -5648,14 +5673,15 @@ point game::look_around()
 //  werase(w_terrain);
   draw_ter(lx, ly);
 
-//CAT-g: what's this?
+//CAT-g: do we need this?
   for (int i = 1; i < 12; i++) {
    for (int j = 1; j < 47; j++)
     mvwputch(w_look, i, j, c_white, ' ');
   }
 
-  // Debug helper
-  //mvwprintw(w_look, 6, 1, "Items: %d", m.i_at(lx, ly).size() );
+//CAT-g: enable this, add range
+  mvwprintw(w_look, 6, 1, "Items: %d", m.i_at(lx, ly).size() );
+  mvwprintw(w_look, 7, 1, "Range: %d", rl_dist(u.posx, u.posy, lx, ly));
 
   int veh_part = 0;
   vehicle *veh = m.veh_at(lx, ly, veh_part);
@@ -7718,6 +7744,7 @@ void game::plmove(int x, int y)
 
   return;
  }
+
  if (u.has_disease(DI_STUNNED)) {
   x = rng(u.posx - 1, u.posx + 1);
   y = rng(u.posy - 1, u.posy + 1);
@@ -7824,6 +7851,12 @@ void game::plmove(int x, int y)
   veh_closed_door = dpart >= 0 && !veh->parts[dpart].open;
  }
 
+ if(u.underwater && m.ter(x,y) != t_water_dp)
+ {
+	vertical_move(1, false);
+	u.underwater = false;
+ }
+
  if (m.move_cost(x, y) > 0) { // move_cost() of 0 = impassible (e.g. a wall)
   if (u.underwater)
    u.underwater = false;
@@ -7874,10 +7907,28 @@ void game::plmove(int x, int y)
       ( u.has_trait(PF_PARKOUR) && m.move_cost(x, y) > 4    ))
   {
    if (veh)
-    add_msg("Moving past this %s is slow!", veh->part_info(vpart).name);
+   {
+	add_msg("Moving past this %s is slow!", veh->part_info(vpart).name);
+
+//CAT-s: say "Hoya!"
+	playSound(38);
+
+   }
    else
-    add_msg("Moving past this %s is slow!", m.tername(x, y).c_str());
+   {
+	add_msg("Moving past this %s is slow!", m.tername(x, y).c_str());
+	
+//CAT-s: say "Hoya!" or Splash!
+	if(m.ter(x,y) == t_water_sh || m.ter(x,y) == t_sewage)
+	{
+		if(one_in(5))
+			playSound(27); //splash1.wav
+	}
+	else
+		playSound(38);
+   }
   }
+
   if (m.has_flag(rough, x, y) && (!u.in_vehicle)) {
    if (one_in(5) && u.armor_bash(bp_feet) < rng(2, 5)) {
     add_msg("You hurt your feet on the %s!", m.tername(x, y).c_str());
@@ -7895,10 +7946,13 @@ void game::plmove(int x, int y)
    }
   }
   if (!u.has_artifact_with(AEP_STEALTH) && !u.has_trait(PF_LEG_TENTACLES)) {
+
+//CAT-mgs: 4, 8
+//...quiet it down, it's getting accumulated?
    if (u.has_trait(PF_LIGHTSTEP))
-    sound(x, y, 2, "");	// Sound of footsteps may awaken nearby monsters
+    sound(x, y, 3, "");	// Sound of footsteps may awaken nearby monsters
    else
-    sound(x, y, 6, "");	// Sound of footsteps may awaken nearby monsters
+    sound(x, y, 5, "");	// Sound of footsteps may awaken nearby monsters
   }
   if (one_in(20) && u.has_artifact_with(AEP_MOVEMENT_NOISE))
    sound(x, y, 40, "You emit a rattling sound.");
@@ -7987,6 +8041,8 @@ void game::plmove(int x, int y)
    } break;
   }
 
+
+
 // List items here
   if (!u.has_disease(DI_BLIND) && m.i_at(x, y).size() <= 3 &&
                                   m.i_at(x, y).size() != 0) {
@@ -8015,7 +8071,16 @@ void game::plmove(int x, int y)
   if ((m.has_flag(swimmable, u.posx, u.posy) &&
       m.move_cost(u.posx, u.posy) == 0) || query_yn("Dive into the water?")) {
    if (m.move_cost(u.posx, u.posy) > 0 && u.swim_speed() < 500)
-    add_msg("You start swimming.  Press '>' to dive underwater.");
+   {
+	add_msg("You start swimming.  Press '>' to dive underwater.");
+//CAT-s: waterDive
+	playSound(39);
+   }
+
+//CAT-s: waterSwim
+   if(one_in(7) && !u.underwater)
+	playSound(40);
+
    plswim(x, y);
   }
 
@@ -8057,12 +8122,7 @@ void game::plswim(int x, int y)
 
  u.posx = x;
  u.posy = y;
- if (!m.has_flag(swimmable, x, y)) {
-  dbg(D_ERROR) << "game:plswim: Tried to swim in "
-               << m.tername(x, y).c_str() << "!";
-  debugmsg("Tried to swim in %s!", m.tername(x, y).c_str());
-  return;
- }
+
  if (u.has_disease(DI_ONFIRE)) {
   add_msg("The water puts out the flames!");
   u.rem_disease(DI_ONFIRE);
@@ -8223,13 +8283,25 @@ void game::vertical_move(int movez, bool force)
     add_msg("You are already underwater!");
     return;
    }
+
    u.underwater = true;
    u.oxygen = 30 + 2 * u.str_cur;
    add_msg("You dive underwater!");
+
+//CAT-s:
+	playSound(39);
+	stopMusic(1);
+	stopLoop(-99);
+
   } else {
+
    if (u.swim_speed() < 500) {
     u.underwater = false;
     add_msg("You surface.");
+	
+	playSound(30);
+	stopMusic(1);
+
    } else
     add_msg("You can't surface!");
   }
@@ -8371,16 +8443,14 @@ void game::vertical_move(int movez, bool force)
   if(levz < 0)
   {
 	if(!mp3Track())
-		stopMusic(10);
+		stopMusic(9);
 
 	playSound(31);
   }
   else
   if(!mp3Track())
   {
-	if(!mp3Track())
-		stopMusic(1);
-
+	stopMusic(1);
 	playSound(30);
   }
 
@@ -8439,7 +8509,7 @@ void game::update_map(int &x, int &y)
  if(shiftx || shifty)
 	despawn_monsters(false, shiftx, shifty);
 
-
+//CAT-mgs: ***
 //CAT-mgs: no NPCs
  for(int i = 0; i < active_npc.size(); i++)
  {
@@ -8464,10 +8534,10 @@ void game::update_map(int &x, int &y)
 */
  }
 
-
-//CAT-mgs: no NPCs
 //CAT-mgs: ***
 /*
+
+//CAT-mgs: no NPCs
 // Spawn static NPCs?
  for (int i = 0; i < cur_om.npcs.size(); i++) {
 

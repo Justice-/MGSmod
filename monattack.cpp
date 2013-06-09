@@ -1254,8 +1254,11 @@ void mattack::flamethrower(game *g, monster *z)
  z->sp_timeout = z->type->sp_freq;	// Reset timer
  z->moves = -500;			// It takes a while
  std::vector<point> traj = line_to(z->posx, z->posy, g->u.posx, g->u.posy, t);
+
+//CAT-mgs: 1 -> rng(2,7)
  for (int i = 0; i < traj.size(); i++)
-  g->m.add_field(g, traj[i].x, traj[i].y, fd_fire, 1);
+  g->m.add_field(g, traj[i].x, traj[i].y, fd_fire, rng(2,7));
+
  g->u.add_disease(DI_ONFIRE, 8, g);
 }
 

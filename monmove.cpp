@@ -61,8 +61,10 @@ void monster::wander_to(int x, int y, int f)
  wandx = x;
  wandy = y;
  wandf = f;
+
+//CAT-mgs: this was already taken care of before the call, 5 -> 3
  if (has_flag(MF_GOODHEARING))
-  wandf *= 6;
+	wandf *= 3;
 }
 
 void monster::plan(game *g)
@@ -82,6 +84,7 @@ void monster::plan(game *g)
     stc = tc;
    }
   }
+
   if (has_effect(ME_DOCILE))
    closest = -1;
   if (closest >= 0)
@@ -96,6 +99,7 @@ void monster::plan(game *g)
   }
   return;
  }
+
  if (is_fleeing(g->u) && can_see() && g->sees_u(posx, posy, tc)) {
   fleeing = true;
   wandx = posx * 2 - g->u.posx;
@@ -164,7 +168,6 @@ void monster::plan(game *g)
 
 //CAT-mgs: no NPCs - above 'else if'
  }
-
 }
 
 // General movement.
@@ -235,8 +238,11 @@ void monster::move(game *g)
   }
  }
 
- if (current_attitude == MATT_IGNORE ||
-     (current_attitude == MATT_FOLLOW && plans.size() <= MONSTER_FOLLOW_DIST)) {
+//CAT-mgs:
+ if(current_attitude == MATT_IGNORE)
+//	|| (current_attitude == MATT_FOLLOW && plans.size() <= MONSTER_FOLLOW_DIST)) 
+
+ {
   stumble(g, false);
   return;
  }
@@ -253,14 +259,16 @@ void monster::move(game *g)
 // No sight... or our plans are invalid (e.g. moving through a transparent, but
 //  solid, square of terrain).  Fall back to smell if we have it.
   point tmp = scent_move(g);
-  if (tmp.x != -1) {
+  if(tmp.x != -1 && (tmp.x != posx || tmp.y != posy))
+  {
    next = tmp;
    moved = true;
   }
  }
- if (wandf > 0 && !moved) { // No LOS, no scent, so as a fall-back follow sound
+ if(wandf > 0 && !moved) { // No LOS, no scent, so as a fall-back follow sound
   point tmp = sound_move(g);
-  if (tmp.x != posx || tmp.y != posy) {
+  if(tmp.x != -1 && (tmp.x != posx || tmp.y != posy))
+  {
    next = tmp;
    moved = true;
   }
@@ -295,10 +303,13 @@ void monster::move(game *g)
    moves -= 100;
  }
 
+
 // If we're close to our target, we get focused and don't stumble
- if ((has_flag(MF_STUMBLES) && (plans.size() > 3 || plans.size() == 0)) ||
-     !moved)
+//CAT-mgs:
+// if( !moved ||(has_flag(MF_STUMBLES) && (plans.size() > 3 || plans.size() == 0)) )
+ if( !moved || (has_flag(MF_STUMBLES) && plans.size() > 3) )
   stumble(g, moved);
+
 }
 
 // footsteps will determine how loud a monster's normal movement is

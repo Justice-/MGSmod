@@ -20,7 +20,7 @@ void weather_effect::wet(game *g)
 {
  if (!g->u.is_wearing(itm_coat_rain) && !g->u.has_trait(PF_FEATHERS) &&
      !g->u.warmth(bp_torso) >= 35 && PLAYER_OUTSIDE && one_in(2))
-  g->u.add_morale(MORALE_WET, -1, -20);
+  g->u.add_morale(MORALE_WET, -1, -40);
 
 // Put out fires and reduce scent
  for (int x = g->u.posx - SEEX * 2; x <= g->u.posx + SEEX * 2; x++) {
@@ -40,7 +40,7 @@ void weather_effect::very_wet(game *g)
 {
  if (!g->u.is_wearing(itm_coat_rain) 
 		&& !g->u.has_trait(PF_FEATHERS) && PLAYER_OUTSIDE)
-	g->u.add_morale(MORALE_WET, -1, -30);
+	g->u.add_morale(MORALE_WET, -1, -70);
 
 //CAT-mgs:
 	if(g->levz >= 0)

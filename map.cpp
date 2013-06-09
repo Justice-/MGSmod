@@ -221,12 +221,25 @@ void map::board_vehicle(game *g, int x, int y, player *p)
             psg ? psg->name.c_str() : "<null>");
   return;
  }
+
  veh->parts[seat_part].set_flag(vehicle_part::passenger_flag);
  veh->parts[seat_part].passenger_id = p->id; // Player is 0
 
  p->posx = x;
  p->posy = y;
  p->in_vehicle = true;
+
+//CAT-mgs: count turrets
+ veh->numTur= 0;
+ for(int i = 0; i < veh->parts.size(); i++)
+ {
+	if(veh->numTur < 9 && veh->part_flag(i, vpf_turret))
+	{
+		veh->cat_turret[veh->numTur]= i;
+		veh->numTur++;
+	}
+ }
+
  if (p == &g->u &&
      (x < SEEX * int(my_MAPSIZE / 2) || y < SEEY * int(my_MAPSIZE / 2) ||
       x >= SEEX * (1 + int(my_MAPSIZE / 2)) ||
@@ -524,8 +537,8 @@ bool map::vehproceed(game* g){
 
    if(missing_wheel)
    {
-	int px= x + rng(0, 2)-1;
-	int py= y + rng(0, 2)-1;
+	int px= x + rng(-1, 1);
+	int py= y + rng(-1, 1);
 
 	ter_id &pter = ter(px, py);
 	if(pter == t_dirt || pter == t_grass)
@@ -543,7 +556,7 @@ bool map::vehproceed(game* g){
    }
    else
    if( pl_ctrl 
-	 && ( missing_wheel
+	 && ( missing_wheel || g->u.has_disease(DI_DRUNK)
 		|| field_at(x, y).type > 0 
 		|| (ter(x, y) != t_pavement_y 
 		    && ter(x, y) != t_pavement) ) )
@@ -558,7 +571,7 @@ bool map::vehproceed(game* g){
 		
 		int cat_s= g->u.skillLevel("driving");
 
-		if(missing_wheel)
+		if(missing_wheel || g->u.has_disease(DI_DRUNK))
 		{
 			cat_f= 0;
 			cat_s= (int)cat_s/2;
@@ -2106,8 +2119,12 @@ void map::shoot(game *g, const int x, const int y, int &dam,
    dam -= (rng(0, 1) * rng(0, 1) * rng(0, 1));
  }
 
- if (effects & mfb(AMMO_TRAIL) && !one_in(4))
-  add_field(g, x, y, fd_smoke, rng(1, 2));
+//CAT-mgs: && one_in(2)
+ if(effects & mfb(AMMO_TRAIL))
+ {
+   add_field(g, x, y, fd_smoke, 1);
+   add_field(g, x+rng(-1,1), y+rng(-1,1), fd_smoke, 1);
+ }
 
 // Set damage to 0 if it's less
  if (dam < 0)
@@ -2809,7 +2826,8 @@ void map::draw(game *g, WINDOW* w, const point center)
 
   int lowlight_sight_range = std::max((int)g->light_level()-1, natural_sight_range);
 
-//CAT-s: for sound distance above
+//CAT-s: used for sound distance
+// ...needs better placement
   cat_px= g->u.posx;
   cat_py= g->u.posy;
 
@@ -2818,11 +2836,14 @@ void map::draw(game *g, WINDOW* w, const point center)
   bool u_sight_impaired = g->u.sight_impaired();
 
 //CAT: what's this doing here?
+/*
   char trans_buf[my_MAPSIZE*SEEX][my_MAPSIZE*SEEY];
   memset(trans_buf, -1, sizeof(trans_buf));
+*/
 
+//CAT-mgs: 
   if(g->cat_lightning)
-	light_sight_range= (int)DAYLIGHT_LEVEL/3;
+	light_sight_range= DAYLIGHT_LEVEL;
  
   for(int realx= center.x-getmaxx(w)/2; realx <= center.x+getmaxx(w)/2; realx++) 
   {
@@ -2847,8 +2868,8 @@ void map::draw(game *g, WINDOW* w, const point center)
 	int diffx = (g->u.posx - center.x), diffy = (g->u.posy - center.y);
 	bool can_see = g->lm.sees(diffx, diffy, realx - center.x, realy - center.y, DAYLIGHT_LEVEL);
 
-	if(dist > DAYLIGHT_LEVEL || ( dist > light_sight_range && 
-	  (lit == LL_DARK || (u_sight_impaired && lit != LL_BRIGHT)) )) 
+	if(!can_see || dist > DAYLIGHT_LEVEL || ( dist > light_sight_range 
+		&& (lit == LL_DARK || (u_sight_impaired && lit != LL_BRIGHT)) )) 
 	{
 	  if (u_is_boomered)
    	    mvwputch(w, catY, catX, c_magenta, '#');
@@ -2861,8 +2882,8 @@ void map::draw(game *g, WINDOW* w, const point center)
 	  if (u_is_boomered)
 	    mvwputch(w, catY, catX, c_pink, '#');
 	  else
-	  //CAT: what's this?
-	    mvwputch(w, catY, catX, c_red, '#'); 
+	  //CAT: this triggers underwater, any othertime?
+	    mvwputch(w, catY, catX, c_black, ' '); 
 	}
 	else
 	if(dist <= u_clairvoyance || can_see) 
@@ -2870,10 +2891,11 @@ void map::draw(game *g, WINDOW* w, const point center)
 		bool cat_lowlight= ( (dist > lowlight_sight_range && lit < LL_LIT) 
 							|| (dist > sight_range && lit == LL_LOW) );
 
-		  drawsq(w, g->u, realx, realy, false, true, 
+		drawsq(w, g->u, realx, realy, false, true, 
 			center.x, center.y, cat_lowlight, lit, g->cat_lightning); 
 
-	}else
+	}
+	else
 	{
 		mvwputch(w, catY, catX, c_black, ' ');
 

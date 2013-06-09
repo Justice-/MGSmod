@@ -47,7 +47,7 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
    tmpammo->accuracy = charges * (charges - 4);
   tmpammo->recoil = tmpammo->accuracy * .8;
   tmpammo->ammo_effects = 0;
-  if (charges == 8)
+  if (charges >= 8)
    tmpammo->ammo_effects |= mfb(AMMO_EXPLOSIVE_BIG);
   else if (charges >= 6)
    tmpammo->ammo_effects |= mfb(AMMO_EXPLOSIVE);
@@ -107,8 +107,6 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
  if (num_shots > weapon->num_charges() && !weapon->has_flag(IF_CHARGE))
   num_shots = weapon->num_charges();
 
- if (num_shots == 0)
-  debugmsg("game::fire() - num_shots = 0!");
 
 // Set up a timespec for use in the nanosleep function below
  timespec ts;
@@ -167,9 +165,12 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
      trajectory = line_to(p.posx, p.posy, tarx, tary, tart);
     else
      trajectory = line_to(p.posx, p.posy, tarx, tary, 0);
-   } else if ((!p.has_trait(PF_TRIGGERHAPPY) || one_in(3)) &&
-              (p.skillLevel("gun") >= 7 || one_in(7 - p.skillLevel("gun"))))
-    return; // No targets, so return
+   }
+//CAT-mgs: always shoot whole burst
+//   else if ((!p.has_trait(PF_TRIGGERHAPPY) || one_in(3)) &&
+//              (p.skillLevel("gun") >= 7 || one_in(7 - p.skillLevel("gun"))))
+//    return; // No targets, so return
+
   }
 
   // Drop a shell casing if appropriate.
@@ -274,34 +275,58 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
    }
   }
 
-  int dam = weapon->gun_damage();
-  for (int i = 0; i < trajectory.size() &&
-       (dam > 0 || (effects & AMMO_FLAME)); i+=2) //CAT: i++
+  int dam= weapon->gun_damage();
+//CAT: i++ - > i+=2
+  for( int i= 0; i < trajectory.size() &&
+       ( dam > 0 || (effects & (AMMO_FLAME | AMMO_TRAIL)) ); i+=2 )
   {
-
-//CAT: leave bullet trails, every second one
-//	if(i > 0)
-//		m.drawsq(w_terrain, u, trajectory[i-1].x, trajectory[i-1].y, false, true);
 
 	// Drawing the bullet uses player u, and not player p, because it's drawn
 	// relative to YOUR position, which may not be the gunman's position.
-	if (u_see(trajectory[i].x, trajectory[i].y, junk))
+	if(u_see(trajectory[i].x, trajectory[i].y, junk))
 	{
-//CAT:		
+//CAT:
 		char bullet = '.';
-		nc_color cat_col= c_red;
+		nc_color cat_col= c_ltred;
+		if(curammo->type == AT_PLASMA)
+		{
+			bullet = 'o';
+			cat_col= c_yellow;	
+		}
+		else
+		if(effects & mfb(AMMO_TRAIL))
+		{
+			bullet = '8';	
+			cat_col= c_white;	
+		}
+		else
 		if(effects & mfb(AMMO_FLAME))
+		{
 			bullet = '#';
-		else
+
+			if(i > 2)
+				m.add_field(this, trajectory[i].x, 
+					trajectory[i].y, fd_fire, rng(1,7));
+		}
+
+
 		if(i >= trajectory.size()-2)
+		{
 			bullet = '*';
-		else
-		   cat_col= c_ltred;
+			cat_col= c_red;
+		}
 
 //CAT:	
 		mvwputch(w_terrain, trajectory[i].y + VIEWY-u.view_offset_y - u.posy,
                         trajectory[i].x + VIEWX-u.view_offset_x - u.posx, cat_col, bullet);
+
+		if(effects & mfb(AMMO_TRAIL))
+			mvwputch(w_terrain, trajectory[i].y + VIEWY-u.view_offset_y - u.posy +rng(-1,1),
+                        trajectory[i].x + VIEWX-u.view_offset_x - u.posx +rng(-1,1), c_ltgray, '8');
+
+
 	}
+
 
 	if (dam <= 0)
 	{
@@ -345,28 +370,34 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
 
 	}
 	else
-	if ((!missed || one_in(3)) &&
-              (npc_at(tx, ty) != -1 || (u.posx == tx && u.posy == ty)))
+	if( (!missed || one_in(3)) &&
+              (npc_at(tx, ty) != -1 || (u.posx == tx && u.posy == ty)) )
 	{
 	    double goodhit = missed_by;
 	    if (i < trajectory.size() - 1) // Unintentional hit
 	     goodhit = double(rand() / (RAND_MAX + 1.0)) / 2;
 
 	    player *h;
+	    bool weTarget= false;
 	    if (u.posx == tx && u.posy == ty)
-	     h = &u;
+	    {
+		h = &u;
+		weTarget= true;
+	    }
 	    else
-	     h = &(active_npc[npc_at(tx, ty)]);
+		h = &(active_npc[npc_at(tx, ty)]);
 
-	    std::vector<point> blood_traj = trajectory;
-	    blood_traj.insert(blood_traj.begin(), point(p.posx, p.posy));
-	    splatter(this, blood_traj, dam);
-	    shoot_player(this, p, h, dam, goodhit);
-
+//CAT-mgs: don't let our turrets (moves= -99) shoot us
+	    if(!(weTarget && p.moves < -98)) 
+	    {
+		   std::vector<point> blood_traj = trajectory;
+		   blood_traj.insert(blood_traj.begin(), point(p.posx, p.posy));
+		   splatter(this, blood_traj, dam);
+		   shoot_player(this, p, h, dam, goodhit);
+	    }
 	}
 	else
 	    m.shoot(this, tx, ty, dam, i == trajectory.size() - 1, effects);
-
 
 
 //CAT: 
@@ -619,7 +650,7 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
   mvwprintz(w_target, 3, 1, c_white,
             "'<' '>' Cycle targets; 'f' or '.' to fire.");
   mvwprintz(w_target, 4, 1, c_white,
-            "'0' target self; '*' toggle snap-to-target");
+            "'0' to target yourself.");
  }
 
 //CAT-mgs: BEGIN ***** whole lot ***
@@ -690,9 +721,10 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 		// Draw the Monsters
 		for(int i = 0; i < z.size(); i++)
 		{
-			if(u_see(&(z[i]), tart) 
-				&& z[i].posx >= lowx && z[i].posy >= lowy 
-				&& z[i].posx <=  hix && z[i].posy <=  hiy )
+			if(u_see(&(z[i]), tart))
+//CAT-mgs:
+//				&& z[i].posx >= lowx && z[i].posy >= lowy 
+//				&& z[i].posx <=  hix && z[i].posy <=  hiy )
 			    z[i].draw(w_terrain, center.x, center.y, false, night_vision);
 		}
 
@@ -702,6 +734,7 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 			if (u_see(active_npc[i].posx, active_npc[i].posy, tart))
 			    active_npc[i].draw(w_terrain, center.x, center.y, false, night_vision);
 		}
+
 		timespec ts;
 		ts.tv_sec = 0;
 		ts.tv_nsec = 50000000;
@@ -721,29 +754,39 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 		    // Sets the vector to that LOS
 		    ret= line_to(u.posx, u.posy, x, y, tart); 
 
-
 		    // Draw the trajectory
 		    for(int i = 0; i < ret.size(); i++) 
 		    {
-			if( abs(ret[i].x - u.posx) < sight_dist
-				&& abs(ret[i].y - u.posy) < sight_dist )
+
+//CAT-mgs: make lights on ground matter
+//... if(lm.at(ret[i].x, ret[i].y) > LL_DARK 
+			if( (abs(ret[i].x - u.posx) <= sight_dist
+				&& abs(ret[i].y - u.posy) <= sight_dist) )
 			{
 
-				int mondex = mon_at((int)ret[i].x, (int)ret[i].y),
-				npcdex = npc_at((int)ret[i].x, (int)ret[i].y);
+				int mondex = mon_at(ret[i].x, ret[i].y);
+				int npcdex = npc_at(ret[i].x, ret[i].y);
 
 				// NPCs and monsters get drawn with inverted colors
-				if(mondex != -1) //CAT:  && u_see(&(z[mondex]), tart)
+				if(mondex >=0 && u_see(&(z[mondex]), tart))
 				   z[mondex].draw(w_terrain, 
 					center.x, center.y, true, night_vision);
 				else
-				if(npcdex != -1)
+				if(npcdex >= 0)
 				   active_npc[npcdex].draw(w_terrain, 
 					center.x, center.y, true, night_vision);
 				else
-				   mvwputch(w_terrain, 
-					VIEWY-ret[i].y+u.posy+cat_y, VIEWX-ret[i].x+u.posx+cat_x, c_ltred, 'x');
+				{
+					int atx = VIEWX + ret[i].x - center.x;
+					int aty = VIEWY + ret[i].y - center.y;
 
+					mvwputch(w_terrain, aty, atx, c_ltred, 'x');
+
+
+				//	mvwputch(w_terrain, 
+				//		VIEWY-ret[i].y+u.posy+cat_y, VIEWX-ret[i].x+u.posx+cat_x, c_ltred, 'x');
+
+				}
 			}
 		    }
 
@@ -763,7 +806,7 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 
 
 //CAT: 
-		if(mon_at(x, y) == -1)
+		if(mon_at(x, y) < 0)
 		{	
 			mvwprintw(w_status, 0, 9, "                             ");
 			mvwputch(w_terrain, VIEWY+cat_y, VIEWX+cat_x, c_red, 'X');
@@ -773,10 +816,10 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 			z[mon_at(x, y)].print_info(this, w_target);
 
 
-	}//CAT: "if(x != u.posx || y != u.posy)" *** END
+	}
 
 
-//CAT: make blinking work and overlap with above
+//CAT: make blinking work and overlap with above?
 	// Draw the player
 	int atx = VIEWX + u.posx - center.x, aty = VIEWY + u.posy - center.y;
 	if(atx >= 0 && atx < TERRAIN_WINDOW_WIDTH 
@@ -868,6 +911,8 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 	x = u.posx;
 	y = u.posy;
 
+//CAT: after 0.3 release manual change
+      ret.clear();
 //CAT:
 	cat_xOld= (int)(x-u.posx)/cat_r;
 	cat_yOld= (int)(y-u.posy)/cat_r;
@@ -965,13 +1010,22 @@ void make_gun_sound_effect(game *g, player &p, bool burst, item* weapon)
  int noise = p.weapon.noise();
 
 
+//CAT-mgs:
  if (weapon->curammo->type == AT_FUSION || weapon->curammo->type == AT_BATT ||
      weapon->curammo->type == AT_PLUT)
   g->sound(p.posx, p.posy, 8, "Fzzt!");
  else if (weapon->curammo->type == AT_40MM)
   g->sound(p.posx, p.posy, 8, "Thunk!");
- else if (weapon->curammo->type == AT_GAS)
-  g->sound(p.posx, p.posy, 4, "Fwoosh!");
+ else
+ if (weapon->curammo->type == AT_GAS)
+	g->sound(p.posx, p.posy, 4, "Fwoosh!");
+ else
+ if(weapon->curammo->type == AT_66MM)
+ {
+	g->sound(p.posx, p.posy, 4, "Froomsh!");
+//CAT-s: rocket
+	playSound(61);
+ }
  else 
  if(weapon->curammo->type != AT_BOLT 
 	&& weapon->curammo->type != AT_ARROW)
@@ -1279,19 +1333,66 @@ void splatter(game *g, std::vector<point> trajectory, int dam, monster* mon)
  }
 }
 
+//CAT-mgs: **** vvv
 void ammo_effects(game *g, int x, int y, long effects)
 {
+//CAT: C4 not accounted for, it's TOOL, no AMMO
  if (effects & mfb(AMMO_EXPLOSIVE))
-  g->explosion(x, y, 24, 0, false);
+ {
+	g->explosion(x, y, 24, 0, false);
+
+	for(int i=0; i < 7;i++)
+	{
+		int px= x + rng(-2, 2);
+		int py= y + rng(-2, 2);
+
+		ter_id &pter = g->m.ter(px, py);
+		if(pter == t_dirt || pter == t_grass || pter == t_sand)
+            	pter = t_dirtmound;
+		else
+		if(pter == t_pavement || pter == t_pavement_y || pter == t_sidewalk)
+            	pter = t_rubble;
+	}
+ }
+
+ if (effects & mfb(AMMO_EXPLOSIVE_BIG))
+ {
+	g->explosion(x, y, 40, 0, false);
+
+	for(int i=0; i < 9;i++)
+	{
+		int px= x + rng(-2, 2);
+		int py= y + rng(-2, 2);
+
+		ter_id &pter = g->m.ter(px, py);
+		if(pter == t_dirt || pter == t_grass || pter == t_sand)
+            	pter = t_dirtmound;
+		else
+		if(pter == t_pavement || pter == t_pavement_y || pter == t_sidewalk)
+            	pter = t_rubble;
+	}
+ }
 
  if (effects & mfb(AMMO_FRAG))
-  g->explosion(x, y, 12, 28, false);
+ {
+	g->explosion(x, y, 12, 9, false);
+
+	for(int i=0; i < 5;i++)
+	{
+		int px= x + rng(-3, 3);
+		int py= y + rng(-3, 3);
+
+		ter_id &pter = g->m.ter(px, py);
+		if(pter == t_dirt || pter == t_grass || pter == t_sand)
+            	pter = t_dirtmound;
+		else
+		if(pter == t_pavement || pter == t_pavement_y || pter == t_sidewalk)
+            	pter = t_rubble;
+	}
+ }
 
  if (effects & mfb(AMMO_NAPALM))
   g->explosion(x, y, 18, 0, true);
-
- if (effects & mfb(AMMO_EXPLOSIVE_BIG))
-  g->explosion(x, y, 40, 0, false);
 
  if (effects & mfb(AMMO_TEARGAS)) {
   for (int i = -2; i <= 2; i++) {
@@ -1310,7 +1411,15 @@ void ammo_effects(game *g, int x, int y, long effects)
  if (effects & mfb(AMMO_FLASHBANG))
   g->flashbang(x, y);
 
- if (effects & mfb(AMMO_FLAME))
-  g->explosion(x, y, 4, 0, true);
+//CAT-mgs:
+ if(effects & mfb(AMMO_FLAME))
+ {
+	if(g->u.weapon.has_flag(IF_FIRE_100))
+		g->explosion(x +rng(-3,3), y +rng(-3,3), 10, 0, true);
+	else
+		g->explosion(x+rng(-2,2), y+rng(-2,2), 4, 0, true);
+
+	g->explosion(x, y, 7, 0, true);
+ }
 
 }

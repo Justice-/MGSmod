@@ -35,6 +35,8 @@ void game::init_mapitems()
 
  setvector(
    mapitems[mi_livingroom],
+//CAT-mgs:
+	itm_beer,
 	itm_rootbeer, itm_pizza, itm_cola, itm_cig, itm_cigar, itm_weed,
 	itm_coke, itm_meth, itm_sneakers, itm_socks, itm_boots, itm_boots_winter, itm_socks_wool,
 	itm_flip_flops, itm_dress_shoes, itm_heels, itm_coat_rain, itm_poncho,
@@ -45,7 +47,7 @@ void game::init_mapitems()
 	itm_hat_knit, itm_hat_fur, itm_helmet_bike, itm_helmet_motor,
 	itm_mag_tv, itm_mag_news, itm_lighter, itm_extinguisher, itm_mp3,
 	itm_usb_drive, itm_sneakers_fit, itm_boots_fit, itm_boots_steel_fit,
-        itm_boots_winter_fit, itm_dress_shoes_fit, itm_heels_fit, NULL);
+      itm_boots_winter_fit, itm_dress_shoes_fit, itm_heels_fit, NULL);
 
  setvector(
    mapitems[mi_kitchen],
@@ -62,6 +64,8 @@ void game::init_mapitems()
 
  setvector(
    mapitems[mi_fridge],
+//CAT-mgs:
+	itm_beer,
 	itm_water_clean, itm_oj, itm_cola, itm_rootbeer, itm_milk, itm_V8, itm_apple,
 	itm_sandwich_t, itm_mushroom, itm_blueberries, itm_strawberries,
 	itm_tomato, itm_broccoli, itm_zucchini, itm_frozen_dinner, itm_vodka,
@@ -130,6 +134,8 @@ void game::init_mapitems()
 
  setvector(
    mapitems[mi_fridgesnacks],
+//CAT-mgs:
+	itm_beer,
 	itm_water_clean, itm_oj, itm_apple_cider, itm_energy_drink, itm_cola,
 	itm_rootbeer, itm_milk, itm_V8, itm_sandwich_t, itm_frozen_dinner,
 	itm_pizza, itm_pie, NULL);
@@ -251,7 +257,9 @@ void game::init_mapitems()
 
  setvector(
    mapitems[mi_alcohol],
-  itm_whiskey, itm_vodka, itm_gin, itm_rum, itm_tequila, itm_triple_sec, itm_beer, NULL);
+//CAT-mgs:
+	itm_beer, itm_beer_keg,
+	itm_whiskey, itm_vodka, itm_gin, itm_rum, itm_tequila, itm_triple_sec, NULL);
 
  setvector(
    mapitems[mi_pool_table],
@@ -586,7 +594,7 @@ void game::init_mapitems()
    mapitems[mi_launchers],
 	itm_40mm_concussive, itm_40mm_frag, itm_40mm_incendiary,
 	itm_40mm_teargas, itm_40mm_smoke, itm_40mm_flashbang, itm_m79,
-	itm_m320, itm_mgl, itm_m203, NULL);
+	itm_m320, itm_mgl, itm_m203, itm_law_packed, NULL);
 
  setvector(
    mapitems[mi_mil_rifles],
@@ -820,7 +828,7 @@ void game::init_mapitems()
 	itm_jumpsuit, itm_kevlar, itm_mask_gas, itm_helmet_army, itm_battery,
 	itm_plut_cell, itm_m249, itm_v8_combustion, itm_extinguisher,
 	itm_two_way_radio, itm_radio, itm_UPS_off, itm_beltrig,
-        itm_pants_army_fit, itm_boots_fit, itm_rucksack, NULL);
+        itm_pants_army_fit, itm_boots_fit, itm_rucksack, itm_law_packed, NULL);
 
 // TODO: Replace kevlar with the ceramic plate armor
  setvector(
@@ -840,7 +848,7 @@ void game::init_mapitems()
 	itm_landmine, itm_grenade, itm_flashbang, itm_EMPbomb, itm_gasbomb,
 	itm_smokebomb, itm_UPS_off, itm_tazer, itm_c4, itm_hk_g80, itm_12mm,
 	itm_binoculars, itm_u_shotgun, itm_beltrig, itm_pants_army_fit,
-        itm_spare_mag, itm_canteen, itm_jerrycan, itm_rucksack, NULL);
+        itm_spare_mag, itm_canteen, itm_jerrycan, itm_rucksack, itm_law_packed, NULL);
 
 
  setvector(

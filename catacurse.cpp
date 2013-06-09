@@ -67,9 +67,11 @@ void initAudio()
 	music[5] = Mix_LoadMUS("./data/audio/bkg_mp3-2.ogg");
 	music[6] = Mix_LoadMUS("./data/audio/bkg_mp3-3.ogg");
 
+	music[7] = Mix_LoadMUS("./data/audio/bkg_underwater.wav");
+
+
 //	music[7] = Mix_LoadMUS("./data/audio/bkg_mp3-4.ogg");
 //	music[8] = Mix_LoadMUS("./data/audio/bkg_mp3-5.ogg");
-
 //	music[9] = Mix_LoadMUS("./data/audio/bkg_tense2.ogg");
 
 //*** sound effects
@@ -117,9 +119,12 @@ void initAudio()
 	sound[34] = Mix_LoadWAV("./data/audio/reload1.wav");
 	sound[35] = Mix_LoadWAV("./data/audio/reload2.wav");
 
-//	sound[38] = 
-//	sound[39] = 
-//	sound[50] = 
+//	sound[36] = Mix_LoadWAV("./data/audio/.wav");
+//	sound[37] = Mix_LoadWAV("./data/audio/.wav");
+
+	sound[38] = Mix_LoadWAV("./data/audio/hoya.wav");
+	sound[39] = Mix_LoadWAV("./data/audio/waterDive.wav");
+	sound[40] = Mix_LoadWAV("./data/audio/waterSwim.wav");
 
 	sound[41] = Mix_LoadWAV("./data/audio/shellDrop.wav");
 	sound[42] = Mix_LoadWAV("./data/audio/ricochet1.wav");
@@ -146,8 +151,10 @@ void initAudio()
 	sound[59] = Mix_LoadWAV("./data/audio/unlock.wav");
 	sound[60] = Mix_LoadWAV("./data/audio/crowbar.wav");
 
-//
-//
+	sound[61] = Mix_LoadWAV("./data/audio/rocket.wav");
+
+//	sound[62] = Mix_LoadWAV("./data/audio/.wav");
+
 	sound[63] = Mix_LoadWAV("./data/audio/bigCrash.wav");
 
 	sound[64] = Mix_LoadWAV("./data/audio/loopRain1.wav");
@@ -279,7 +286,8 @@ void stopMusic(int delay)
 
 void playSound(int ID) 
 {
-//CAT:  || (ID>12 && ID<23) -- stack in a single channel?
+//CAT:   || ID== 27 || ID== 40
+//...stack in a single channel?
    if(ID == 0) 
 	currentChannel= 7;	
    else
@@ -297,7 +305,7 @@ void playLoop(int ID)
    if(currentSound != ID)	
    {
 	loopVolume(127);
-	Mix_PlayChannel(0, sound[ID], -1);
+	Mix_PlayChannel(7, sound[ID], -1);
 	currentSound= ID;
    }
 }
@@ -311,7 +319,7 @@ void stopLoop(int ID)
 
    if(currentSound >= 0 && (currentSound == ID || ID == -99))	
    {
-	Mix_HaltChannel(0);
+	Mix_HaltChannel(7);
 	currentSound= -1;
    }
 }
@@ -322,7 +330,7 @@ void loopVolume(int volume)
 		volume= 80;
 
 	loopVol= volume;
-	Mix_Volume(0, loopVol);
+	Mix_Volume(7, loopVol);
 }
 
 
@@ -341,7 +349,7 @@ bool WinCreate()
     int WinBorderWidth;
     int WinTitleSize;
     unsigned int WindowStyle;
-    const WCHAR *szTitle=  (L"Cataclysm: Dark Days Ahead - 0.3 Prerelease :: MGSmod");
+    const WCHAR *szTitle=  (L"Cataclysm");
     WinTitleSize = GetSystemMetrics(SM_CYCAPTION);      //These lines ensure
     WinBorderWidth = GetSystemMetrics(SM_CXDLGFRAME) * 2;  //that our window will
     WinBorderHeight = GetSystemMetrics(SM_CYDLGFRAME) * 2; // be a perfect size

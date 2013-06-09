@@ -400,6 +400,12 @@ public:
     float of_turn;      // goes from ~1 to ~0 while proceeding every turn
     float of_turn_carry;// leftover from prev. turn
     int turret_mode;    // turret firing mode: 0 = off, 1 = burst fire
+
+//CAT-mgs:
+	int numTur;
+	int cat_turret[9];
+	bool turret_on[9];
 };
 
 #endif
+
