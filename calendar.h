@@ -5,8 +5,7 @@
 #define STARTING_MINUTES 90
 
 //CAT-mgs: 14
-#define DAYS_IN_SEASON 4
-
+#define DAYS_IN_SEASON 8
 // Convert minutes, hours, days to turns
 #define MINUTES(x) ((x) * 10)
 #define HOURS(x)   ((x) * 600)

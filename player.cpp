@@ -1085,16 +1085,16 @@ Strength - 4;    Dexterity - 4;    Intelligence - 4;    Dexterity - 4");
   trait_win_size_y = maxy - infooffsetybottom;
  }
 
- skill_win_size_y = num_skill_types;
+ skill_win_size_y = 10;
  if (skill_win_size_y + infooffsetybottom > maxy ) {
   skill_win_size_y = maxy - infooffsetybottom;
  }
 //*** ^^^
 
  WINDOW* w_grid_top    = newwin(infooffsetybottom, 81,  VIEW_OFFSET_Y,  VIEW_OFFSET_X);
- WINDOW* w_grid_skill  = newwin(skill_win_size_y + 1, 27, infooffsetybottom + VIEW_OFFSET_Y, 0 + VIEW_OFFSET_X);
- WINDOW* w_grid_trait  = newwin(trait_win_size_y + 1, 27, infooffsetybottom + VIEW_OFFSET_Y, 27 + VIEW_OFFSET_X);
- WINDOW* w_grid_effect = newwin(effect_win_size_y+ 1, 28, infooffsetybottom + VIEW_OFFSET_Y, 53 + VIEW_OFFSET_X);
+ WINDOW* w_grid_skill  = newwin(skill_win_size_y , 27, infooffsetybottom + VIEW_OFFSET_Y, 0 + VIEW_OFFSET_X);
+ WINDOW* w_grid_trait  = newwin(trait_win_size_y , 27, infooffsetybottom + VIEW_OFFSET_Y, 27 + VIEW_OFFSET_X);
+ WINDOW* w_grid_effect = newwin(effect_win_size_y, 28, infooffsetybottom + VIEW_OFFSET_Y, 53 + VIEW_OFFSET_X);
 
  WINDOW* w_tip     = newwin(1, 80,  VIEW_OFFSET_Y,  0 + VIEW_OFFSET_X);
  WINDOW* w_stats   = newwin(9, 26,  1 + VIEW_OFFSET_Y,  0 + VIEW_OFFSET_X);

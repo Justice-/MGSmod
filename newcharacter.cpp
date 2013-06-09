@@ -882,10 +882,13 @@ int set_description(WINDOW* w, game* g, player *u, int &points)
   } else if (ch == '<') {
    return -1;
   } else if (ch == '!') {
+//CAT-mgs:
+/*
    if (points > 0) {
     popup("You cannot save a template with unused points!");
    } else
     save_template(u);
+*/
    mvwprintz(w,12, 2, c_ltgray,"To go back and review your character, press <");
    wrefresh(w);
   } else if (ch == '?') {

@@ -837,8 +837,8 @@ bool map::vehproceed(game* g){
 //   g->draw();
    g->draw_ter(); 
 
-     
-   if(cat_contVeh > (5+abs(veh->velocity/2)))
+   
+   if(cat_contVeh > 9) //5+abs(veh->velocity/2))
    {	
 //	g->add_msg("Vel: %d", veh->velocity);
 	return false;
@@ -2994,6 +2994,8 @@ void map::add_camp(const std::string& name, const int x, const int y)
 	grid[nonant]->camp = basecamp(name, x, y);
 }
 
+
+bool cat_snow= false; 
 void map::debug()
 {
  mvprintw(0, 0, "MAP DEBUG");
@@ -3021,6 +3023,8 @@ void map::draw(game *g, WINDOW* w, const point center)
   cat_px= g->u.posx;
   cat_py= g->u.posy;
 //  nightime= g->turn.is_night();
+
+ cat_snow = (g->weather == WEATHER_SNOW || g->weather == WEATHER_SNOWSTORM);
 //--- ^^^
 
 
@@ -3349,6 +3353,11 @@ void map::drawsq(WINDOW* w, player &u, const int x, const int y, const bool inve
    graf = true;
 
 
+ if(cat_snow && normal_tercol && ter(x, y) == t_dirt)
+	tercol = c_white;
+ else
+ if(!nv && ter(x,y) == t_lava && one_in(10))
+	tercol= c_ltred;
  
 //CAT: yellow pavement (and railings?) have high visibility
  if(sym == '.' && ter(x, y) == t_pavement_y)
@@ -3357,8 +3366,7 @@ void map::drawsq(WINDOW* w, player &u, const int x, const int y, const bool inve
  if(low_light)
 	tercol= c_dkgray;
 
- if(ter(x,y) == t_lava && one_in(10))
-	tercol= c_ltred;
+
 
  if (invert)
   mvwputch_inv(w, j, k, tercol, sym);

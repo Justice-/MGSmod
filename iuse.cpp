@@ -719,6 +719,7 @@ void iuse::marloss(game *g, player *p, item *it, bool t)
   p->radiation = 0;
 }
 
+
 void iuse::dogfood(game *g, player *p, item *it, bool t)
 {
 //CAT-g:
@@ -735,18 +736,53 @@ void iuse::dogfood(game *g, player *p, item *it, bool t)
   g->add_msg_if_player(p,"Invalid direction.");
   return;
  }
+
  p->moves -= 15;
  dirx += p->posx;
  diry += p->posy;
  int mon_dex = g->mon_at(dirx,diry);
- if (mon_dex != -1) {
-  if (g->z[mon_dex].type->id == mon_dog) {
-   g->add_msg_if_player(p,"The dog seems to like you!");
-   g->z[mon_dex].friendly = -1;
-  } else
-   g->add_msg_if_player(p,"The %s seems quit unimpressed!",g->z[mon_dex].type->name.c_str());
- } else
-  g->add_msg_if_player(p,"You spill the dogfood all over the ground.");
+
+ if(mon_dex != -1)
+ {
+//CAT-mgs: survival&barter vs. animal anger = chance of "wild_ok"... later
+	bool wild_ok= ( g->z[mon_dex].hp < int(g->z[mon_dex].type->hp/2)
+				&& g->z[mon_dex].type->id > 0 && g->z[mon_dex].type->id < mon_dog );
+
+	if(g->z[mon_dex].type->id == mon_dog || g->z[mon_dex].type->id == mon_cat || wild_ok)
+	{
+	   if( !wild_ok || ( wild_ok 
+					&& !one_in(p->skillLevel("survival"))
+					&& !one_in(p->skillLevel("barter")) ) )
+	   {	
+
+		   if(g->z[mon_dex].friendly != -1)		
+			   g->add_msg_if_player(p,"The %s seems to like you!",g->z[mon_dex].type->name.c_str());
+		   else
+		   {
+			   g->z[mon_dex].type->hp++;
+			   g->z[mon_dex].hp= g->z[mon_dex].type->hp;
+			   g->add_msg_if_player(p,"Your pet %s restores strength.",g->z[mon_dex].type->name.c_str());
+		   }
+//CAT-s: actionUse
+		   playSound(6);
+		   g->z[mon_dex].friendly = -1;
+	   }
+	   else
+	   {
+//CAT-s: menuWrong
+		   playSound(3);
+		   g->add_msg_if_player(p,"The %s seems quite unimpressed!",g->z[mon_dex].type->name.c_str());
+	   }
+	}
+	else
+	{
+//CAT-s: menuWrong
+	   playSound(3);
+	   g->add_msg_if_player(p,"The %s seems quite unimpressed!",g->z[mon_dex].type->name.c_str());
+	}
+ }
+ else
+   g->add_msg_if_player(p,"You spill the food all over the ground.");
 
 }
 
@@ -2810,18 +2846,32 @@ void iuse::vortex(game *g, player *p, item *it, bool t)
 void iuse::dog_whistle(game *g, player *p, item *it, bool t)
 {
  g->add_msg_if_player(p,"You blow your dog whistle.");
- for (int i = 0; i < g->z.size(); i++) {
-  if (g->z[i].friendly != 0 && g->z[i].type->id == mon_dog) {
+
+//CAT-mgs: whistle
+ playSound(100);
+
+
+ int cat_docile= 0;
+ for(int i = 0; i < g->z.size(); i++) {
+
+  bool train_wild= ( !one_in(p->skillLevel("survival"))
+				&& !one_in(p->skillLevel("barter"))
+				&& (g->z[i].type->id > 0 && g->z[i].type->id < mon_dog) );
+
+  if(g->z[i].friendly != 0 
+	&& (g->z[i].type->id == mon_dog || g->z[i].type->id == mon_cat || train_wild) ) {
    int linet;
    bool u_see = g->u_see(&(g->z[i]), linet);
-   if (g->z[i].has_effect(ME_DOCILE)) {
+   if(cat_docile == 2 || g->z[i].has_effect(ME_DOCILE)) {
     if (u_see)
-     g->add_msg_if_player(p,"Your %s looks ready to attack.", g->z[i].name().c_str());
+     g->add_msg_if_player(p,"Your pet %s looks ready to attack.", g->z[i].name().c_str());
     g->z[i].rem_effect(ME_DOCILE);
+    cat_docile= 2;
    } else {
     if (u_see)
-     g->add_msg_if_player(p,"Your %s goes docile.", g->z[i].name().c_str());
+     g->add_msg_if_player(p,"Your pet %s goes docile.", g->z[i].name().c_str());
     g->z[i].add_effect(ME_DOCILE, -1);
+    cat_docile= 1;	
    }
   }
  }

@@ -237,7 +237,7 @@ void game::init_mapitems()
  setvector(
    mapitems[mi_camping],
 	itm_rope_30, itm_hatchet, itm_pot, itm_pan, itm_binoculars, itm_firecracker_pack,
-	itm_hotplate, itm_knife_combat, itm_machete, itm_vest, itm_backpack,
+	itm_hotplate, itm_knife_combat, itm_machete, itm_vest, itm_backpack, itm_dog_whistle,
 	itm_bb, itm_bolt_steel, itm_bbgun, itm_crossbow, itm_manual_knives,itm_manual_survival,
 	itm_manual_first_aid, itm_manual_traps, itm_lighter, itm_sewing_kit, itm_thread,
 	itm_hammer, itm_flashlight, itm_water_purifier, itm_radio, itm_beartrap,
@@ -249,7 +249,7 @@ void game::init_mapitems()
    mapitems[mi_allsporting],
 	itm_aspirin, itm_bat, itm_bat_metal, itm_sneakers, itm_socks, itm_tshirt, itm_tank_top,
 	itm_gloves_fingerless, itm_glasses_safety, itm_goggles_swim,
-	itm_armguard_soft, itm_armguard_hard,
+	itm_armguard_soft, itm_armguard_hard, itm_dog_whistle,
 	itm_goggles_ski, itm_hat_ball, itm_helmet_bike, itm_helmet_ball,
 	itm_manual_brawl, itm_rope_30, itm_hatchet, itm_pot, itm_pan,
 	itm_binoculars, itm_hotplate, itm_knife_combat, itm_machete, itm_vest,
@@ -632,7 +632,7 @@ void game::init_mapitems()
  setvector(
    mapitems[mi_mil_food_nodrugs],
 	itm_chocolate, itm_can_beans, itm_mre_beef, itm_mre_veggy, itm_1st_aid,
-	itm_water_clean, NULL);
+	itm_water_clean, itm_can_catfood, itm_dogfood, NULL);
 
  setvector(
    mapitems[mi_bionics_mil],
@@ -721,20 +721,21 @@ void game::init_mapitems()
 	itm_1st_aid, itm_iodine, itm_canister_empty, itm_boots_steel,
 	itm_hazmat_suit, itm_mask_gas, itm_hat_hard, itm_textbook_carpentry,
 	itm_extinguisher, itm_radio, itm_radio_on, itm_geiger_off, itm_UPS_off,
-   itm_bionics_purifier, itm_bionics_climate, itm_bionics_heatsink, itm_bionics_blood_filter, NULL);
+	itm_bionics_purifier, itm_bionics_climate, itm_bionics_heatsink, 
+	itm_bionics_blood_filter, NULL);
 
  setvector(
    mapitems[mi_subway],
 	itm_wrapper, itm_string_6, itm_chain, itm_rock, itm_pipe,
 	itm_mag_porn, itm_bottle_plastic, itm_bottle_glass, itm_can_drink,
-	itm_mag_comic, itm_novel_fantasy, itm_novel_mystery, itm_novel_horror,
-	itm_can_food, itm_lighter, itm_flashlight, itm_rag, itm_crowbar, itm_spray_can, NULL);
+	itm_mag_comic, itm_can_food, itm_novel_fantasy, itm_novel_mystery, 
+	itm_novel_horror, itm_lighter, itm_flashlight, itm_rag, 
+	itm_crowbar, itm_spray_can, NULL);
 
  setvector(
    mapitems[mi_sewer],
-	itm_mutagen, itm_fetus, itm_weed, itm_mag_porn, itm_rag,
-	itm_mag_comic, itm_novel_fantasy, itm_novel_mystery, itm_novel_horror,
-	NULL);
+	itm_mutagen, itm_fetus, itm_arm, itm_leg,  
+	itm_mag_porn, itm_rag, itm_mag_comic, NULL);
 
  setvector(
    mapitems[mi_cavern],
@@ -754,7 +755,7 @@ void game::init_mapitems()
 	itm_nx17, itm_flamethrower, itm_flashlight, itm_radio, itm_radio_on, 
 	itm_geiger_off, itm_teleporter, itm_canister_goo, itm_dynamite, itm_mininuke,
 	itm_bot_manhack, itm_UPS_off, itm_bionics_battery,
-	itm_bionics_flashlight, itm_bionics_lighter,
+	itm_bionics_flashlight, itm_bionics_lighter, itm_can_catfood, itm_dogfood,
 	itm_arrow_cf, itm_spray_can, itm_bionics_blaster, NULL);
 
  setvector(

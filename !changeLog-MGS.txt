@@ -1,15 +1,23 @@
-TO DO, or NOT TO DO:
-+ set season length back to 14 or 7/8?
+MAJOR ADDITIONS:
+- background music and loops, sound effects
+- rounded ligthting effects & unseen blackness
+- speed relate auto shift-view when driving
+- above ground z-levels, bell torwer & shelter
+- "moving targets", "real-time" targeting
+- new actions: kick/push & jump
+- tame/train cats, dog and wild animals 
 
-+ indoor rain(relative to screen size), rain in church tower indoor_hole?
-+ enable npc::drop_items?
-+ vehicle moves relative to speed -> map.cpp, vehmove?
-+ handbrake sound effect?
+
+TO DO, or NOT TO DO:
++ turrets fire too slow, SDL only?
++ attract zombies with church bell?
++ real-time Cataclysm?
 + resurect corpses?
 + max. skills at 10?
 + add cows and cow milking?
 + add horses and horse riding?
 + half moon should light up room?
++ vehicle moves relative to speed -> map.cpp, vehmove?
 + feeling pain from hotness while still "comfortable"?
 + blisters messages up, but no blisters in char info screen?
 + make NPCs go around holes?
@@ -60,11 +68,31 @@ TO DO, or NOT TO DO:
 
 
 
+**********************************************************************************************
+**********************************************************************************************
+
+
+MGSmod rev.49b
+
+features pending: "animal tamer"
+- feed pets, train them, love them
+- feeding restores your pet's HP
+- pet's kills increase their skills
+- feed pets with dog or cat food
+- wild animals are harder to tame
+
+- vehicle spped up/down sound effects
+- fixed extra kills by car flinging
+- fixed NPC hints messages to show up
+- no music interupts on z-level change
+
+
+
+
 MGSmod rev.48b
 - new animation code, 40% speed-up
-
 - double binary, old MFS and new SDL 
-- large viewport support, up to 2x(17x17)
+- large viewport support, up to 35x35
 
 - Triffid heartbeat and handbrake sound
 - kill count for driving over monsters

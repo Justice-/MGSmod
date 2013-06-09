@@ -409,16 +409,17 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
 	else
 	    m.shoot(this, tx, ty, dam, i == trajectory.size() - 1, effects);
 
+
+	wrefresh(w_terrain);
+	wrefresh(0, true);
+
 //CAT: 
 	if(&p == &u)
 		ts.tv_nsec = (BULLET_SPEED*100)/(trajectory.size()*9);
 	else  
-		ts.tv_nsec = BULLET_SPEED/(trajectory.size()*9); //BULLET_SPEED / 100;
+		ts.tv_nsec = BULLET_SPEED/(trajectory.size()*9); 
 
-	wrefresh(w_terrain);
 
-//CAT-mgs:
-  wrefresh(0, true);
 	nanosleep(&ts, NULL);
 
   } // Done with the trajectory!
@@ -632,9 +633,8 @@ void game::throw_item(player &p, int tarx, int tary, item &thrown,
 
 
 //CAT-mgs: BEGIN ***** whole lot ***
-std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
-                                int hiy, std::vector <monster> t, int &target,
-                                item *relevent)
+std::vector<point> game::target(int &x, int &y, 
+						int lowx, int lowy, int hix, int hiy, item *relevent)
 {
 
  std::vector<point> ret;
@@ -644,7 +644,7 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
  int sight_dist = u.sight_range(light_level());
 
 //CAT-mgs:
- target = -1;
+
  x= ltar_x;
  y= ltar_y;
 

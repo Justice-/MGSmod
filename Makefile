@@ -15,12 +15,12 @@ TARGET = cataclysm.exe
 CXX = g++
 
 LINKER = i486-mingw32-ld 
-#LINKERFLAGS = -Wl,--subsystem,console
+LINKERFLAGS = -Wl,--subsystem,windows
 
 CFLAGS = $(WARNINGS) $(DEBUG) $(PROFILE) $(OTHERS)
 
-#LDFLAGS = -static -lSDL.dll -lSDL_mixer.dll -mwindows
-LDFLAGS = -static -lSDL.dll -lSDL_mixer.dll -lSDL_ttf.dll -lfreetype.dll -mwindows
+LDFLAGS = -static -lSDL.dll -lSDL_mixer.dll -mwindows
+#LDFLAGS = -static -lSDL.dll -lSDL_mixer.dll -lSDL_ttf.dll -lfreetype.dll 
 
 
 

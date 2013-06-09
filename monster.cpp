@@ -585,8 +585,20 @@ void monster::hit_monster(game *g, int i)
  if (g->u_see(this, junk))
   g->add_msg("The %s hits the %s!", name().c_str(), target->name().c_str());
  int damage = dice(type->melee_dice, type->melee_sides);
- if (target->hurt(damage))
-  g->kill_mon(i, (friendly != 0));
+
+
+ if(target->hurt(damage))
+ {
+   g->kill_mon(i, (friendly != 0));
+
+//CAT-mgs: require half or full health?
+   if(friendly == -1 && one_in(5) && speed < type->speed*3)
+   {
+	speed++;
+	g->add_msg("Your pet %s skills increase.", name().c_str()); 
+   }
+ }
+
 }
 
 

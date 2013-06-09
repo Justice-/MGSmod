@@ -38,7 +38,7 @@ desc))
 // PLEASE NOTE: The description is AT MAX 4 lines of 46 characters each.
 
 // FOREST ANIMALS
-mon("squirrel",	species_mammal, 'r',	c_ltgray,	MS_TINY,	FLESH,
+mon("squirrel",	species_mammal, 'q',	c_ltgray,	MS_TINY,	FLESH,
 //	dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
 	  0,-99, -8,140,  0,  1,  1,  0,  4,  0,  0,  0,  1,  0,
 	&mdeath::normal,	&mattack::none, "\

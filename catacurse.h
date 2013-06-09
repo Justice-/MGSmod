@@ -164,9 +164,6 @@ void playLoop(int ID);
 void stopLoop(int ID);
 void loopVolume(int volume);
 
-//CAT-mgs-g:
-void cat_update();
-
 
 //Window Functions, Do not call these outside of catacurse.cpp
 void WinDestroy();

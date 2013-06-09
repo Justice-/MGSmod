@@ -932,8 +932,10 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
   break;
 
  case TALK_AGREE_FOLLOW:
-  RESPONSE("Awesome!");
-   SUCCESS(TALK_NONE);
+//CAT-mgs:
+//  RESPONSE("Awesome!");
+//   SUCCESS(TALK_NONE);
+
   RESPONSE("Okay, let's go!");
    SUCCESS(TALK_DONE);
   break;

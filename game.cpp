@@ -341,6 +341,7 @@ void game::cleanup_at_end()
  if(uquit == QUIT_SUICIDE || uquit == QUIT_DIED)
  {
 //CAT-s:
+	stopLoop(-99);
 	stopMusic(1); 
 
 //CAT-s: need some pause (to have available channel)?, otherwise die sound (11) might not play
@@ -357,8 +358,8 @@ void game::cleanup_at_end()
 //CAT-s: died-arghh
 	      playSound(11);
 	
-//	popup("SNAAAKE! ...game over.");
-	popup_top("SNAAAAAAAAAAAAAAKE! - Game over.");
+	popup_top("GAME OVER");
+//	popup_top("SNAAAAAAAAAAAAAAKE! - Game over.");
 
 //CAT-s:
 	playSound(1);	
@@ -446,6 +447,7 @@ bool game::do_turn()
  }
 
 
+
 // Update the weather, if it's time.
  if (turn >= nextweather)
   update_weather();
@@ -467,6 +469,8 @@ bool game::do_turn()
 
  while(u.moves > 0)
  {
+	  cleanup_dead();
+
 	  if(!u.has_disease(DI_SLEEP) && u.activity.type == ACT_NULL)
 		draw();
 
@@ -507,12 +511,13 @@ bool game::do_turn()
 		return false;
  }
 
-
+//printf("\nTurn1: %d", int(turn));
  cleanup_dead();
  m.vehmove(this);
 
  monmove();
  update_stair_monsters();
+//printf(" - Turn2");
 
 
 // rustCheck();
@@ -522,10 +527,8 @@ bool game::do_turn()
  if(turn%2 == 0)
 	 update_scent();
 
-
 //CAT-MGS:
  wrefresh(0, true);
-
  return false;
 }
 
@@ -2834,7 +2837,7 @@ void game::draw()
 
  wrefresh(w_status);
  draw_ter();
- draw_footsteps();
+// draw_footsteps();
 
 
 //CAT-mgs: ************************* music loops ***************************
@@ -2913,21 +2916,26 @@ void game::draw()
 	else
 	if(!m.is_outside(u.posx, u.posy) || levz < 0)
 	{
+		if(levz < 0)
+			playMusic(2);
+		else
+			playMusic(1);
+
 //CAT-s: stepping outdoors->indoors
 		if(oldOutside)
 		{
 			playSound(55);
 			oldOutside= false;
 		}
-
-		if(levz < 0)
-			playMusic(2);
-		else
-			playMusic(1);
 	}
 	else
 	if(m.is_outside(u.posx, u.posy))
 	{
+		if(levz < 0)
+			playMusic(2);
+		else
+			playMusic(3);
+
 //CAT-s: stepping indoors->outdoors
 		if(!oldOutside)
 		{
@@ -2935,10 +2943,6 @@ void game::draw()
 			oldOutside= true;
 		}
 
-		if(levz < 0)
-			playMusic(2);
-		else
-			playMusic(3);
 	}
 
 //CAT-s: END *** ^^^
@@ -3113,13 +3117,14 @@ void game::draw_ter(int posx, int posy)
  if (u.has_disease(DI_VISUALS) || (u.has_disease(DI_HOT_HEAD) && u.disease_intensity(DI_HOT_HEAD) != 1))
    hallucinate(posx, posy);
 
+ draw_footsteps();
+
 //CAT-g: moved here
  wrefresh(w_terrain);
 
 //CAT-mgs:
  wrefresh(0, true);
 
-// cat_update();
 }
 
 
@@ -3880,6 +3885,8 @@ void game::mon_info()
 
 void game::cleanup_dead()
 {
+//printf(" a1");
+
  for (int i = 0; i < z.size(); i++) {
   if(z[i].dead || z[i].hp <= 0) {
    
@@ -3891,11 +3898,9 @@ void game::cleanup_dead()
    z.erase(z.begin() + i);
    i--;
   }
-  if (last_target == i)
-   last_target = -1;
-  else if (last_target > i)
-    last_target--;
  }
+
+//printf(" a2");
 
 //CAT-mgs: no NPCs
  for (int i = 0; i < active_npc.size(); i++) {
@@ -4309,11 +4314,11 @@ void game::explosion(int x, int y, int power, int shrapnel, bool fire)
    if (u_see(traj[j].x, traj[j].y, ijunk)) {
     mvwputch(w_terrain, traj[j].y + VIEWY - u.posy - u.view_offset_y,
                         traj[j].x + VIEWX - u.posx - u.view_offset_x, c_pink, '*');
+
+
     wrefresh(w_terrain);
-
 //CAT-mgs:
-  wrefresh(0, true);
-
+    wrefresh(0, true);
     nanosleep(&ts, NULL);
    }
    tx = traj[j].x;
@@ -4602,7 +4607,7 @@ void game::kill_mon(int index, bool u_did_it)
 	return;
   }
 
-
+//printf(" b1");
   if( u_did_it 
 	|| z[index].has_effect(ME_ONFIRE)
 	|| z[index].has_effect(ME_STUNNED) )
@@ -4635,13 +4640,18 @@ void game::kill_mon(int index, bool u_did_it)
 		cat_lastTurn= int(turn);
 	}
 
+//printf(" b2");
 	if(z[index].type->species != species_hallu)
 		kills[z[index].type->id]++;	// Increment our kill counter
   }
 
+//printf(" b3");
+
+/*
 //CAT-mgs: doesn't monster::die drop items already?
   for (int i = 0; i < z[index].inv.size(); i++)
 	m.add_item(z[index].posx, z[index].posy, z[index].inv[i]);
+*/
 
   z[index].die(this);
 }
@@ -4724,10 +4734,13 @@ void game::explode_mon(int index)
  }
 
  z.erase(z.begin()+index);
+
+/*
  if (last_target == index)
   last_target = -1;
  else if (last_target > index)
    last_target--;
+*/
 
 //CAT-s:
 	playSound(29); //splat1 sound
@@ -5100,11 +5113,9 @@ void game::handbrake ()
 	veh->velocity= 0;
  }
 
- u.moves = 0;
-
 //CAT-mgs:
+ u.moves = 0;
  pldrive(0, 0);
-
 }
 
 
@@ -6303,6 +6314,16 @@ point game::look_around()
    if (dex != -1 && u_see(&(z[dex]), junk)) {
     z[mon_at(lx, ly)].draw(w_terrain, lx, ly, true, night_vision);
     z[mon_at(lx, ly)].print_info(this, w_look);
+
+//CAT-mgs:
+    if(z[mon_at(lx, ly)].friendly == -1) 
+		mvwprintw(w_look, 4,1, "PET LV. %d",
+			int(z[mon_at(lx, ly)].speed/40), z[mon_at(lx, ly)].speed);
+
+//	mvwprintw(w_look, 4,2, "TSP:%d MLE:%d HP2:%d",
+//		z[mon_at(lx, ly)].type->speed, z[mon_at(lx, ly)].type->melee_skill, z[mon_at(lx, ly)].type->hp);
+
+
     if (!m.has_flag(container, lx, ly))
      if (m.i_at(lx, ly).size() > 1)
       mvwprintw(w_look, 3, 1, "There are several items there.");
@@ -7529,9 +7550,11 @@ void game::plthrow(char chInput)
 	|| u.has_active_bionic(bio_night_vision) )
     night_vision= true;
 
+ int passtarget = -1;
+
+/*
  std::vector <monster> mon_targets;
  std::vector <int> targetindices;
- int passtarget = -1;
  for (int i = 0; i < z.size(); i++) {
   if (u_see(&(z[i]), junk) && z[i].posx >= x0 && z[i].posx <= x1 &&
                               z[i].posy >= y0 && z[i].posy <= y1) {
@@ -7539,17 +7562,17 @@ void game::plthrow(char chInput)
    targetindices.push_back(i);
    if (i == last_target)
     passtarget = mon_targets.size() - 1;
+
    z[i].draw(w_terrain, u.posx, u.posy, true, night_vision);
   }
  }
+*/
 
  // target() sets x and y, or returns false if we canceled (by pressing Esc)
- std::vector <point> trajectory = target(x, y, x0, y0, x1, y1, mon_targets,
-                                         passtarget, &thrown);
- if (trajectory.size() == 0)
+ std::vector <point> trajectory = target(x, y, x0, y0, x1, y1, &thrown);
+ if(trajectory.size() < 1)
   return;
- if (passtarget != -1)
-  last_target = targetindices[passtarget];
+
 
  u.i_rem(ch);
  u.moves -= 125;
@@ -7705,10 +7728,13 @@ void game::plfire(bool burst)
 		|| u.has_active_bionic(bio_night_vision) )
 	    night_vision= true;
 
+	 int passtarget = -1;
+
+/*
 	// Populate a list of targets with the zombies in range and visible
 	 std::vector <monster> mon_targets;
 	 std::vector <int> targetindices;
-	 int passtarget = -1;
+
 	 for (int i = 0; i < z.size(); i++) {
 	  if (z[i].posx >= x0 && z[i].posx <= x1 &&
 	      z[i].posy >= y0 && z[i].posy <= y1 &&
@@ -7720,7 +7746,7 @@ void game::plfire(bool burst)
 //	   z[i].draw(w_terrain, u.posx, u.posy, true, night_vision);
 	  }
 	 }
- 
+ */
 
 //CAT-mgs: sniping
 	 if( u.weapon.typeId() == itm_remington_700 
@@ -7731,7 +7757,7 @@ void game::plfire(bool burst)
 
 	 // target() sets x and y, and returns an empty vector if we canceled (Esc)
 	 std::vector <point> trajectory = target(x, y, 
-				x0, y0, x1, y1, mon_targets, passtarget, &u.weapon);
+				x0, y0, x1, y1, &u.weapon);
 
 
 
@@ -7744,10 +7770,12 @@ void game::plfire(bool burst)
 	  return;
 	 }
 
+/*
 	 if (passtarget != -1) { // We picked a real live target
 	  last_target = targetindices[passtarget]; // Make it our default for next time
 	  z[targetindices[passtarget]].add_effect(ME_HIT_BY_PLAYER, 100);
 	 }
+*/
 
 	 if (u.weapon.has_flag(IF_USE_UPS)) {
 	  if (u.has_charges(itm_UPS_off, 5))
@@ -8435,7 +8463,7 @@ void game::pldrive(int x, int y) {
 
  int thr_amount = 10 * 100;
  if(veh->cruise_on)
-	veh->cruise_thrust (-y * thr_amount);
+	veh->cruise_thrust(-y * thr_amount);
 
 
  veh->turn (15 * x);
@@ -8447,6 +8475,19 @@ void game::pldrive(int x, int y) {
    veh->move.init (veh->turn_dir);
   }
  }
+
+
+ if(y == -1 
+		&& (abs(veh->cruise_velocity) != 0 || abs(veh->velocity) != 0)
+		&& veh->total_power() > 0)
+	playSound(126);
+ else
+ if(y == 1 
+		&& (abs(veh->cruise_velocity) != 0 || abs(veh->velocity) != 0)	
+		&& veh->total_power() > 0)
+	playSound(127);
+
+
 
  u.moves = 0;
  if (x != 0 && veh->velocity != 0 && one_in(4))
@@ -9367,18 +9408,19 @@ void game::vertical_move(int movez, bool force)
   }
  }
 
+
 //CAT-s:
   if(levz < 0)
   {
-	if(!mp3Track())
-		stopMusic(9);
+	if(!mp3Track() && levz == -1)
+		stopMusic(7);
 
 	playSound(31);
   }
   else
   if(!mp3Track())
   {
-	stopMusic(1);
+//	stopMusic(1);
 	playSound(30);
   }
 

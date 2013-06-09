@@ -143,7 +143,7 @@ void game::show_options()
 void load_options()
 {
  std::ifstream fin;
- fin.open("data/options-sdl.txt");
+ fin.open("data/options-mfc.txt");
  if (!fin.is_open()) {
   fin.close();
   create_default_options();
@@ -395,7 +395,7 @@ char option_max_options(option_key id)
 void create_default_options()
 {
  std::ofstream fout;
- fout.open("data/options-sdl.txt");
+ fout.open("data/options-mfc.txt");
  if (!fout.is_open())
   return;
 
@@ -420,7 +420,7 @@ std::string options_header()
 void save_options()
 {
  std::ofstream fout;
- fout.open("data/options-sdl.txt");
+ fout.open("data/options-mfc.txt");
  if (!fout.is_open())
   return;
 

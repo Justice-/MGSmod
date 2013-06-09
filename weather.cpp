@@ -211,7 +211,7 @@ void weather_effect::snow(game *g)
 			for(int y = g->u.posy - SEEY * 2; y <= g->u.posy + SEEY * 2; y++)
 			{
 				if(!g->m.has_flag(noitem, x, y) && g->m.move_cost(x, y) > 0 
-						&& g->m.is_outside(x, y) && one_in(700))
+						&& g->m.is_outside(x, y) && one_in(900))
 					g->m.add_field(g, x, y, fd_snow, 1);
 			}
 		}

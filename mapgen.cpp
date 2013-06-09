@@ -4965,6 +4965,11 @@ case ot_shelter_over:
   line(this, t_wall_v, 2, 2, 2, 0);
   ter(2, 1) = t_door_locked;
 
+  	add_graffiti(g, 4, 1, "I write this message...\n\
+                  with my own blood...\n\
+         if you want to push/kick...\n\
+             ...try pressing 'z' key.");
+
   ter(1, 1) = t_stairs_up;
 
 
@@ -5019,7 +5024,7 @@ case ot_shelter_over:
   	add_graffiti(g, 14, 15, "I write this message...\n\
                   with my own blood...\n\
          if you want to jump...\n\
-             ...try pressing SHIFT+X.");
+             ...try pressing SHIFT+Z.");
 
 
   add_item(5, 5, g->itypes[itm_mp3], 0);

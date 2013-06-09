@@ -423,9 +423,13 @@ FOOD("tuna fish",	35, 35,	c_cyan,		FLESH,	itm_can_food,
     1,  2,  0, 24,  0,  0,  0,  0,  1,  0,	&iuse::none, ADD_NULL, "\
 Now with 95 percent less dolphins!");
 
+//CAT-mgs
+/*
 FOOD("cat food",	20,  8,	c_cyan,		FLESH,	itm_can_food,
-    1,  2,  0, 10,  0,  0, -1,  0,  1,-24,	&iuse::none, ADD_NULL, "\
+    1,  2,  0, 10,  0,  0, -1,  0,  1,-24,	&iuse::dogfood, ADD_NULL, "\
 Blech, so gross. Save it for when you're about to die of starvation.");
+*/
+
 
 FOOD("honey comb",	10, 35,	c_yellow,	VEGGY,	itm_null,
     1,  1,  0, 20,  0,  0, -2,  0,  1,  9,	&iuse::honeycomb, ADD_NULL, "\
@@ -733,7 +737,7 @@ panel.");
 
 MELEE("electrohack",	 3,400, ',', c_green,	PLASTIC,STEEL,
 	 2,  2,  5,  0,  1, 0, "\
-This device has many ports attached, allowing to to connect to almost any\n\
+This device has many ports attached, allowing it to connect to almost any\n\
 control panel or other electronic machine (but not computers). With a little\n\
 skill, it can be used to crack passwords and more.");
 
@@ -3591,7 +3595,7 @@ TOOL("lighter",		60,  35,',', c_blue,	PLASTIC,IRON,
 // VOL WGT DAM CUT HIT MAX DEF USE SEC FUEL	REVERT	  FUNCTION
     0,  0,  0,  0,  0, 100,100, 1,  0, AT_NULL,	itm_null, &iuse::lighter, 0, "\
 A lighter must be carried to use various drugs, like cigarettes, or to light\n\
-things like molotov cocktails.  You can also use a lighter to light nearby\n\
+things like molotov cocktails. You can also use a lighter to light nearby\n\
 items on fire.");
 
 TOOL("sewing kit",	30,120, ',', c_red,	PLASTIC,IRON,
@@ -4011,7 +4015,13 @@ is fairly large, it weighs next to nothing. Air seems to gather around it.");
 
 TOOL("dog food",         5,  60,';',c_red,     FLESH,     MNULL,
     1,  2,  0,  0,  -5,  0,  0,  0,  0, AT_NULL, itm_null, &iuse::dogfood, 0, "\
-Food for dogs. It smells strange, but dogs love it.");
+Food for dogs. Smells strange, but dogs love it and other animals might too.");
+
+
+TOOL("cat food",         5,  60,';',c_red,     FLESH,   MNULL,
+    1,  2,  0,  0,  -5,  0,  0,  0,  0, AT_NULL, itm_null, &iuse::dogfood, 0, "\
+Food for cats. Smells strange, but cats love it and other animals might too.");
+
 
 //	NAME		RAR PRC SYM  COLOR	MAT1	MAT
 TOOL("booby trap",        0,500,';',c_ltcyan,   STEEL,	PLASTIC,
@@ -4028,11 +4038,11 @@ TOOL("C4-Explosive(armed)",0,6000,';',c_ltcyan, PLASTIC,     STEEL,
 Highly explosive, use with caution. Comes with a small timer.\n\
 It's armed and ticking!");
 
-TOOL("dog whistle",	  0,  300,';',c_white,	STEEL,	MNULL,
+TOOL("animal training whistle",	  0,  300,';',c_white,	STEEL,	MNULL,
      0,  0,  0,  0,  0,  0,  0,  0,  0, AT_NULL, itm_null, &iuse::dog_whistle,
 0, "\
 A small whistle. When used, it produces a high tone which causes nearby\n\
-friendly dogs to either follow you closely and stop attacking, or to start\n\
+friendly animals to either follow you closely and stop attacking, or to start\n\
 attacking enemies if they are currently docile.");
 
 //	NAME		RAR PRC SYM  COLOR	MAT1	MAT
