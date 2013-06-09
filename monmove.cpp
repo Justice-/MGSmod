@@ -29,30 +29,25 @@ bool monster::wander()
  return (plans.empty());
 }
 
+
 bool monster::can_move_to(map &m, int x, int y)
 {
- if (m.move_cost(x, y) == 0 &&
-     (!has_flag(MF_DESTROYS) || !m.is_destructable(x, y)) &&
-     ((!has_flag(MF_AQUATIC) && !has_flag(MF_SWIMS)) ||
-      !m.has_flag(swimmable, x, y)))
+ if( m.move_cost(x, y) == 0 
+	&& (!has_flag(MF_DESTROYS) || !m.is_destructable(x, y))
+	&& ((!has_flag(MF_AQUATIC) && !has_flag(MF_SWIMS)) || !m.has_flag(swimmable, x, y)) )
   return false;
 
-//CAT-mgs: monster stupidly fall in holes?
-/*
- if(	!one_in(30)
-		&& (m.ter(x,y) == t_air || m.ter(x,y) == t_hole || m.ter(x,y) == t_indoor_hole) )
-	return false;
-*/
 
- if(	!one_in(30)
-		&& (m.ter(x,y) == t_railing_v || m.ter(x,y) == t_railing_h) )
-	return false;
+ if( !one_in(10)
+	&& (m.ter(x,y) == t_railing_v || m.ter(x,y) == t_railing_h) )
+   return false;
 
 
  if (has_flag(MF_DIGS) && !m.has_flag(diggable, x, y))
   return false;
  if (has_flag(MF_AQUATIC) && !m.has_flag(swimmable, x, y))
   return false;
+
  return true;
 }
 
@@ -63,6 +58,7 @@ bool monster::can_move_to(map &m, int x, int y)
 void monster::set_dest(int x, int y, int &t)
 {
  plans.clear();
+
 // TODO: This causes a segfault, once in a blue moon!  Whyyyyy.
  plans = line_to(posx, posy, x, y, t);
 }
@@ -80,6 +76,7 @@ void monster::wander_to(int x, int y, int f)
  wandy = y;
  wandf = f;
 }
+
 
 void monster::plan(game *g)
 {
@@ -110,7 +107,8 @@ void monster::plan(game *g)
   else
   if(friendly < 0 && g->sees_u(posx, posy, tc)) 
   {
-	if (rl_dist(posx, posy, g->u.posx, g->u.posy) > 2) 
+
+	if(rl_dist(posx, posy, g->u.posx, g->u.posy) > 2) 
 		set_dest(g->u.posx, g->u.posy, tc);
 	else
 		plans.clear();
@@ -215,16 +213,19 @@ void monster::move(game *g)
   return;
  }
 
- if (has_effect(ME_STUNNED)) {
-  stumble(g, false);
-  moves = 0;
-//  return;
- }
-
  if (has_effect(ME_DOWNED)) {
   moves = 0;
   return;
  }
+
+ if(has_effect(ME_STUNNED))
+ {
+    stumble(g, true);
+    moves= 0;
+    return;
+ }
+
+
  if (friendly != 0) {
   if (friendly > 0)
    friendly--;
@@ -232,8 +233,10 @@ void monster::move(game *g)
   return;
  }
 
+
  moves -= 100;
  bool moved = false;
+
  point next;
  int mondex = (plans.size() > 0 ? g->mon_at(plans[0].x, plans[0].y) : -1);
 
@@ -254,11 +257,12 @@ void monster::move(game *g)
  }
 
 
- if(current_attitude == MATT_IGNORE && wandf < 10)
+ if(current_attitude == MATT_IGNORE && wandf < 9)
  {
 	stumble(g, false);
 	return;
  }
+
 
 //CAT-mgs: *** vvv
  if(plans.size() > 0 && !is_fleeing(g->u) 
@@ -305,37 +309,54 @@ void monster::move(game *g)
 
 // Finished logic section.  By this point, we should have chosen a square to
 //  move to (moved = true).
- if (moved) {	// Actual effects of moving to the square we've chosen
+ if(moved)
+ {
+
+  // Actual effects of moving to the square we've chosen
   mondex = g->mon_at(next.x, next.y);
   int npcdex = g->npc_at(next.x, next.y);
-  if (next.x == g->u.posx && next.y == g->u.posy && type->melee_dice > 0)
-   hit_player(g, g->u);
-  else if (mondex != -1 && g->z[mondex].type->species == species_hallu)
-   g->kill_mon(mondex);
-  else if (mondex != -1 && type->melee_dice > 0 && this != &(g->z[mondex]) &&
-           (g->z[mondex].friendly != 0 || has_flag(MF_ATTACKMON)))
-   hit_monster(g, mondex);
-  else if (npcdex != -1 && type->melee_dice > 0)
-   hit_player(g, g->active_npc[npcdex]);
-  else if ((!can_move_to(g->m, next.x, next.y) || one_in(3)) &&
-             g->m.has_flag(bashable, next.x, next.y) && has_flag(MF_BASHES)) {
-   std::string bashsound = "NOBASH"; // If we hear "NOBASH" it's time to debug!
-   int bashskill = int(type->melee_dice * type->melee_sides);
-   g->m.bash(next.x, next.y, bashskill, bashsound);
-   g->sound(next.x, next.y, 18, bashsound);
-  } else if (g->m.move_cost(next.x, next.y) == 0 && has_flag(MF_DESTROYS)) {
-   g->m.destroy(g, next.x, next.y, true);
-   moves -= 250;
-  } else if (can_move_to(g->m, next.x, next.y) && g->is_empty(next.x, next.y))
-   move_to(g, next.x, next.y);
+  if(next.x == g->u.posx && next.y == g->u.posy && type->melee_dice > 0)
+	hit_player(g, g->u);
   else
-   moves -= 100;
+  if(mondex != -1 && g->z[mondex].type->species == species_hallu)
+ 	g->kill_mon(mondex);
+  else
+  if(mondex != -1 && type->melee_dice > 0 && this != &(g->z[mondex])
+		&& (g->z[mondex].friendly != 0 || has_flag(MF_ATTACKMON)))
+	hit_monster(g, mondex);
+  else
+  if(npcdex != -1 && type->melee_dice > 0)
+	hit_player(g, g->active_npc[npcdex]);
+  else
+  if((!can_move_to(g->m, next.x, next.y) || one_in(3)) &&
+             g->m.has_flag(bashable, next.x, next.y) && has_flag(MF_BASHES))
+  {
+	std::string bashsound = "NOBASH"; // If we hear "NOBASH" it's time to debug!
+	int bashskill = int(type->melee_dice * type->melee_sides);
+	g->m.bash(next.x, next.y, bashskill, bashsound);
+	g->sound(next.x, next.y, 18, bashsound);
+  }
+  else
+  if(g->m.move_cost(next.x, next.y) == 0 && has_flag(MF_DESTROYS))
+  {
+	g->m.destroy(g, next.x, next.y, true);
+ 	moves -= 250;
+  }
+  else
+  if( can_move_to(g->m, next.x, next.y) && g->is_empty(next.x, next.y) )
+	move_to(g, next.x, next.y);
+  else
+	moves -= 100;
+
+
  }
+
 
 // If we're close to our target, we get focused and don't stumble
    if( !moved || plans.size() == 0 
 		|| (has_flag(MF_STUMBLES) && plans.size() > 4) )
 	stumble(g, moved);
+
 }
 
 
@@ -504,10 +525,13 @@ point monster::sound_move(game *g)
 }
 
 
+
 void monster::hit_player(game *g, player &p, bool can_grab)
 {
  if (type->melee_dice == 0) // We don't attack, so just return
   return;
+
+
  add_effect(ME_HIT_BY_PLAYER, 3); // Make us a valid target for a few turns
  if (has_flag(MF_HIT_AND_RUN))
   add_effect(ME_RUN, 4);
@@ -637,15 +661,31 @@ void monster::hit_player(game *g, player &p, bool can_grab)
  }
 }
 
+
+
 void monster::move_to(game *g, int x, int y)
 {
  int mondex = g->mon_at(x, y);
- if (mondex == -1) 
- { 
 
-  if (has_effect(ME_BEARTRAP))
-  {
-	moves = 0;
+ if(mondex == -1) { //...assuming there's no monster there
+  if (has_effect(ME_BEARTRAP)) {
+   moves = 0;
+   return;
+  }
+
+//CAT-mgs: unique move cost for air & holes
+  if(!has_flag(MF_FLIES) 
+	&& g->m.move_cost(posx, posy) == 1
+	&& g->m.tr_at(posx, posy) != tr_null)
+  { 
+	// Monster stepped on a trap!
+	trap* tr = g->traps[g->m.tr_at(posx, posy)];
+
+	trapfuncm f;
+	(f.*(tr->actm))(g, this, posx, posy);
+
+//	g->add_msg("--- Airhole 1....");
+	moves= 0;
 	return;
   }
 
@@ -665,6 +705,7 @@ void monster::move_to(game *g, int x, int y)
 	}
   }
 
+
   if (plans.size() > 0)
    plans.erase(plans.begin());
   if (has_flag(MF_SWIMS) && g->m.has_flag(swimmable, x, y))
@@ -676,10 +717,9 @@ void monster::move_to(game *g, int x, int y)
   posx = x;
   posy = y;
   footsteps(g, x, y);
-  if(g->m.has_flag(sharp, posx, posy) && !one_in(4))
+  if (g->m.has_flag(sharp, posx, posy) && !one_in(4))
      hurt(rng(2, 3));
-  else
-  if(g->m.has_flag(rough, posx, posy) && one_in(6))
+  if (g->m.has_flag(rough, posx, posy) && one_in(6))
      hurt(rng(1, 2));
 
 
@@ -689,10 +729,12 @@ void monster::move_to(game *g, int x, int y)
 // Acid trail monsters leave... a trail of acid
   if (has_flag(MF_ACIDTRAIL))
    g->m.add_field(g, posx, posy, fd_acid, 1);
- } else if (has_flag(MF_ATTACKMON) || g->z[mondex].friendly != 0)
-// If there IS a monster there, and we fight monsters, fight it!
+ }
+ else
+ if (has_flag(MF_ATTACKMON) || g->z[mondex].friendly != 0)
   hit_monster(g, mondex);
 }
+
 
 
 /* Random walking even when we've moved
@@ -722,6 +764,7 @@ void monster::stumble(game *g, bool moved)
    }
   }
  }
+
  if (valid_stumbles.size() == 0) //nowhere to stumble?
   return;
 

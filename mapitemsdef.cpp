@@ -164,7 +164,7 @@ void game::init_mapitems()
 
  setvector(
    mapitems[mi_harddrugs],
-	itm_inhaler, itm_codeine, itm_oxycodone, itm_tramadol, itm_xanax,
+	itm_inhaler, itm_codeine, itm_1st_aid, itm_oxycodone, itm_tramadol, itm_xanax,
 	itm_adderall, itm_thorazine, itm_prozac, itm_antibiotics, itm_syringe,
 	 NULL);
 
@@ -978,7 +978,7 @@ setvector(
  setvector(
    mapitems[mi_church],
 	itm_glasses_eye, itm_sunglasses, itm_glasses_reading, itm_lighter, itm_coat_rain,
-	itm_cane, itm_candlestick, itm_candle, itm_candlestick, NULL); 
+	itm_cane, itm_tophat, itm_glasses_monocle, itm_candlestick, itm_candle, itm_candle_lit, NULL); 
 
 
  setvector(

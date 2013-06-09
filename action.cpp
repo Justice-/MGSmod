@@ -172,8 +172,8 @@ std::string action_ident(action_id act)
    return "throw";
   case ACTION_FIRE:
    return "fire";
-  case ACTION_FIRE_BURST:
-   return "kick_jump";
+  case ACTION_KICK:
+   return "kick";
   case ACTION_SELECT_FIRE_MODE:
    return "select_fire_mode";
   case ACTION_DROP:
@@ -222,8 +222,8 @@ std::string action_ident(action_id act)
    return "debug";
   case ACTION_DISPLAY_SCENT:
    return "debug_scent";
-  case ACTION_TOGGLE_DEBUGMON:
-   return "debug_mode";
+  case ACTION_JUMP:
+   return "jump";
   case ACTION_NULL:
    return "null";
   case ACTION_RECRAFT:
@@ -334,8 +334,8 @@ std::string action_name(action_id act)
    return "Throw Item";
   case ACTION_FIRE:
    return "Fire Wielded Item";
-  case ACTION_FIRE_BURST:
-   return "Kick and Jump";
+  case ACTION_KICK:
+   return "Kick/Push";
   case ACTION_SELECT_FIRE_MODE:
    return "Toggle attack mode of Wielded Item";
   case ACTION_DROP:
@@ -384,8 +384,8 @@ std::string action_name(action_id act)
    return "Debug Menu";
   case ACTION_DISPLAY_SCENT:
    return "View Scentmap";
-  case ACTION_TOGGLE_DEBUGMON:
-   return "Unused";
+  case ACTION_JUMP:
+   return "Jump";
   case ACTION_NULL:
    return "No Action";
   case ACTION_RECRAFT:

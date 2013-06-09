@@ -544,10 +544,10 @@ int player::roll_bash_damage(monster *z, bool crit)
 // Remember, a single drink gives 600 levels of DI_DRUNK
   int mindrunk, maxdrunk;
   if (unarmed_attack()) {
-   mindrunk = disease_level(DI_DRUNK) / 600;
-   maxdrunk = disease_level(DI_DRUNK) / 250;
+   mindrunk = disease_level(DI_DRUNK) / 500;
+   maxdrunk = disease_level(DI_DRUNK) / 200;
   } else {
-   mindrunk = disease_level(DI_DRUNK) / 900;
+   mindrunk = disease_level(DI_DRUNK) / 800;
    maxdrunk = disease_level(DI_DRUNK) / 400;
   }
   ret += rng(mindrunk, maxdrunk);

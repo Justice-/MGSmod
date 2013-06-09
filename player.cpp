@@ -327,8 +327,10 @@ if (has_bionic(bio_metabolics) && power_level < max_power_level &&
  int xp_frequency = 10 - int(mor / 20);
  if (xp_frequency < 1)
   xp_frequency = 1;
+
+//CAT-mgs: faster XP pool gain
  if (int(g->turn) % xp_frequency == 0)
-  xp_pool++;
+  xp_pool+= 10;
 
  if (xp_pool > 800)
   xp_pool = 800;
@@ -403,19 +405,21 @@ void player::update_bodytemp(game *g) // TODO bionics, diseases and humidity (no
   // Convergeant temperature is affected by ambient temperature, clothing warmth, and body wetness.
   signed int temp_conv = BODYTEMP_NORM + adjusted_temp + clothing_warmth_adjustement;
   // Hunger
-  temp_conv -= 2*(hunger + 100);
+  temp_conv -= 2*(hunger + 10);
   // Fatigue
-  if (!has_disease(DI_SLEEP)) temp_conv -= 3*fatigue;
+  if (!has_disease(DI_SLEEP))
+	temp_conv -= 2*fatigue;
   else {
    int vpart = -1;
    vehicle *veh = g->m.veh_at (posx, posy, vpart);
-   if      (g->m.ter(posx, posy) == t_bed)                       temp_conv += 1000;
-   else if (g->m.ter(posx, posy) == t_makeshift_bed)             temp_conv +=  500;
-   else if (g->m.tr_at(posx, posy) == tr_cot)                    temp_conv -=  500;
-   else if (g->m.tr_at(posx, posy) == tr_rollmat)                temp_conv -= 1000;
+   if      (g->m.ter(posx, posy) == t_bed)                       temp_conv +=  900;
+   else if (g->m.ter(posx, posy) == t_makeshift_bed)             temp_conv +=  700;
+   else if (g->m.tr_at(posx, posy) == tr_cot)                    temp_conv +=  500;
+   else if (g->m.tr_at(posx, posy) == tr_rollmat)                temp_conv +=  300;
    else if (veh && veh->part_with_feature (vpart, vpf_seat) >= 0) temp_conv +=  200;
-   else if (veh && veh->part_with_feature (vpart, vpf_bed) >= 0)  temp_conv +=  300;
-   else	temp_conv -= 2000;
+   else if (veh && veh->part_with_feature (vpart, vpf_bed) >= 0)  temp_conv +=  500;
+   else
+	temp_conv -= 2*(fatigue+10);
   }
 
   // Convection heat sources : generates body heat, helps fight frostbite
@@ -437,7 +441,9 @@ void player::update_bodytemp(game *g) // TODO bionics, diseases and humidity (no
 
 
 //CAT-mgs: after release addition, plus change
-	temp_conv += int(700 * heat_intensity /(fire_dist * fire_dist));
+	temp_conv += int(200 * heat_intensity /(fire_dist * fire_dist));
+
+//	g->add_msg("--- WARMUP: %d", int(100 * heat_intensity /(fire_dist * fire_dist)) );
       blister_count += int(heat_intensity/(fire_dist * fire_dist));
     }
    }
@@ -447,18 +453,18 @@ void player::update_bodytemp(game *g) // TODO bionics, diseases and humidity (no
 //CAT: doesn't seem to work?
 //CAT: manually added fix from main build after 0.3 release
   if(has_disease(DI_ONFIRE))
-	temp_cur[i] += 400;
+	temp_conv+= 2500;
 
   if((g->m.field_at(posx, posy).type == fd_fire 
 		&& g->m.field_at(posx, posy).density > 2) || g->m.tr_at(posx, posy) == tr_lava) 
-	temp_cur[i] += 300;
+	temp_conv+= 2300;
 
 
   // Weather
   if (g->weather == WEATHER_SUNNY && !g->m.is_indoor(posx, posy)) temp_conv += 500;
-  if (g->weather == WEATHER_CLEAR && !g->m.is_indoor(posx, posy)) temp_conv += 200;
+  if (g->weather == WEATHER_CLEAR && !g->m.is_indoor(posx, posy)) temp_conv += 100;
   // Other diseases
-  if (has_disease(DI_FLU) && i == bp_head) temp_conv += 700;
+  if (has_disease(DI_FLU) && i == bp_head) temp_conv += 900;
   // BIONICS
   // Bionic "Internal Climate Control" says it eases the effects of high and low ambient temps
   // NOTE : This should be the last place temp_conv is changed, otherwise the bionic will not work as intended.
@@ -471,28 +477,49 @@ void player::update_bodytemp(game *g) // TODO bionics, diseases and humidity (no
    else if (temp_conv < BODYTEMP_VERY_COLD) temp_conv = BODYTEMP_COLD;
    else if (temp_conv < BODYTEMP_COLD)      temp_conv = BODYTEMP_NORM;
    }
-  // Bionic "Thermal Dissapation" says it prevents fire damage up to 2000F. 500 is picked at random...
-  if (has_bionic(bio_heatsink) && blister_count < 500)
-   blister_count = 0;
-  // Skin gets blisters from intense heat exposure.
-  if (blister_count - 10*resist(body_part(i)) > 20) add_disease(dis_type(blister_pen), 1, g);
+
   // Increments current body temperature towards convergant.
-  int temp_difference = temp_cur[i] - temp_conv;
+  int temp_difference = temp_conv - temp_cur[i];
   int temp_before = temp_cur[i];
+
+/*
   // Bodytemp equalization code
   if      (i == bp_torso){temp_equalizer(bp_torso, bp_arms); temp_equalizer(bp_torso, bp_legs); temp_equalizer(bp_torso, bp_head);}
   else if (i == bp_head) {temp_equalizer(bp_head, bp_eyes); temp_equalizer(bp_head, bp_mouth);}
   else if (i == bp_arms)  temp_equalizer(bp_arms, bp_hands);
   else if (i == bp_legs)  temp_equalizer(bp_legs, bp_feet);
-  if (temp_cur[i] != temp_conv) temp_cur[i] = temp_difference*exp(-0.002) + temp_conv; // It takes half an hour for bodytemp to converge half way to its convergeance point (think half-life)
+
+//  if (temp_cur[i] != temp_conv) temp_cur[i] = temp_difference*exp(-0.002) + temp_conv; // It takes half an hour for bodytemp to converge half way to its convergeance point (think half-life)
+*/
+
+  temp_cur[i]= temp_cur[i] + int(temp_difference/5);
+
+  if(int(g->turn)%9 != 0)
+	continue;
+ 
   int temp_after = temp_cur[i];
+//CAT-mgs: add duration 3 - 9
   // Penalties
-  if      (temp_cur[i] < BODYTEMP_FREEZING)  {add_disease(dis_type(cold_pen), 1, g, 3, 3); frostbite_timer[i] += 3;}
-  else if (temp_cur[i] < BODYTEMP_VERY_COLD) {add_disease(dis_type(cold_pen), 1, g, 2, 3); frostbite_timer[i] += 2;}
-  else if (temp_cur[i] < BODYTEMP_COLD)      {add_disease(dis_type(cold_pen), 1, g, 1, 3); frostbite_timer[i] += 1;} // Frostbite timer does not go down if you are still cold.
-  else if (temp_cur[i] > BODYTEMP_SCORCHING) {add_disease(dis_type(hot_pen),  1, g, 3, 3); } // If body temp rises over 15000, disease.cpp (DI_HOT_HEAD) acts weird and the player will die
-  else if (temp_cur[i] > BODYTEMP_VERY_HOT)  {add_disease(dis_type(hot_pen),  1, g, 2, 3); }
-  else if (temp_cur[i] > BODYTEMP_HOT)       {add_disease(dis_type(hot_pen),  1, g, 1, 3); }
+  if      (temp_cur[i] < BODYTEMP_FREEZING)  {add_disease(dis_type(cold_pen), 7, g, 3, 3); frostbite_timer[i] += 3;}
+  else if (temp_cur[i] < BODYTEMP_VERY_COLD) {add_disease(dis_type(cold_pen), 5, g, 2, 3); frostbite_timer[i] += 2;}
+  else if (temp_cur[i] < BODYTEMP_COLD)      {add_disease(dis_type(cold_pen), 3, g, 1, 3); frostbite_timer[i] += 1;} // Frostbite timer does not go down if you are still cold.
+  else if (temp_cur[i] > BODYTEMP_SCORCHING) {add_disease(dis_type(hot_pen),  7, g, 3, 3); } // If body temp rises over 15000, disease.cpp (DI_HOT_HEAD) acts weird and the player will die
+  else if (temp_cur[i] > BODYTEMP_VERY_HOT)  {add_disease(dis_type(hot_pen),  5, g, 2, 3); }
+  else if (temp_cur[i] > BODYTEMP_HOT)       {add_disease(dis_type(hot_pen),  3, g, 1, 3); }
+
+
+  // Bionic "Thermal Dissapation" says it prevents fire damage up to 2000F. 500 is picked at random...
+  if (has_bionic(bio_heatsink) && blister_count < 500)
+   blister_count = 0;
+
+//CAT-mgs:
+//  g->add_msg("--- Blister count: %d   TEMP: %d", blister_count, temp_cur[i]);
+  // Skin gets blisters from intense heat exposure.
+  if(temp_cur[i] > BODYTEMP_VERY_HOT && blister_count - 10*resist(body_part(i)) > 20)
+	add_disease(dis_type(blister_pen), blister_count*100, g);
+
+
+
   // Morale penalties : a negative morale_pen means the player is cold
   // Intensity multiplier is negative for cold, positive for hot
   int intensity_mult = -disease_intensity(dis_type(cold_pen)) + disease_intensity(dis_type(hot_pen));
@@ -531,6 +558,7 @@ void player::update_bodytemp(game *g) // TODO bionics, diseases and humidity (no
 
 	add_disease(dis_type(frost_pen), 1, g, 1, 2);
   }
+
 
 	// Warn the player if condition worsens
 	if(temp_before > BODYTEMP_FREEZING  && temp_after < BODYTEMP_FREEZING)
@@ -942,8 +970,8 @@ void player::disp_info(game *g)
  std::vector<std::string> effect_name;
  std::vector<std::string> effect_text;
  for (int i = 0; i < illness.size(); i++) {
-  if (dis_name(illness[i]).size() > 0) {
-   effect_name.push_back(dis_name(illness[i]));
+  if(dis_name(illness[i], *this).size() > 0) {
+   effect_name.push_back(dis_name(illness[i], *this));
    effect_text.push_back(dis_description(illness[i]));
   }
  }

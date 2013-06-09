@@ -26,8 +26,8 @@ std::string morale_data[NUM_MORALE_TYPES] = {
 "Cold",
 "Hot",
 "Bad Feeling",
-"Killed Innocent",
-"Killed Friend",
+"Innocent Died",
+"Friend Died",
 "Guilty about Killing",
 
 "Moodswing",

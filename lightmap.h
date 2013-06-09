@@ -16,8 +16,8 @@
 
 //CAT-mgs: former SEEX & SEEY, 
 //... can expand to any sreen size, but it slows down the game
-#define CAT_VX 12
-#define CAT_VY 12
+#define CAT_VX 17
+#define CAT_VY 17
 
 #define LIGHTMAP_X (2 * CAT_VX + 1)
 #define LIGHTMAP_Y (2 * CAT_VY + 1)

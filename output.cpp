@@ -316,7 +316,7 @@ void draw_tabs(WINDOW *w, int active_tab, ...)
 
 bool query_yn(const char *mes, ...)
 {
- bool force_uc = OPTIONS[OPT_FORCE_YN];
+ bool force_uc = false; //OPTIONS[OPT_FORCE_YN];
  va_list ap;
  va_start(ap, mes);
  char buff[1024];
@@ -682,11 +682,16 @@ void popup_nowait(const char *mes, ...)
   tmp = tmp.substr(pos + 1);
   pos = tmp.find_first_of('\n');
  }
+
  line_num++;
  mvwprintz(w, line_num, 1, c_white, tmp.c_str());
  wrefresh(w);
+
+//CAT-mgs:
+ wrefresh(0, true);
+
  delwin(w);
- refresh();
+// refresh();
 }
 
 void full_screen_popup(const char* mes, ...)

@@ -584,8 +584,13 @@ void mattack::spit_sap(game *g, monster *z)
  g->u.add_disease(DI_SAP, dam, g);
 }
 
+
 void mattack::triffid_heartbeat(game *g, monster *z)
 {
+
+//CAT-s: triffidHeart
+ playSound(117);
+
  g->sound(z->posx, z->posy, 14, "thu-THUMP.");
  z->moves -= 300;
  z->sp_timeout = z->type->sp_freq;

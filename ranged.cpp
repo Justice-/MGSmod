@@ -23,10 +23,15 @@ void splatter(game *g, std::vector<point> trajectory, int dam,
 
 void ammo_effects(game *g, int x, int y, long flags);
 
+
 //CAT-g: BEGIN ***** whole lot ***
 void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
                 bool burst)
 {
+
+ if(trajectory.size() < 1)
+	return;
+
  item ammotmp;
  item* gunmod = p.weapon.active_gunmod();
  it_ammo *curammo = NULL;
@@ -411,6 +416,9 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
 		ts.tv_nsec = BULLET_SPEED/(trajectory.size()*9); //BULLET_SPEED / 100;
 
 	wrefresh(w_terrain);
+
+//CAT-mgs:
+  wrefresh(0, true);
 	nanosleep(&ts, NULL);
 
   } // Done with the trajectory!
@@ -653,7 +661,7 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
  if(relevent)
  {
 	mvwprintz(w_target, 2, 1, c_white, "ENTER or 'f' to fire,'z' to kick, ESC to exit.");
-	mvwprintz(w_target, 3, 1, c_white, "SPACE or '.' to pause and take a kneeling shot.");
+	mvwprintz(w_target, 3, 1, c_white, "SPACE or '.' to pause for a moment and focus.");
  }
  else
 	 mvwprintz(w_target, 2, 1, c_white, "Move the aim with directional keys.");
@@ -681,6 +689,8 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 	cat_y= 0;
  }
 
+ bool moveIt= false;
+
  do
  {
 	// Clear the target window.
@@ -697,13 +707,16 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 
 	cleanup_dead();
 
-	m.vehmove(this);
-	m.process_fields(this);
-	m.process_active_items(this);
-	m.step_in_field(u.posx, u.posy, this);
+	if(!u.in_vehicle || moveIt)
+	{
+		m.vehmove(this);
+		m.process_fields(this);
+		m.process_active_items(this);
+		m.step_in_field(u.posx, u.posy, this);
 
-	u.reset(this);
-	u.suffer(this);
+		u.reset(this);
+		u.suffer(this);
+	}
 
 	draw_HP();
 	write_msg();
@@ -856,6 +869,7 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 	wrefresh(w_target);
 	wrefresh(w_terrain);
 
+	moveIt= false;
 	if(is_game_over())
 	{
 		ret.clear();
@@ -949,7 +963,13 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 
 
 			u.moves= 0;
-			u.process_active_items(this);
+			m.vehmove(this);
+			m.process_fields(this);
+			m.process_active_items(this);
+			m.step_in_field(u.posx, u.posy, this);
+
+			u.reset(this);
+			u.suffer(this);
 			turn.increment();
 
 			return ret;
@@ -972,6 +992,7 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 		playSound(0);
 		add_msg("You pause to concentrate... ");
 
+		moveIt= true;
 		if(u.recoil > 0)
 		{
 			u.recoil= 0;
@@ -985,18 +1006,22 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 		u.recoil= 45;
 	}
 
+
 	if(u.recoil > 3)
 		u.recoil= int(u.recoil/2);
 
 	if(u.recoil > 0 && u.recoil < 3)
 		u.recoil= 3;
 
-//	u.moves= 0;
-
-	monmove();
-	update_stair_monsters();
-
-	turn.increment();
+	if(u.in_vehicle)
+		u.recoil+= 2;	
+	
+	if(!u.in_vehicle || moveIt)
+	{
+		monmove();	
+		update_stair_monsters();
+		turn.increment();
+	}
 
  } while (true);
 

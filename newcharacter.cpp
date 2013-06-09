@@ -151,7 +151,7 @@ bool player::create(game *g, character_type type, std::string tempname)
   }
   tab = 3;
  } else
-  points = OPTIONS[OPT_INITIAL_POINTS];
+  points = 10; //OPTIONS[OPT_INITIAL_POINTS];
 
  do {
 //CAT-g:
@@ -258,9 +258,9 @@ End of cheatery */
   inv.push_back(tmp);
  }
  // Basic starter gear, added independently of profession.
- tmp = item(g->itypes[itm_pockknife], 0,'a' + worn.size());
+ tmp = item(g->itypes[itm_bandana], 0,'a' + worn.size());
   inv.push_back(tmp);
- tmp = item(g->itypes[itm_lighter], 0,'a' + worn.size());
+ tmp = item(g->itypes[itm_cig], 0,'a' + worn.size());
   inv.push_back(tmp);
 // make sure we have no mutations
  for (int i = 0; i < PF_MAX2; i++)

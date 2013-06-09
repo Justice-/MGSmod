@@ -124,9 +124,9 @@ void light_map::generate(game* g, int x, int y, float natural_light, float lumin
      break;
     case fd_electricity:
      if (3 == current_field.density)
-      apply_light_source(sx, sy, x, y, 8);
+      apply_light_source(sx, sy, x, y, 9);
      else if (2 == current_field.density)
-      apply_light_source(sx, sy, x, y, 4);
+      apply_light_source(sx, sy, x, y, 1);
      else
       apply_light_source(sx, sy, x, y, LIGHT_SOURCE_LOCAL);  // kinda a hack as the square will still get marked
      break;

@@ -1886,18 +1886,19 @@ bool trade(game *g, npc *p, int cost, std::string deal)
              "%s $%d", (cash >= 0 ? "Profit" : "Cost"), abs(cash));
    if (deal != "")
     mvwprintz(w_head, 3, 45, (cost < 0 ? c_ltred : c_ltgreen), deal.c_str());
+
+
    if (focus_them)
-    wattron(w_them, c_red);
+    wattron(w_them, c_ltgreen);
    else
-    wattron(w_you,  c_red);
+    wattron(w_you,  c_ltgreen);
 
    wborder(w_them, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
                    LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
    wborder(w_you,  LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
                    LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
 
-//   wattroff(w_them, c_yellow);
-//   wattroff(w_you,  c_yellow);
+
 
    mvwprintz(w_them, 0, 1, (cash < 0 || p->cash >= cash ? c_green : c_red),
              "%s: $%d", p->name.c_str(), p->cash);
@@ -1948,6 +1949,8 @@ bool trade(game *g, npc *p, int cost, std::string deal)
     }
    }
    break;
+
+
   case '>':
    if (focus_them) {
     if (them_off + 17 < theirs.size()) {

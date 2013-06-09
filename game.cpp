@@ -90,29 +90,19 @@ game::~game()
 }
 
 void game::init_ui(){
+
     clear();	// Clear the screen
     intro();	// Print an intro screen, make sure we're at least 80x25
 
 
     #if (defined _WIN32 || defined __WIN32__)
 
-int viewX= 12;
-int viewY= 12;
-/*
         TERMX = 55 + (OPTIONS[OPT_VIEWPORT_X] * 2 + 1);
         TERMY = OPTIONS[OPT_VIEWPORT_Y] * 2 + 1;
-        VIEWX = (OPTIONS[OPT_VIEWPORT_X] > 60) ? 60 : OPTIONS[OPT_VIEWPORT_X];
-        VIEWY = (OPTIONS[OPT_VIEWPORT_Y] > 60) ? 60 : OPTIONS[OPT_VIEWPORT_Y];
-        VIEW_OFFSET_X = (OPTIONS[OPT_VIEWPORT_X] > 60) ? OPTIONS[OPT_VIEWPORT_X]-60 : 0;
-        VIEW_OFFSET_Y = (OPTIONS[OPT_VIEWPORT_Y] > 60) ? OPTIONS[OPT_VIEWPORT_Y]-60 : 0;
-*/
-        TERMX = 55 + (viewX * 2 + 1);
-        TERMY = viewY * 2 + 1;
-        VIEWX = (viewX > 60) ? 60 : viewX;
-        VIEWY = (viewY > 60) ? 60 : viewY;
-        VIEW_OFFSET_X = (viewX > 60) ? viewX-60 : 0;
-        VIEW_OFFSET_Y = (viewY > 60) ? viewY-60 : 0;
-
+        VIEWX = (OPTIONS[OPT_VIEWPORT_X] > 17) ? 17 : OPTIONS[OPT_VIEWPORT_X];
+        VIEWY = (OPTIONS[OPT_VIEWPORT_Y] > 17) ? 17 : OPTIONS[OPT_VIEWPORT_Y];
+        VIEW_OFFSET_X = (OPTIONS[OPT_VIEWPORT_X] > 17) ? OPTIONS[OPT_VIEWPORT_X]-17 : 0;
+        VIEW_OFFSET_Y = (OPTIONS[OPT_VIEWPORT_Y] > 17) ? OPTIONS[OPT_VIEWPORT_Y]-17 : 0;
 
         TERRAIN_WINDOW_WIDTH = (VIEWX * 2) + 1;
         TERRAIN_WINDOW_HEIGHT = (VIEWY * 2) + 1;
@@ -139,13 +129,12 @@ int viewY= 12;
         VIEWY = (TERRAIN_WINDOW_HEIGHT - 1) / 2;
     #endif
 
-    if (VIEWX < 12) {
-        VIEWX = 12;
-    }
+    if(VIEWX < 12)
+	VIEWX = 12;
 
-    if (VIEWY < 12) {
-        VIEWY = 12;
-    }
+    if(VIEWY < 12)
+	VIEWY = 12;
+
 
     // Set up the main UI windows.
     w_terrain = newwin(TERRAIN_WINDOW_HEIGHT, TERRAIN_WINDOW_WIDTH, VIEW_OFFSET_Y, VIEW_OFFSET_X);
@@ -166,7 +155,7 @@ int viewY= 12;
     w_location = newwin(LOCATION_HEIGHT, LOCATION_WIDTH, MONINFO_HEIGHT+MESSAGES_HEIGHT + VIEW_OFFSET_Y, TERMX - LOCATION_WIDTH - VIEW_OFFSET_X);
     werase(w_location);
 
-    w_status = newwin(STATUS_HEIGHT, STATUS_WIDTH, MONINFO_HEIGHT+MESSAGES_HEIGHT+LOCATION_HEIGHT + VIEW_OFFSET_Y, TERMX - STATUS_WIDTH - VIEW_OFFSET_X);
+    w_status = newwin(STATUS_HEIGHT + (OPTIONS[OPT_VIEWPORT_Y]-12)*2, STATUS_WIDTH, MONINFO_HEIGHT+MESSAGES_HEIGHT+LOCATION_HEIGHT + VIEW_OFFSET_Y, TERMX - STATUS_WIDTH - VIEW_OFFSET_X);
     werase(w_status);
 
     w_void = newwin(TERMY-(MONINFO_HEIGHT+MESSAGES_HEIGHT+LOCATION_HEIGHT+STATUS_HEIGHT), STATUS_WIDTH, MONINFO_HEIGHT+MESSAGES_HEIGHT+LOCATION_HEIGHT+STATUS_HEIGHT + VIEW_OFFSET_Y, TERMX - STATUS_WIDTH - VIEW_OFFSET_X);
@@ -236,10 +225,12 @@ void game::setup()
   for (int j = 0; j < SEEX * MAPSIZE; j++)
    grscent[i][j] = 0;
  }
- if (opening_screen()) {// Opening menu
-// Finally, draw the screen!
-  refresh_all();
-  draw();
+
+ if (opening_screen())
+ {
+	// Finally, draw the screen!
+	refresh_all();
+	draw();
  }
 }
 
@@ -474,18 +465,8 @@ bool game::do_turn()
   nextspawn = turn;
  }
 
-
-//CAT-mgs:
- if(u.has_disease(DI_SLEEP) && turn%10 == 0 )
-	draw();
- else
- if(u.activity.type != ACT_NULL)
-	process_activity();
-
  while(u.moves > 0)
  {
-	  cleanup_dead();
-
 	  if(!u.has_disease(DI_SLEEP) && u.activity.type == ACT_NULL)
 		draw();
 
@@ -499,17 +480,40 @@ bool game::do_turn()
 	  }
  }
 
-// u.moves= 0;
-
- m.vehmove(this);
- m.process_fields(this);
- m.process_active_items(this);
- m.step_in_field(u.posx, u.posy, this);
-
  u.reset(this);
  u.update_bodytemp(this);
  u.process_active_items(this);
  u.suffer(this);
+
+ m.process_fields(this);
+ m.process_active_items(this);
+ m.step_in_field(u.posx, u.posy, this);
+ 
+ if(u.has_disease(DI_SLEEP))
+ {
+	if(turn%20 == 0)
+		draw();
+	else
+		return false;
+ }
+ else
+ if(u.activity.type != ACT_NULL)
+ {
+	process_activity();
+
+	if(turn%30 == 0)
+		draw();
+	else
+		return false;
+ }
+
+
+ cleanup_dead();
+ m.vehmove(this);
+
+ monmove();
+ update_stair_monsters();
+
 
 // rustCheck();
  if(turn%10 == 0)
@@ -518,8 +522,9 @@ bool game::do_turn()
  if(turn%2 == 0)
 	 update_scent();
 
- monmove();
- update_stair_monsters();
+
+//CAT-MGS:
+ wrefresh(0, true);
 
  return false;
 }
@@ -569,10 +574,8 @@ void game::process_events()
 void game::process_activity()
 {
  it_book* reading;
- if (u.activity.type != ACT_NULL) {
-
-  if(turn%20 == 0)
-	draw();
+ if (u.activity.type != ACT_NULL)
+ {
 
   if (u.activity.type == ACT_WAIT) {	// Based on time, not speed
    u.activity.moves_left -= 100;
@@ -660,7 +663,7 @@ void game::process_activity()
               (int)u.skillLevel(reading->type));
 
      if (u.skillLevel(reading->type) == reading->level)
-      add_msg("You can no longer learn from this %s.", reading->name.c_str());
+      add_msg("You can no longer learn from %s.", reading->name.c_str());
     }
     break;
 
@@ -1461,10 +1464,10 @@ bool game::handle_action()
    SNIPER= false;
    break;
 
-  case ACTION_FIRE_BURST:
+  case ACTION_KICK:
 //CAT-mgs: it's now runJump or Kick
 	playSound(1);
-	runJump(false);
+	runJump(true);
 
 /*
    plfire(true);
@@ -1694,9 +1697,9 @@ bool game::handle_action()
    playSound(2);
    break;
 
-  case ACTION_TOGGLE_DEBUGMON:
-   debugmon = !debugmon;
-   add_msg("Debug messages %s!", (debugmon ? "ON" : "OFF"));
+  case ACTION_JUMP:
+	playSound(1);
+	runJump(false);
    break;
  }
 
@@ -2728,8 +2731,6 @@ void game::draw()
  draw_HP();
  draw_minimap();
  write_msg();
- draw_ter();
- draw_footsteps();
 
  werase(w_status);
  u.disp_status(w_status, this);
@@ -2821,14 +2822,23 @@ void game::draw()
            season_name[turn.season].c_str(), turn.day + 1);
 
  if (run_mode != 0 || autosafemode != 0) {
-  int iPercent = ((turnssincelastmon*100)/OPTIONS[OPT_AUTOSAFEMODETURNS]);
+//CAT-MGS:
+//  int iPercent = ((turnssincelastmon*100)/OPTIONS[OPT_AUTOSAFEMODETURNS]);
+  int iPercent = int((turnssincelastmon*100)/50);
+
   mvwprintz(w_status, 2, 51, (run_mode == 0) ? ((iPercent >= 25) ? c_green : c_red): c_green, "S");
   wprintz(w_status, (run_mode == 0) ? ((iPercent >= 50) ? c_green : c_red): c_green, "A");
   wprintz(w_status, (run_mode == 0) ? ((iPercent >= 75) ? c_green : c_red): c_green, "F");
   wprintz(w_status, (run_mode == 0) ? ((iPercent == 100) ? c_green : c_red): c_green, "E");
 
 
-//CAT-mgs:
+ wrefresh(w_status);
+ draw_ter();
+ draw_footsteps();
+
+
+//CAT-mgs: ************************* music loops ***************************
+//**************************************************************************
   if(run_mode == 2)
 	run_mode = 3;
   else
@@ -2875,6 +2885,9 @@ void game::draw()
 		else
 			stopLoop(-99);
 	}
+	else
+		stopLoop(-99);
+
 
 //CAT-mgs: music loops
 	if(u.underwater)
@@ -2930,8 +2943,6 @@ void game::draw()
 
 //CAT-s: END *** ^^^
  }
-
- wrefresh(w_status);
 }
 
 bool game::isBetween(int test, int down, int up)
@@ -2966,7 +2977,6 @@ void game::draw_ter(int posx, int posy)
     night_vision= true;
 
 
-//abaraba
  // Draw monsters
  int distx, disty;
  for (int i = 0; i < z.size(); i++) {
@@ -3093,8 +3103,8 @@ void game::draw_ter(int posx, int posy)
 			int iRandX = rng(iStartX, iEndX-1);
 			int iRandY = rng(iStartY, iEndY-1);
 
-			if( m.is_outside(u.posx+(iRandX-SEEX), u.posy+(iRandY-SEEY))
-					&& (iRandX!=SEEX && iRandY!=SEEY) )
+			if( (iRandX!=VIEWX && iRandY!=VIEWY)
+					&& m.is_outside(u.posx+(iRandX-VIEWX), u.posy+(iRandY-VIEWY)) )
 				mvwputch(w_terrain, iRandY, iRandX, colGlyph, cGlyph);
 		}
 	  }
@@ -3105,6 +3115,11 @@ void game::draw_ter(int posx, int posy)
 
 //CAT-g: moved here
  wrefresh(w_terrain);
+
+//CAT-mgs:
+ wrefresh(0, true);
+
+// cat_update();
 }
 
 
@@ -3636,7 +3651,9 @@ void game::mon_info()
  int newseen = 0;
 
 //CAT-mgs: 30 <- 60
- const int iProxyDist = (OPTIONS[OPT_SAFEMODEPROXIMITY] <= 0) ? 30 : OPTIONS[OPT_SAFEMODEPROXIMITY];
+// const int iProxyDist = (OPTIONS[OPT_SAFEMODEPROXIMITY] <= 0) ? 30 : OPTIONS[OPT_SAFEMODEPROXIMITY];
+ const int iProxyDist = 40;
+
 
 // 7 0 1	unique_types uses these indices;
 // 6 8 2	0-7 are provide by direction_from()
@@ -3714,7 +3731,9 @@ void game::mon_info()
    run_mode = 2;	// Stop movement!
  } else if (autosafemode && newseen == 0) { // Auto-safemode
   turnssincelastmon++;
-  if(turnssincelastmon >= OPTIONS[OPT_AUTOSAFEMODETURNS] && run_mode == 0)
+//CAT-mgs:
+//  if(turnssincelastmon >= OPTIONS[OPT_AUTOSAFEMODETURNS] && run_mode == 0)
+  if(turnssincelastmon >= 50 && run_mode == 0)
    run_mode = 1;
  }
 
@@ -3865,7 +3884,7 @@ void game::cleanup_dead()
   if(z[i].dead || z[i].hp <= 0) {
    
    if(!z[i].dead)
-	z[i].die(this);
+	kill_mon(i, false);
 
 //   add_msg("Erase monster");
 
@@ -3892,10 +3911,11 @@ void game::cleanup_dead()
 //CAT-mgs: ***** vvv ******
 void game::monmove()
 {
-   cleanup_dead();
+//   cleanup_dead();
 
    for (int i = 0; i < z.size(); i++)
    {
+/*
 	while(!z[i].dead && !z[i].can_move_to(m, z[i].posx, z[i].posy))
 	{
 		bool okay = false;
@@ -3916,32 +3936,31 @@ void game::monmove()
 		   }
 		}
 
+
 		if(!okay)
 			z[i].dead = true;
 	}
 
+*/
+
+
 	if(!z[i].dead)
 	{
 		z[i].made_footstep = false;
-		z[i].process_effects(this);
-		z[i].process_triggers(this);
-		z[i].plan(this);
-
 		while(z[i].moves > 0 && !z[i].dead)
+		{
+			z[i].plan(this);
 			z[i].move(this);
+		}
 
 		if(z[i].hurt(0))
-		{	// Maybe we died...
-			if(z[i].has_effect(ME_ONFIRE))
-				kill_mon(i, true);
-			else
-				kill_mon(i, false);
-
-//			z[i].dead = true;
-		}
+			kill_mon(i, false);
 		else
 		{
+
 			z[i].receive_moves();
+			z[i].process_effects(this);
+			z[i].process_triggers(this);
 			m.mon_in_field(z[i].posx, z[i].posy, this, &(z[i]));
 
 			if(u.has_active_bionic(bio_alarm) && u.power_level >= 1 
@@ -4162,9 +4181,10 @@ void game::explosion(int x, int y, int power, int shrapnel, bool fire)
  for (int i = x - radius; i <= x + radius; i++) {
   for (int j = y - radius; j <= y + radius; j++) {
    if (i == x && j == y)
-    dam = 3 * power;
+    dam = 5 * power;
    else
-    dam = 3 * power / (rl_dist(x, y, i, j));
+    dam = 5 * power / (rl_dist(x, y, i, j));
+
    if (m.has_flag(bashable, i, j))
     m.bash(i, j, dam, junk);
    if (m.has_flag(bashable, i, j))	// Double up for tough doors, etc.
@@ -4260,6 +4280,8 @@ void game::explosion(int x, int y, int power, int shrapnel, bool fire)
   }
 
   wrefresh(w_terrain);
+//CAT-mgs:
+  wrefresh(0, true);
   nanosleep(&ts, NULL);
  }
 
@@ -4279,7 +4301,8 @@ void game::explosion(int x, int y, int power, int shrapnel, bool fire)
    traj = line_to(x, y, sx, sy, t);
   else
    traj = line_to(x, y, sx, sy, 0);
-  dam = rng(20, 60);
+
+  dam = rng(40, 90);
   for (int j = 0; j < traj.size(); j++) {
    if (j > 0 && u_see(traj[j - 1].x, traj[j - 1].y, ijunk))
     m.drawsq(w_terrain, u, traj[j - 1].x, traj[j - 1].y, false, true);
@@ -4287,6 +4310,10 @@ void game::explosion(int x, int y, int power, int shrapnel, bool fire)
     mvwputch(w_terrain, traj[j].y + VIEWY - u.posy - u.view_offset_y,
                         traj[j].x + VIEWX - u.posx - u.view_offset_x, c_pink, '*');
     wrefresh(w_terrain);
+
+//CAT-mgs:
+  wrefresh(0, true);
+
     nanosleep(&ts, NULL);
    }
    tx = traj[j].x;
@@ -4326,6 +4353,7 @@ void game::explosion(int x, int y, int power, int shrapnel, bool fire)
   }
  }
 }
+
 
 void game::flashbang(int x, int y)
 {
@@ -4574,9 +4602,12 @@ void game::kill_mon(int index, bool u_did_it)
 	return;
   }
 
-  if (u_did_it)
+
+  if( u_did_it 
+	|| z[index].has_effect(ME_ONFIRE)
+	|| z[index].has_effect(ME_STUNNED) )
   {
-	add_msg("You killed...");
+//	add_msg("You killed...");
 	if (z[index].has_flag(MF_GUILT))
 	{
 		mdeath tmpdeath;
@@ -5048,27 +5079,32 @@ void game::handbrake ()
  add_msg ("You pull a handbrake.");
  veh->cruise_velocity = 0;
 
-//CAT-mgs: && rng (15, 60) * 100 < abs(veh->velocity)
- if (veh->last_turn != 0) {
-  veh->skidding = true;
-  add_msg ("You lose control of %s.", veh->name.c_str());
-  veh->turn (veh->last_turn > 0? 45 : -45);
- } else if (veh->velocity < 0)
-  veh->stop();
- else {
-  veh->velocity-= (int)veh->velocity / 30;
 
-  if(veh->velocity < 0)
-  {
+//CAT-mgs: && rng (15, 60) * 100 < abs(veh->velocity)
+ if(veh->last_turn != 0)
+ {
+   veh->skidding = true;
+   add_msg ("You lose control of %s.", veh->name.c_str());
+   veh->turn (veh->last_turn > 0? 45 : -45);
+ } 
+ else
+   veh->velocity-= (int)veh->velocity / 30;
+
+
+ if(abs(veh->velocity) > 900)
+	playSound(118);
+ else
+ if(abs(veh->velocity) < 500)
+ {
+	veh->stop();
 	veh->velocity= 0;
-      veh->stop();
-  }
  }
 
  u.moves = 0;
 
 //CAT-mgs:
  pldrive(0, 0);
+
 }
 
 
@@ -5861,22 +5897,23 @@ shape, but with long, twisted, distended limbs.");
 
 
 
-
 //CAT-mgs: *** vvv
 void game::runJump(bool just_kick)
 {
 
- bool cat_toggle= false;
- 
- if(!just_kick)
-	cat_toggle= query_yn("Y: Kick, N: Jump");
+ if(u.in_vehicle && !just_kick) 
+ {
+//CAT-s: menuWrong sound
+	playSound(3);	
+	return;
+ }
 
- if(cat_toggle || just_kick)
+ if(just_kick)
  {
 
 //CAT-mgs: KICK ********************************* vvv
    refresh_all();
-   mvwprintw(w_terrain, 0, 0, "Kick where?");
+   mvwprintw(w_terrain, 0, 0, "Kick/Push where?");
    wrefresh(w_terrain);
    playSound(1);
 
@@ -5956,9 +5993,9 @@ void game::runJump(bool just_kick)
 
 	add_msg("You kick it with %d points of power!", mle);
 	fling_player_or_monster(0, &z[mi], angle-90, mle);
-
 	if(mle > 25 && !one_in(1+int(u.skillLevel("melee")/2)))
 		z[mi].add_effect(ME_STUNNED, int(1+int(u.skillLevel("melee")/2)));
+
 
 //CAT-s: hoya & noiseWhack
 	playSound(38);
@@ -5972,7 +6009,7 @@ void game::runJump(bool just_kick)
 	playSound(94);
 	mi = mon_at(xd, yd);
 	if(mi >= 0)
-		fling_player_or_monster(0, &z[mi], angle-90, 25);
+		fling_player_or_monster(0, &z[mi], angle-90, 30);
 
 //	if(is_empty(xd, yd))
 	{
@@ -6109,6 +6146,9 @@ return;
 	plmove(dx, dy);
 	draw_ter();
 
+//CAT-mgs:
+  wrefresh(0, true);
+
 	nanosleep(&ts, NULL);	
 	for(int i= 1; i < ret.size(); i++) 
 	{
@@ -6122,6 +6162,9 @@ return;
 //		mvwputch(w_terrain, VIEWY -dy, VIEWX -dx , c_dkgray, '@');
 
 		wrefresh(w_terrain);
+//CAT-mgs:
+  wrefresh(0, true);
+
 		nanosleep(&ts, NULL);	
 	}
 
@@ -8686,7 +8729,7 @@ void game::plmove(int x, int y)
 	}
 	else
 	{
-		if(last_ter != m.ter(x,y) )
+		if(last_ter != m.ter(x,y) && JUMPING == 0 )
 		{
 		   if( !query_yn("Really step up on this %s?", m.tername(x, y).c_str()) )
 			return;
@@ -8696,7 +8739,6 @@ void game::plmove(int x, int y)
 	}
 
 	add_msg("Moving past this %s is slow!", m.tername(x, y).c_str());
-
    }
   }
 
@@ -8951,14 +8993,8 @@ void game::fling_player_or_monster(player *p, monster *zz, int dir, int flvel)
     if (zz)
         is_player = false;
     else
-    {
-/*
-     dbg(D_ERROR) << "game:fling_player_or_monster: "
-                     "neither player nor monster";
-     debugmsg ("game::fling neither player nor monster");
-*/
-     return;
-    }
+	return;
+
 
     tileray tdir(dir);
     std::string sname, snd;
@@ -8992,7 +9028,7 @@ void game::fling_player_or_monster(player *p, monster *zz, int dir, int flvel)
             dam2 = flvel / 3 + rng (0, flvel * 1 / 3);
             if (z[mondex].hurt(dam2))
 		{
-			kill_mon(mondex, false);
+			kill_mon(mondex, !is_player);
 //			add_msg("kill_mon 1");
 
 		}
@@ -9000,11 +9036,11 @@ void game::fling_player_or_monster(player *p, monster *zz, int dir, int flvel)
              thru = false;
 
             if (is_player)
-             p->hitall (this, dam1, 40);
+			p->hitall (this, dam1, 40);
             else
 		if(zz->hurt(dam1))
 		{
-			kill_mon(mondex, false);
+			kill_mon(mondex, !is_player);
 //			add_msg("kill_mon2");
 		}
 
@@ -9025,7 +9061,7 @@ void game::fling_player_or_monster(player *p, monster *zz, int dir, int flvel)
             else
 		if(zz->hurt(dam1))
 		{
-			kill_mon(mondex, false);
+			kill_mon(mondex, !is_player);
 //			add_msg("kill_mon3");
 		}
 
@@ -9053,10 +9089,15 @@ void game::fling_player_or_monster(player *p, monster *zz, int dir, int flvel)
 
         range--;
         steps++;
+
+
+//CAT-mgs:
+/*
         timespec ts;   // Timespec for the animation
         ts.tv_sec = 0;
-        ts.tv_nsec = BILLION / 20;
+        ts.tv_nsec = BILLION / 40;
         nanosleep (&ts, 0);
+*/
     }
 
     if(!m.has_flag(swimmable, x, y))
@@ -9076,7 +9117,7 @@ void game::fling_player_or_monster(player *p, monster *zz, int dir, int flvel)
 	  if(zz->hurt(dam1))
 	  {
 			int mondex = mon_at(zz->posx, zz->posy);
-			kill_mon(mondex, false);
+			kill_mon(mondex, !is_player);
 //			add_msg("kill_mon4");
 	  }
 
@@ -9090,6 +9131,7 @@ void game::fling_player_or_monster(player *p, monster *zz, int dir, int flvel)
     if (is_u)
         add_msg ("You fall into water.");
 }
+
 
 void game::vertical_move(int movez, bool force)
 {
@@ -9400,14 +9442,16 @@ void game::update_map(int &x, int &y)
   olevy = 1;
  }
 
+
  if(olevx != 0 || olevy != 0)
  {
-	cur_om.save();
-	cur_om = overmap(this, cur_om.pos().x + olevx, cur_om.pos().y + olevy);
-
 //CAT-mgs: moved here from below
 //	update_overmap_seen();
 	add_msg("CROSSING REGION BORDER...");
+	write_msg();
+
+	cur_om.save();
+	cur_om = overmap(this, cur_om.pos().x + olevx, cur_om.pos().y + olevy);
  }
 
   despawn_monsters(false, shiftx, shifty);

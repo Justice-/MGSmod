@@ -115,7 +115,7 @@ typedef struct {
 WINDOW *newwin(int nlines, int ncols, int begin_y, int begin_x);
 int delwin(WINDOW *win);
 int wborder(WINDOW *win, chtype ls, chtype rs, chtype ts, chtype bs, chtype tl, chtype tr, chtype bl, chtype br);
-int wrefresh(WINDOW *win);
+int wrefresh(WINDOW *win, bool really= false);
 int refresh(void);
 int getch(void);
 int mvwprintw(WINDOW *win, int y, int x, const char *fmt, ...);
@@ -163,6 +163,9 @@ void playSound(int ID);
 void playLoop(int ID);
 void stopLoop(int ID);
 void loopVolume(int volume);
+
+//CAT-mgs-g:
+void cat_update();
 
 
 //Window Functions, Do not call these outside of catacurse.cpp

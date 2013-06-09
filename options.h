@@ -5,11 +5,22 @@
 
 enum option_key {
 OPT_NULL = 0,
-OPT_FORCE_YN, // Y/N versus y/n
 OPT_USE_CELSIUS, // Display temp as C not F
 OPT_USE_METRIC_SYS, // Display speed as Km/h not mph
+OPT_INITIAL_TIME, // Sets the starting hour (0-24)
+OPT_STATIC_SPAWN, // Makes zombies spawn using the new static system
+OPT_CLASSIC_ZOMBIES, // Only spawn the more classic zombies
+OPT_VIEWPORT_X, // Set the width of the terrain window, in characters
+OPT_VIEWPORT_Y, // Set the height of the terrain window, in characters
+NUM_OPTION_KEYS,
+//CAT-mgs: ***** ^^^
+
+
+
 OPT_NO_CBLINK, // No bright backgrounds
+OPT_FORCE_YN, // Y/N versus y/n
 OPT_24_HOUR, // 24 hour time
+
 OPT_SNAP_TO_TARGET, // game::firing snaps to target
 OPT_SAFEMODE, // Safemode on by default?
 OPT_SAFEMODEPROXIMITY, //Range after which safemode kicks in
@@ -21,13 +32,7 @@ OPT_QUERY_DISASSEMBLE, // Query before disassembling items
 OPT_DROP_EMPTY, // auto drop empty containers after use
 OPT_SKILL_RUST, // level of skill rust
 OPT_DELETE_WORLD, // Delete workd every time New Character is created
-OPT_INITIAL_POINTS, // Set the number of character points
-OPT_INITIAL_TIME, // Sets the starting hour (0-24)
-OPT_VIEWPORT_X, // Set the width of the terrain window, in characters
-OPT_VIEWPORT_Y, // Set the height of the terrain window, in characters
-OPT_STATIC_SPAWN, // Makes zombies spawn using the new static system
-OPT_CLASSIC_ZOMBIES, // Only spawn the more classic zombies
-NUM_OPTION_KEYS
+OPT_INITIAL_POINTS // Set the number of character points
 };
 
 struct option_table

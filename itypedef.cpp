@@ -2347,7 +2347,7 @@ A 40mm grenade with a concussive explosion.",
 mfb(AMMO_EXPLOSIVE));
 
 AMMO("66mm HEAT", 0, 0, AT_66MM,        c_red,  STEEL,
-     1,  220,  5,  20,  40,  8, 15, 1, "\
+     2,  220,  5,  20,  40,  8, 15, 1, "\
 A 60mm High Explosive Anti Tank round. They can blow through up to two feet of concrete.",
 mfb(AMMO_EXPLOSIVE_BIG)|mfb(AMMO_TRAIL));
 

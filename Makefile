@@ -3,13 +3,9 @@
 # DEBUG is best turned on if you plan to debug in gdb -- please do!
 # PROFILE is for use with gprof or a similar program -- don't bother generally
 #WARNINGS = -Wall -Wextra -Wno-switch -Wno-sign-compare -Wno-missing-braces -Wno-unused-parameter -Wno-char-subscripts
-#PROFILE = -pg
 #DEBUG = -g
-
-#OTHERS = -Ofast
-#OTHERS = -O3
+#PROFILE = -pg
 OTHERS = -Os
-
 
 ODIR = objwin
 DDIR = .deps
@@ -18,16 +14,15 @@ TARGET = cataclysm.exe
 
 CXX = g++
 
-
-LINKER = i486-mingw32-ld
-#LINKERFLAGS = -Wl,-stack,12000000,-subsystem,windows
-
+LINKER = i486-mingw32-ld 
+#LINKERFLAGS = -Wl,--subsystem,console
 
 CFLAGS = $(WARNINGS) $(DEBUG) $(PROFILE) $(OTHERS)
 
-#CAT-s:
-#LDFLAGS = -static -lgdi32
-LDFLAGS = -static -lgdi32 -lmingw32 -lSDLmain -lSDL.dll -lSDL_mixer.dll -mwindows
+#LDFLAGS = -static -lSDL.dll -lSDL_mixer.dll -mwindows
+LDFLAGS = -static -lSDL.dll -lSDL_mixer.dll -lSDL_ttf.dll -lfreetype.dll -mwindows
+
+
 
 #ifeq ($(OS), Msys)
 #LDFLAGS = -static -lpdcurses
@@ -43,7 +38,7 @@ all: $(TARGET)
 	@
 
 $(TARGET): $(ODIR) $(DDIR) $(OBJS)
-	$(CXX) $(LINKERFLAGS) -o $(TARGET) $(CFLAGS) $(OBJS) $(LDFLAGS)
+	$(CXX) $(LINKERFLAGS) -o $(TARGET) $(CFLAGS) $(OBJS) $(LDFLAGS) -DMINGW
 
 $(ODIR):
 	mkdir $(ODIR)

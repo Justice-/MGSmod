@@ -96,8 +96,24 @@ bool map::process_fields_in_submap(game *g, int gridn)
 		int trm= int(g->turn) - cur->lastUpdate;
 		if(trm < 1) trm= 1;
 
-		if(trm > 100)
+		if(trm > 300)
+		{
 			cur->density= -1; 
+
+			for(int i = 0; i < i_at(x, y).size(); i++)
+			{
+			      item *it = &(i_at(x, y)[i]);
+				if( it->made_of(STONE) 
+						|| it->made_of(IRON) || it->made_of(STEEL) )
+					continue;
+
+		      	for (int m = 0; m < i_at(x, y)[i].contents.size(); m++)
+			       i_at(x, y).push_back( i_at(x, y)[i].contents[m] );
+
+			      i_at(x, y).erase(i_at(x, y).begin() + i);
+			      i--;
+			}
+		}
 
 //		g->add_msg("TRM: %d  AGE: %d", trm, cur->age);
 	}

@@ -206,7 +206,7 @@ void map::board_vehicle(game *g, int x, int y, player *p)
  int part = 0;
  vehicle *veh = veh_at(x, y, part);
  if (!veh) {
-  g->add_msg("map::board_vehicle: vehicle not found");
+//  g->add_msg("map::board_vehicle: vehicle not found");
   return;
  }
 
@@ -414,24 +414,25 @@ bool map::displace_vehicle (game *g, int &x, int &y, const int dx, const int dy,
  return (src_na != dst_na) || was_update;
 }
 
+
+int cat_contVeh;
 void map::vehmove(game *g)
 {
-   // give vehicles movement points
-   {
-      VehicleList vehs = g->m.get_vehicles();
-      for(int v = 0; v < vehs.size(); ++v) {
-         vehicle* veh = vehs[v].v;
-         veh->gain_moves (abs (veh->velocity));
-      }
-   }
+  VehicleList vehs = g->m.get_vehicles();
+  for(int v = 0; v < vehs.size(); ++v)
+  {
+	vehicle* veh = vehs[v].v;
+	veh->gain_moves (abs (veh->velocity));
+  }
 
-   int count = 0;
-   while(vehproceed(g)){
-      count++;// lots of movement stuff. maybe 10 is low for collisions.
-      if (count > 10)
-         break;
+//CAT-mgs:
+   cat_contVeh = 0;
+   while(vehproceed(g))
+   {
+      cat_contVeh++;
    }
 }
+
 
 // find veh with the most amt of turn remaining, and move it a bit.
 // proposal:
@@ -449,14 +450,18 @@ bool map::vehproceed(game* g){
          max_of_turn = veh->of_turn;
       }
    }
+
    if(!veh)
+   {	
+//	g->add_msg("!VEH -- cat_contVeh: %d", cat_contVeh);
       return false;
+   }
 
    if(!inbounds(x, y)){
-      g->add_msg("stopping out-of-map vehicle. (x,y)=(%d,%d)",x,y);
+//      g->add_msg("stopping out-of-map vehicle. (x,y)=(%d,%d)",x,y);
       veh->stop();
       veh->of_turn = 0;
-      return true;
+      return false;
    }
 
    bool pl_ctrl = veh->player_in_control(&g->u);
@@ -515,6 +520,7 @@ bool map::vehproceed(game* g){
       veh->of_turn = 0;
       return true;
    }
+
 
    veh->of_turn -= ter_turn_cost;
 
@@ -831,6 +837,13 @@ bool map::vehproceed(game* g){
 //   g->draw();
    g->draw_ter(); 
 
+     
+   if(cat_contVeh > (5+abs(veh->velocity/2)))
+   {	
+//	g->add_msg("Vel: %d", veh->velocity);
+	return false;
+   }
+
    return true;
 }
 
@@ -949,10 +962,15 @@ int map::move_cost_ter_only(const int x, const int y)
  return terlist[ter(x, y)].movecost;
 }
 
+
 bool map::trans(const int x, const int y, char * trans_buf)
 {
-  if(trans_buf && trans_buf[x + (y * my_MAPSIZE * SEEX)] != -1)
-   return trans_buf[x + (y + my_MAPSIZE * SEEX)];
+
+  if(trans_buf) 
+  {
+	if(trans_buf[x + (y * my_MAPSIZE * SEEX)] != -1)
+   		return trans_buf[x + (y + my_MAPSIZE * SEEX)];
+  }
 
  // Control statement is a problem. Normally returning false on an out-of-bounds
  // is how we stop rays from going on forever.  Instead we'll have to include
@@ -973,11 +991,18 @@ bool map::trans(const int x, const int y, char * trans_buf)
   // Fields may obscure the view, too
   field & f(field_at(x, y));
   if(f.type == 0 || fieldlist[f.type].transparent[f.density - 1]){
-   if(trans_buf) trans_buf[x + (y * my_MAPSIZE * SEEX)] = 1;
+
+   if(trans_buf)
+	 trans_buf[x + (y * my_MAPSIZE * SEEX)] = 1;
+
    return true;
   }
  }
- if(trans_buf) trans_buf[x + (y * my_MAPSIZE * SEEX)] = 0;
+
+
+ if(trans_buf)
+	trans_buf[x + (y * my_MAPSIZE * SEEX)] = 0;
+
  return false;
 }
 
@@ -1138,7 +1163,7 @@ bool map::bash(const int x, const int y, const int str, std::string &sound, int 
 
 //CAT-s:
  int rlD= rl_dist(cat_px, cat_py, x, y);
- bool playWav= (rlD < 15);
+ bool playWav= (rlD < 17);
 
  int result = -1;
  int vpart;
@@ -1879,6 +1904,11 @@ case t_wall_log:
 // map::destroy is only called (?) if the terrain is NOT bashable.
 void map::destroy(game *g, const int x, const int y, const bool makesound)
 {
+
+//CAT-s:
+ int rlD= rl_dist(cat_px, cat_py, x, y);
+ bool playWav= (rlD < 17);
+
  switch (ter(x, y)) {
 
  case t_gas_pump:
@@ -1925,9 +1955,11 @@ void map::destroy(game *g, const int x, const int y, const bool makesound)
   break;
 
  case t_floor:
+
  g->sound(x, y, 20, "SMASH!!");
 
-//CAT-s:
+//CAT-s: 
+  if(playWav)
 	playSound(94);
 
   for (int i = x - 2; i <= x + 2; i++) {
@@ -1963,7 +1995,9 @@ void map::destroy(game *g, const int x, const int y, const bool makesound)
  case t_wall_v:
  case t_wall_h:
  g->sound(x, y, 20, "SMASH!!");
-//CAT-s:
+
+//CAT-s: 
+  if(playWav)
 	playSound(93);
 
   for (int i = x - 2; i <= x + 2; i++) {
@@ -2012,8 +2046,10 @@ void map::destroy(game *g, const int x, const int y, const bool makesound)
  {
 	g->sound(x, y, 40, "SMASH!!");
 
-//CAT-s:
-	playSound(91);
+
+//CAT-s: 
+	if(playWav)
+		playSound(91);
  }
 
 }
@@ -2536,10 +2572,13 @@ item map::water_from(const int x, const int y)
  return ret;
 }
 
+
+//CAT-mgs: fix crash when NPC droping on wrong z-level
 void map::i_rem(const int x, const int y, const int index)
 {
- if (index > i_at(x, y).size() - 1)
+ if(i_at(x, y).size() < 1 || index > i_at(x, y).size() - 1)
   return;
+
  i_at(x, y).erase(i_at(x, y).begin() + index);
 }
 
@@ -3106,7 +3145,6 @@ void map::draw(game *g, WINDOW* w, const point center)
 	if(g->run_mode > 1)
 	   mvwputch(w, aty-1, atx, c_white_red, '!');
   }
-
 }
 
 
@@ -3198,10 +3236,7 @@ void map::drawsq(WINDOW* w, player &u, const int x, const int y, const bool inve
 
 
  if(move_cost(x, y) == 0 && has_flag(swimmable, x, y) && !u.underwater)
-  show_items = false;	// Can only see underwater items if WE are underwater
-
- int veh_part = 0;
- vehicle *veh = veh_at(x, y, veh_part);
+	show_items = false;	// Can only see underwater items if WE are underwater
 
  if(field_at(x, y).type != fd_null
 			&& fieldlist[field_at(x, y).type].sym != '&') 
@@ -3234,9 +3269,12 @@ void map::drawsq(WINDOW* w, player &u, const int x, const int y, const bool inve
 		sym = fieldlist[field_at(x, y).type].sym;
 		drew_field = false;
 	}
-
  }
- else
+
+
+ int veh_part = 0;
+ vehicle *veh = veh_at(x, y, veh_part);
+
  if(veh) 
  {
    sym = special_symbol (veh->face.dir_symbol(veh->part_sym(veh_part)));
@@ -3244,8 +3282,7 @@ void map::drawsq(WINDOW* w, player &u, const int x, const int y, const bool inve
    if(normal_tercol)
      tercol = veh->part_color(veh_part);
  }
-
-
+ else
  if(!drew_field && show_items 
 	&& !has_flag(container, x, y) && i_at(x, y).size() > 0)
  {
@@ -3256,24 +3293,26 @@ void map::drawsq(WINDOW* w, player &u, const int x, const int y, const bool inve
 	else
 	if(nv)
 		tercol= c_ltgreen;
-	else
-	if(normal_tercol)
-	   tercol = i_at(x, y)[i_at(x, y).size() - 1].color();
 
-	if ((terlist[ter(x, y)].sym != '.'))
-		hi = true;
+/*
+	if(sym == '4')
+		graf= true;	
 	else
+*/
+
+	if(sym != '4')
 	{
+		if(normal_tercol)
+			tercol = i_at(x, y)[i_at(x, y).size() - 1].color();
 
-		if(sym == '4')
-			graf= true;	
-		else
-		if (i_at(x, y).size() > 1)
+		if((terlist[ter(x, y)].sym != '.'))
+			hi = true;
+
+		if(i_at(x, y).size() > 1)	
 			invert = !invert;
 
 		sym = i_at(x, y)[i_at(x, y).size() - 1].symbol();
 	}
-
 
  }
  else
@@ -3310,7 +3349,7 @@ void map::drawsq(WINDOW* w, player &u, const int x, const int y, const bool inve
    graf = true;
 
 
-
+ 
 //CAT: yellow pavement (and railings?) have high visibility
  if(sym == '.' && ter(x, y) == t_pavement_y)
 	tercol = c_yellow;
@@ -3353,11 +3392,15 @@ bool map::sees(const int Fx, const int Fy, const int Tx, const int Ty,
 
  if (range >= 0 && (abs(dx) > range || abs(dy) > range))
   return false;	// Out of range!
+
+
+
  if (ax > ay) { // Mostly-horizontal line
   st = SGN(ay - (ax >> 1));
 // Doing it "backwards" prioritizes straight lines before diagonal.
 // This will help avoid creating a string of zombies behind you and will
 // promote "mobbing" behavior (zombies surround you to beat on you)
+
   for (tc = abs(ay - (ax >> 1)) * 2 + 1; tc >= -1; tc--) {
    t = tc * st;
    x = Fx;
@@ -3397,8 +3440,10 @@ bool map::sees(const int Fx, const int Fy, const int Tx, const int Ty,
   }
   return false;
  }
+
  return false; // Shouldn't ever be reached, but there it is.
 }
+
 
 bool map::clear_path(const int Fx, const int Fy, const int Tx, const int Ty,
                      const int range, const int cost_min, const int cost_max, int &tc)
@@ -3539,8 +3584,11 @@ std::vector<point> map::route(const int Fx, const int Fy, const int Tx, const in
     if (x == Tx && y == Ty) {
      done = true;
      parent[x][y] = open[index];
-    } else if (x >= startx && x <= endx && y >= starty && y <= endy &&
-               (move_cost(x, y) > 0 || (bash && has_flag(bashable, x, y)))) {
+    }
+    else
+    if(x >= startx && x <= endx && y >= starty && y <= endy
+		&& (move_cost(x, y) > 0 || (bash && has_flag(bashable, x, y))))
+    {
      if (list[x][y] == ASL_NONE) {	// Not listed, so make it open
       list[x][y] = ASL_OPEN;
       open.push_back(point(x, y));

@@ -190,11 +190,14 @@ void dis_effect(game *g, player &p, disease &dis)
   }
  break;
 
+
  case DI_BLISTERS_HANDS:
   p.dex_cur--;
   if (p.pain < 35) p.pain++;
   if (one_in(2)) p.hp_max[hp_arm_r]--;
   else p.hp_max[hp_arm_l]--;
+
+//  g->add_msg("You're getting blisters on your mouth.");
   break;
 
  case DI_BLISTERS_FEET:
@@ -202,23 +205,27 @@ void dis_effect(game *g, player &p, disease &dis)
   if (p.pain < 35) p.pain++;
   if (one_in(2)) p.hp_max[hp_leg_r]--;
   else p.hp_max[hp_leg_l]--;
+
+//  g->add_msg("You're getting blisters on your feet.");
   break;
 
  case DI_BLISTERS_MOUTH:
   p.per_cur--;
   p.hp_max[hp_head]--;
-  if (p.pain < 35) p.pain++;
+  if(p.pain < 35) p.pain++;
+
+//  g->add_msg("You're getting blisters on your mouth.");
   break;
 
  case DI_HOT_HEAD:
   switch (dis.intensity) {
    case 3 :
-    p.thirst--;
+    p.thirst++;
 	if (p.pain < 50) p.pain++;
     if (!p.has_disease(DI_SLEEP) && one_in(400)) g->add_msg("Your head is pounding from the heat.");
     // Speed -20
    case 2 :
-    p.thirst--;
+    p.thirst++;
     if (one_in(15000 - p.temp_cur[bp_head])) p.vomit(g); // Hallucinations handled in game.cpp
 	if (p.pain < 20) p.pain++;
     if (!p.has_disease(DI_SLEEP) && one_in(400)) g->add_msg("The heat is making you see things.");
@@ -232,12 +239,12 @@ void dis_effect(game *g, player &p, disease &dis)
  case DI_HOT_TORSO:
   switch (dis.intensity) {
    case 3 :
-    p.thirst--;
+    p.thirst++;
     p.str_cur--;
     if (!p.has_disease(DI_SLEEP) && one_in(200)) g->add_msg("You are sweating profusely.");
     // Speed -20
    case 2 :
-    p.thirst--;
+    p.thirst++;
 	p.str_cur--;
     // Speed -5
    case 1 :
@@ -248,9 +255,9 @@ void dis_effect(game *g, player &p, disease &dis)
 
  case DI_HOT_ARMS:
   switch (dis.intensity) {
-   case 3 : p.thirst--;
+   case 3 : p.thirst++;
     if (p.pain < 50) p.pain++;
-   case 2 : p.thirst--;
+   case 2 : p.thirst++;
    case 1 : if (!p.has_disease(DI_SLEEP) && one_in(600)) g->add_msg("\"Phew, it's hot.\"");
   }
   break;
@@ -265,10 +272,10 @@ void dis_effect(game *g, player &p, disease &dis)
 
  case DI_HOT_LEGS:
   switch (dis.intensity) {
-   case 3 : p.thirst--;
+   case 3 : p.thirst++;
     if (p.pain < 50) p.pain++;
     if (one_in(200)) g->add_msg("Your legs are cramping up.");
-   case 2 : p.thirst--;
+   case 2 : p.thirst++;
    case 1 : if (!p.has_disease(DI_SLEEP) && one_in(600)) g->add_msg("\"Phew, it's hot.\"");
   }
   break;
@@ -1172,7 +1179,7 @@ int disease_speed_boost(disease dis)
  }
 }
 
-std::string dis_name(disease dis)
+std::string dis_name(disease dis, player &p)
 {
  switch (dis.type) {
  case DI_NULL:		return "";
@@ -1277,9 +1284,23 @@ std::string dis_name(disease dis)
  case DI_WEBBED:	return "Webbed";
  case DI_RAT:		return "Ratting";
  case DI_DRUNK:
+
+//CAT-mgs:
+  if(p.has_trait(PF_DRUNKEN))
+  {
+	if(dis.duration >= 2100)	
+		return "Zui Quan!!!";
+	if(dis.duration >= 1200 && dis.duration < 2100)	
+		return "Drunken Master!";
+	else
+	if(dis.duration > 700 && dis.duration < 1200)	
+		return "Drunk Bonus";
+  }
+
   if (dis.duration > 2200) return "Wasted";
   if (dis.duration > 1400) return "Trashed";
   if (dis.duration > 800)  return "Drunk";
+
                            return "Tipsy";
 
  case DI_CIG:		return "Cigarette";
@@ -1324,22 +1345,7 @@ std::string dis_name(disease dis)
   return "Puss Filled Wound";
   case DI_RECOVER:	return "Recovering From Infection";
 
-
-//CAT-mgs:
-/*
-  case DI_DRUNK:
-	if(p.has_trait(PF_DRUNKEN))
-	{
-		if(p.disease_level(DI_DRUNK) > 800)	
-			return "Drunken Master!";
-		else
-			return "Drunk Bonus";
-	}
-*/
-
-  break;
-
- default:		return "";
+  default:		return "";
  }
 }
 

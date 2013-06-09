@@ -43,9 +43,12 @@ struct ratio_index
 
 // class npc functions!
 
+
 void npc::move(game *g)
 {
+
  npc_action action = npc_undecided;
+
  int danger = 0, total_danger = 0, target = -1;
 
  choose_monster_target(g, target, danger, total_danger);
@@ -90,6 +93,7 @@ void npc::move(game *g)
     action = scan_new_items(g, target);
    else if (!fetching_item)
     find_item(g);
+
    // check if in vehicle before rushing off to fetch things
    if (is_following() && g->u.in_vehicle)
     action = npc_follow_embarked;
@@ -102,13 +106,6 @@ void npc::move(game *g)
   }
  }
 
-/* Sometimes we'll be following the player at this point, but close enough that
- * "following" means standing still.  If that's the case, if there are any
- * monsters around, we should attack them after all!
- *
- * If we are following a embarked player and we are in a vehicle then shoot anyway
- * as we are most likely riding shotgun
- */
  if (danger > 0 && (
      (action == npc_follow_embarked && in_vehicle) ||
      (action == npc_follow_player &&
@@ -116,9 +113,10 @@ void npc::move(game *g)
     ))
   action = method_of_attack(g, target, danger);
 
-
  execute_action(g, action, target);
+
 }
+
 
 void npc::execute_action(game *g, npc_action action, int target)
 {
@@ -142,21 +140,31 @@ void npc::execute_action(game *g, npc_action action, int target)
    line = line_to(posx, posy, tarx, tary, 0);
  }
 
+
+
  switch (action) {
 
  case npc_pause:
   move_pause();
   break;
 
- case npc_reload: {
+
+ case npc_reload:
+ {
   moves -= weapon.reload_time(*this);
   int ammo_index = weapon.pick_reload_ammo(*this, false);
 
-  recoil = 6;
-  if (g->u_see(posx, posy, linet))
-   g->add_msg("%s reloads %s %s.", name.c_str(), (male ? "his" : "her"),
-              weapon.tname().c_str());
-  } break;
+//CAT-mgs: 
+   if(weapon.reload(*this, ammo_index))
+   {
+	  recoil = 6;
+	  if (g->u_see(posx, posy, linet))
+	   g->add_msg("%s reloads %s %s.",
+			name.c_str(), (male ? "his" : "her"), weapon.tname().c_str());
+   }
+
+ } break;
+
 
  case npc_sleep:
 /* TODO: Open a dialogue with the player, allowing us to ask if it's alright if
@@ -226,12 +234,12 @@ void npc::execute_action(game *g, npc_action action, int target)
   pick_and_eat(g);
   break;
 
+
+//CAT-mgs: why was this disabled?
  case npc_drop_items:
-/*
   drop_items(g, weight_carried() - weight_capacity() / 4,
                 volume_carried() - volume_capacity());
-*/
-  move_pause();
+//  move_pause();
   break;
 
  case npc_flee:
@@ -252,9 +260,10 @@ void npc::execute_action(game *g, npc_action action, int target)
    look_for_player(g, g->u);
   break;
 
+
  case npc_shoot:
-  g->fire(*this, tarx, tary, line, false);
-  break;
+	g->fire(*this, tarx, tary, line, false);
+ break;
 
  case npc_shoot_burst:
   g->fire(*this, tarx, tary, line, true);
@@ -498,20 +507,33 @@ npc_action npc::method_of_attack(game *g, int target, int danger)
   target_HP = g->z[target].hp;
 
  if (can_use_gun) {
-  if (need_to_reload() && can_reload())
-   return npc_reload;
-  if (emergency(danger_assessment(g)) && alt_attack_available(g))
+
+
+//CAT-mgs: NPC crash -> case npc_reload: 
+  if(need_to_reload() && can_reload())
+  {
+//	g->add_msg("RELOAD: need && can");
+	return npc_reload;
+  }
+
+  if(emergency(danger_assessment(g)) && alt_attack_available(g))
    return npc_alt_attack;
-  if (weapon.is_gun() && (!use_silent || weapon.is_silent()) && weapon.charges > 0) {
+
+  if( weapon.is_gun() && weapon.charges > 0 && (!use_silent || weapon.is_silent()) ) {
    it_gun* gun = dynamic_cast<it_gun*>(weapon.type);
+
    if (dist > confident_range()) {
+
+
     if (can_reload() && (enough_time_to_reload(g, target, weapon) || in_vehicle))
      return npc_reload;
-    else if (in_vehicle && dist > 1)
+    else
+    if (in_vehicle && dist > 1)
      return npc_pause;
     else
      return npc_melee;
    }
+
    if (!wont_hit_friend(g, tarx, tary))
     if (in_vehicle)
      if (can_reload())
@@ -559,6 +581,7 @@ npc_action npc::method_of_attack(game *g, int target, int danger)
 
  if (in_vehicle && dist > 1)
   return npc_pause;
+
  return npc_melee;
 }
 
@@ -584,20 +607,19 @@ npc_action npc::address_needs(game *g, int danger)
      thirst > 80 || hunger > 160)
   return npc_eat;
 
-/*
+
+//CAT-mgs: why was this disabled? *** vvv
  if (weight_carried() > weight_capacity() / 4 ||
      volume_carried() > volume_capacity())
   return npc_drop_items;
-*/
 
-/*
  if (danger <= 0 && fatigue > 191)
   return npc_sleep;
-*/
+//CAT-mgs: *** ^^^
+
 
 // TODO: Mutation & trait related needs
 // e.g. finding glasses; getting out of sunlight if we're an albino; etc.
-
  return npc_undecided;
 }
 
@@ -785,8 +807,6 @@ int npc::confident_range(int index)
    deviation += .5 * weapon.curammo->accuracy;
    max = weapon.range();
   }
-  else
-	return 1;
 
   deviation += .5 * firing->accuracy;
   deviation += 3 * recoil;
@@ -872,6 +892,7 @@ bool npc::can_reload()
 {
  if (!weapon.is_gun())
   return false;
+
  it_gun* gun = dynamic_cast<it_gun*> (weapon.type);
  return (weapon.charges < gun->clip && has_ammo(gun->ammo).size() > 0);
 }
@@ -880,9 +901,10 @@ bool npc::need_to_reload()
 {
  if (!weapon.is_gun())
   return false;
+
  it_gun* gun = dynamic_cast<it_gun*> (weapon.type);
 
- return (weapon.charges < gun->clip * .1);
+ return (weapon.charges < 1);
 }
 
 bool npc::enough_time_to_reload(game *g, int target, item &gun)
@@ -913,6 +935,7 @@ void npc::update_path(game *g, int x, int y)
   path = g->m.route(posx, posy, x, y);
   return;
  }
+
  point last = path[path.size() - 1];
  if (last.x == x && last.y == y)
   return; // Our path already leads to that point, no need to recalculate
@@ -933,81 +956,125 @@ bool npc::can_move_to(game *g, int x, int y)
  return false;
 }
 
+
+int cat_lz= 0;
 void npc::move_to(game *g, int x, int y)
 {
- if (in_vehicle) {
+ if(in_vehicle) {
   // TODO: handle this nicely - npcs should not jump from moving vehicles
   g->m.unboard_vehicle(g, posx, posy);
  }
 
- if (has_disease(DI_DOWNED)) {
-  moves -= 100;
-  return;
+
+ if(has_disease(DI_DOWNED))
+ {
+	moves-= 100;
+	return;
  }
- if (recoil > 0) {	// Start by dropping recoil a little
-  if (int(str_cur / 2) + sklevel[sk_gun] >= recoil)
-   recoil = 0;
-  else {
-   recoil -= int(str_cur / 2) + sklevel[sk_gun];
-   recoil = int(recoil / 2);
-  }
+
+
+ if(recoil > 0)
+ {	// Start by dropping recoil a little
+	if(int(str_cur / 2) + sklevel[sk_gun] >= recoil)
+		recoil = 0;
+	else
+	{
+		recoil -= int(str_cur / 2) + sklevel[sk_gun];
+		recoil = int(recoil / 2);
+	}
  }
- if (has_disease(DI_STUNNED)) {
-  x = rng(posx - 1, posx + 1);
-  y = rng(posy - 1, posy + 1);
+
+ if (has_disease(DI_STUNNED))
+ {
+	x = rng(posx - 1, posx + 1);
+	y = rng(posy - 1, posy + 1);
  }
- if (rl_dist(posx, posy, x, y) > 1) {
+
+
+ if(rl_dist(posx, posy, x, y) > 1)
+ {
 
   int linet;
   std::vector<point> newpath;
-  if (g->m.sees(posx, posy, x, y, -1, linet))
-   newpath = line_to(posx, posy, x, y, linet);
+
+//abara
+//g->add_msg("BEGIN --- x:%d y:%d", x,y);
+//g->write_msg();
+//getch();
+
+
+  if(g->m.sees(posx, posy, x, y, -1, linet))
+	newpath = line_to(posx, posy, x, y, linet);
+
+//abara
+//g->add_msg("BEGIN --- x:%d y:%d", x,y);
+//g->write_msg();
+//getch();
+
   x = newpath[0].x;
   y = newpath[0].y;
  }
- if (x == posx && y == posy)	// We're just pausing!
-  moves -= 100;
- else if (g->mon_at(x, y) != -1) {	// Shouldn't happen, but it might.
-  melee_monster(g, g->mon_at(x, y));
- } else if (g->u.posx == x && g->u.posy == y) {
-  say(g, "<let_me_pass>");
-  moves -= 100;
- } else if (g->npc_at(x, y) != -1)
+
+ if(x == posx && y == posy)	// We're just pausing!
+	moves -= 100;
+ else
+ if(g->mon_at(x, y) != -1)
+	melee_monster(g, g->mon_at(x, y));
+ else
+ if(g->u.posx == x && g->u.posy == y)
+ {
+	say(g, "<let_me_pass>");
+	moves -= 100;
+ } 
+ else
+ if(g->npc_at(x, y) != -1)
 // TODO: Determine if it's an enemy NPC (hit them), or a friendly in the way
-  moves -= 100;
+	moves -= 100;
  else 
- if (can_move_to(g, x,y))
+ if(g->m.move_cost(x, y) > 0 ) //&& can_move_to(g, x,y)
  {
 //CAT-mgs:
-  posx = x;
-  posy = y;
-  moves -= run_cost(g->m.move_cost(x, y) * 50);
- } else if (g->m.open_door(x, y, (g->m.ter(posx, posy) == t_floor)))
-  moves -= 100;
- else if (g->m.has_flag(bashable, x, y)) {
-  moves -= 110;
-  std::string bashsound;
-  int smashskill = int(str_cur / 2 + weapon.type->melee_dam);
-  g->m.bash(x, y, smashskill, bashsound);
-  g->sound(x, y, 18, bashsound);
- } else
-  moves -= 100;
+	posx = x;
+	posy = y;
+	moves -= run_cost(g->m.move_cost(x, y) * 50);
+ }
+ else
+ if(g->m.open_door(x, y, (g->m.ter(posx, posy) == t_floor)))
+	moves -= 100;
+ else 
+ if(g->m.has_flag(bashable, x, y))
+ {
+	moves -= 110;
+	std::string bashsound;
+	int smashskill = int(str_cur / 2 + weapon.type->melee_dam);
+	g->m.bash(x, y, smashskill, bashsound);
+	g->sound(x, y, 18, bashsound);
+ } 
+ else
+	moves -= 100;
+
 }
+
 
 void npc::move_to_next(game *g)
 {
- if (path.empty()) {
 
+ if(path.empty()) {
   move_pause();
   return;
  }
- while (posx == path[0].x && posy == path[0].y)
-  path.erase(path.begin());
+
+ while(posx == path[0].x && posy == path[0].y)
+	path.erase(path.begin());
 
  move_to(g, path[0].x, path[0].y);
- if (posx == path[0].x && posy == path[0].y) // Move was successful
-  path.erase(path.begin());
+
+
+ if(posx == path[0].x && posy == path[0].y) // Move was successful
+	path.erase(path.begin());
 }
+
+
 
 // TODO: Rewrite this.  It doesn't work well and is ugly.
 void npc::avoid_friendly_fire(game *g, int target)
@@ -1185,7 +1252,7 @@ void npc::find_item(game *g)
 
  for (int x = minx; x <= maxx; x++) {
   for (int y = miny; y <= maxy; y++) {
-   if (g->m.sees(posx, posy, x, y, range, linet)) {
+   if(g->m.sees(posx, posy, x, y, range, linet)) {
     for (int i = 0; i < g->m.i_at(x, y).size(); i++) {
      int itval = value(g->m.i_at(x, y)[i]);
      int wgt = g->m.i_at(x, y)[i].weight(), vol = g->m.i_at(x, y)[i].volume();
@@ -1204,21 +1271,28 @@ void npc::find_item(game *g)
   }
  }
 
- if (fetching_item && is_following())
+ if(g->m.i_at(itx, ity).size() > 0 && fetching_item && is_following())
   say(g, "Hold on, I want to pick up that %s.",
       g->m.i_at(itx, ity)[index].tname().c_str());
+ else
+      fetching_item = false;	
+
 }
+
 
 void npc::pick_up_item(game *g)
 {
-
  update_path(g, itx, ity);
 
- if (path.size() > 1) {
-
-  move_to_next(g);
-  return;
+ if(cat_lz == g->levz && path.size() > 1)
+ {
+	move_to_next(g);
+	return;
  }
+ 
+ cat_lz= g->levz;
+
+
 // We're adjacent to the item; grab it!
  moves -= 100;
  fetching_item = false;
@@ -1237,14 +1311,18 @@ void npc::pick_up_item(game *g)
    total_weight += wgt;
   }
  }
-/*
+
+
+//CAT-mgs: why was this disabled?
  if (total_volume + volume_carried() > volume_capacity() ||
      total_weight + weight_carried() > weight_capacity() / 4) {
   int wgt_to_drop = weight_carried() + total_weight - weight_capacity() / 4;
   int vol_to_drop = volume_carried() + total_volume - volume_capacity();
   drop_items(g, wgt_to_drop, vol_to_drop);
  }
-*/
+
+
+
 // Describe the pickup to the player
  int t;
  bool u_see_me = g->u_see(posx, posy, t), u_see_items = g->u_see(itx, ity, t);
@@ -1275,18 +1353,27 @@ void npc::pick_up_item(game *g)
    g->add_msg("Someone picks up several items.");
  }
 
+
  for (int i = 0; i < pickup.size(); i++) {
   int itval = value((*items)[pickup[i]]);
   if (itval < worst_item_value)
    worst_item_value = itval;
   i_add((*items)[pickup[i]]);
  }
- for (int i = 0; i < pickup.size(); i++) {
-  g->m.i_rem(itx, ity, pickup[i]);
-  for (int j = i + 1; j < pickup.size(); j++) // Fix indices
-   pickup[j]--;
- }
+
+
+  has_new_items= true;
+ 
+//CAT-mgs: crashing when moving z-levels?
+  for (int i = 0; i < pickup.size(); i++)
+  {
+	g->m.i_rem(itx, ity, pickup[i]);
+	for(int j = i + 1; j < pickup.size(); j++) // Fix indices
+		pickup[j]--;
+  }
+
 }
+
 
 void npc::drop_items(game *g, int weight, int volume)
 {
@@ -1346,8 +1433,9 @@ void npc::drop_items(game *g, int weight, int volume)
    rVol.erase(rVol.begin());
 // Fix the rest of those indices.
    for (int i = 0; i < rVol.size(); i++) {
-    if (i > rVol.size() && rVol[i].index > index)
-	rVol[i].index--;
+
+    if (rVol[i].index > index)
+     rVol[i].index--;
    }
   }
   weight_dropped += inv[index].weight();
@@ -1371,6 +1459,8 @@ void npc::drop_items(game *g, int weight, int volume)
  }
  update_worst_item_value();
 }
+
+
 
 npc_action npc::scan_new_items(game *g, int target)
 {
@@ -1399,6 +1489,8 @@ npc_action npc::scan_new_items(game *g, int target)
     has_ammo_for_empty_gun = true;
   }
  }
+
+  has_new_items= false;
 
  if (has_empty_gun && has_ammo_for_empty_gun)
   return npc_wield_empty_gun;
@@ -1869,11 +1961,13 @@ void npc::mug_player(game *g, player &mark)
  }
 }
 
+
+
 void npc::look_for_player(game *g, player &sought)
 {
  int linet, range = sight_range(g->light_level());
- if (g->m.sees(posx, posy, sought.posx, sought.posy, range, linet)) {
-
+ if(g->m.sees(posx, posy, sought.posx, sought.posy, range, linet)) {
+  sought.is_npc();
   move_pause();
   return;
  }
@@ -1904,6 +1998,8 @@ void npc::look_for_player(game *g, player &sought)
   move_to_next(g);
  }
 }
+
+
 
 bool npc::saw_player_recently()
 {
@@ -1997,7 +2093,7 @@ void npc::go_to_destination(game *g)
   for (int i = 0; i < 8; i++) {
    for (int dx = 0 - i; dx <= i; dx++) {
     for (int dy = 0 - i; dy <= i; dy++) {
-     if ((can_move_to(g, x + dx, y + dy)
+     if (((g->m.move_cost(x + dx, y + dy) > 0 ) // && can_move_to(g, x+dx,y+dy)
 		|| g->m.has_flag(bashable, x + dx, y + dy)
 		|| g->m.ter(x + dx, y + dy) == t_door_c) 
 		&& g->m.sees(posx, posy, x + dx, y + dy, light, linet)) {

@@ -1,0 +1,9 @@
+# This is the options file.
+
+use_celsius T
+metric_system T
+initial_time 7
+static_spawn T
+classic_zombies F
+viewport_x 12
+viewport_y 12

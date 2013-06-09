@@ -211,6 +211,8 @@ class game
 
 //CAT-mgs:
   void runJump(bool just_kick);
+  void write_msg();        // Prints the messages in the messages list
+
 
   void peek();
   point look_around();// Look at nearby terrain	';'
@@ -273,6 +275,7 @@ class game
   int ltar_x, ltar_y;
   char run_mode; // 0 - Normal run always; 1 - Running allowed, but if a new
 		 //  monsters spawns, go to 2 - No movement allowed
+
 
 //CAT-g:
 //  std::map<int, std::map<int, bool> > mapRain;
@@ -409,7 +412,6 @@ class game
   void update_scent();     // Updates the scent map
   bool is_game_over();     // Returns true if the player quit or died
   void death_screen();     // Display our stats, "GAME OVER BOO HOO"
-  void write_msg();        // Prints the messages in the messages list
   void msg_buffer();       // Opens a window with old messages in it
   void draw_minimap();     // Draw the 5x5 minimap
   void draw_HP();          // Draws the player's HP and Power level

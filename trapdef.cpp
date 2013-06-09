@@ -80,12 +80,12 @@ traps.push_back(new trap(id, sym, color, name, visibility, avoidance,\
  	itm_heavy_snare_kit, NULL);
 
 //	Name			    Symbol	Color		Vis Avd Diff
- TRAP("land mine",		'^',	c_red,	     1, 14, 10,
+ TRAP("land mine",		'^',	c_red,	     5, 14, 10,
 	&trapfunc::landmine,	&trapfuncm::landmine,
 	itm_landmine, NULL);
 
 //	Name			          Symbol	Color		Vis Avd Diff
- TRAP("buried land mine",		'_',	c_red,		10, 14, 10,
+ TRAP("buried land mine",		'_',	c_red,		4, 14, 10,
 	&trapfunc::landmine,	&trapfuncm::landmine,
 	itm_landmine, NULL);
 

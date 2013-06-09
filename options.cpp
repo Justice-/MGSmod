@@ -110,7 +110,7 @@ void game::show_options()
       {
         OPTIONS[ option_key(offset + line) ]--;
         if ((OPTIONS[ option_key(offset + line) ]) < 0 )
-          OPTIONS[ option_key(offset + line) ] = option_max_options(option_key(offset + line)) - 1;
+          OPTIONS[ option_key(offset + line) ] = option_max_options(option_key(offset + line));
       }
       changed_options = true;
   break;
@@ -121,11 +121,18 @@ void game::show_options()
     {
       OPTIONS[ option_key(offset + line) ]++;
       if ((OPTIONS[ option_key(offset + line) ]) >= option_max_options(option_key(offset + line)))
-        OPTIONS[ option_key(offset + line) ] = 0;
+        OPTIONS[ option_key(offset + line) ] = option_max_options(option_key(offset + line));
     }
     changed_options = true;
   break;
   }
+
+ if(OPTIONS[OPT_VIEWPORT_X] < 12)
+	OPTIONS[OPT_VIEWPORT_X]= 12;
+
+ if(OPTIONS[OPT_VIEWPORT_Y] < 12)
+	OPTIONS[OPT_VIEWPORT_Y]= 12;
+
  } while (ch != 'q' && ch != 'Q' && ch != KEY_ESCAPE);
 
  if (changed_options && query_yn("Save changes?"))
@@ -136,15 +143,14 @@ void game::show_options()
 void load_options()
 {
  std::ifstream fin;
- fin.open("data/options.txt");
+ fin.open("data/options-sdl.txt");
  if (!fin.is_open()) {
   fin.close();
   create_default_options();
   fin.open("data/options.txt");
-  if (!fin.is_open()) {
-//   debugmsg("Could neither read nor create ./data/options.txt");
+
+  if(!fin.is_open())
    return;
-  }
  }
 
  while (!fin.eof()) {
@@ -189,7 +195,7 @@ option_key lookup_option_key(std::string id)
 {
  if (id == "use_celsius")
   return OPT_USE_CELSIUS;
- if (id == "use_metric_system")
+ if (id == "metric_system")
   return OPT_USE_METRIC_SYS;
  if (id == "force_capital_yn")
   return OPT_FORCE_YN;
@@ -238,7 +244,7 @@ std::string option_string(option_key key)
 {
  switch (key) {
   case OPT_USE_CELSIUS:		return "use_celsius";
-  case OPT_USE_METRIC_SYS: return "use_metric_system";
+  case OPT_USE_METRIC_SYS: return "metric_system";
   case OPT_FORCE_YN:		return "force_capital_yn";
   case OPT_NO_CBLINK:		return "no_bright_backgrounds";
   case OPT_24_HOUR:		return "24_hour";
@@ -283,14 +289,15 @@ std::string option_desc(option_key key)
   case OPT_DROP_EMPTY: return "Set to drop empty containers after use\n0 - don't drop any\n1 - all except watertight containers\n2 - all containers";
   case OPT_SKILL_RUST: return "Set the level of skill rust\n0 - vanilla Cataclysm\n1 - capped at skill levels\n2 - none at all";
   case OPT_DELETE_WORLD: return "Delete saves upon player death\n0 - no\n1 - yes\n2 - query";
-  case OPT_INITIAL_POINTS: return "Initial points available on character\ngeneration.  Default is 6";
-  case OPT_INITIAL_TIME: return "Initial starting time of day on character\ngeneration.  Default is 8:00";
-  case OPT_VIEWPORT_X: return "WINDOWS ONLY: Set the expansion of the viewport along\nthe X axis.  Must restart for changes\nto take effect.  Default is 12. POSIX\nsystems will use terminal size at startup.";
-  case OPT_VIEWPORT_Y: return "WINDOWS ONLY: Set the expansion of the viewport along\nthe Y axis.  Must restart for changes\nto take effect.  Default is 12. POSIX\nsystems will use terminal size at startup.";
-  case OPT_STATIC_SPAWN: return "Spawn zombies at game start instead of\nduring game. Must delete save directory\nafter changing for it to take effect.\nDefault is F";
-  case OPT_CLASSIC_ZOMBIES: return "Only spawn classic zombies and natural\nwildlife. Probably requires a reset of\nsave folder to take effect. Default is F";
+  case OPT_INITIAL_POINTS: return "Points for character generation.";
+  case OPT_INITIAL_TIME: return "Starting time Default is 7 AM";
+  case OPT_VIEWPORT_X: return "WINDOWS ONLY: Min. 12, Max. 17\n *** Needs restart";
+  case OPT_VIEWPORT_Y: return "WINDOWS ONLY: Min. 12, Max. 17\n *** Needs restart";
+  case OPT_STATIC_SPAWN: return "Spawn all zombies at game start.\nDelete save folder to take effect.";
+  case OPT_CLASSIC_ZOMBIES: return "Only spawn zombies and wildlife.\nDelete save folder to take effect.";
   default:			return " ";
  }
+
  return "Big ol Bug";
 }
 
@@ -298,7 +305,7 @@ std::string option_name(option_key key)
 {
  switch (key) {
   case OPT_USE_CELSIUS:		return "Use Celsius";
-  case OPT_USE_METRIC_SYS:	return "Use Metric System";
+  case OPT_USE_METRIC_SYS:	return "Metric System";
   case OPT_FORCE_YN:		return "Force Y/N in prompts";
   case OPT_NO_CBLINK:		return "No Bright Backgrounds";
   case OPT_24_HOUR:		return "24 Hour Time";
@@ -354,116 +361,66 @@ char option_max_options(option_key id)
     switch (id)
     {
       case OPT_24_HOUR:
-        ret = 3;
+        ret = 1;
         break;
       case OPT_SAFEMODEPROXIMITY:
-        ret = 61;
+        ret = 59;
         break;
       case OPT_AUTOSAFEMODETURNS:
-        ret = 51;
+        ret = 50;
         break;
       case OPT_INITIAL_POINTS:
-        ret = 25;
+        ret = 9;
         break;
       case OPT_INITIAL_TIME:
-        ret = 24; // 0h to 23h
+        ret = 23; // 0h to 23h
         break;
       case OPT_DELETE_WORLD:
       case OPT_DROP_EMPTY:
       case OPT_SKILL_RUST:
-        ret = 3;
+        ret = 2;
         break;
       case OPT_VIEWPORT_X:
       case OPT_VIEWPORT_Y:
-        ret = 13; // TODO Set up min/max values so weird numbers don't have to be used.
+        ret = 17; 
         break;
       default:
-        ret = 2;
+        ret = 1;
         break;
     }
   return ret;
 }
 
+
 void create_default_options()
 {
  std::ofstream fout;
- fout.open("data/options.txt");
+ fout.open("data/options-sdl.txt");
  if (!fout.is_open())
   return;
 
  fout << options_header() << "\n\
-# If true, use C not F\n\
-use_celsius F\n\
-# If true, use Km/h not mph\
-use_metric_system F\n\
-# If true, y/n prompts are case-sensitive, y and n are not accepted\n\
-force_capital_yn T\n\
-# If true, bright backgrounds are not used--some consoles are not compatible\n\
-no_bright_backgrounds F\n\
-# 12h/24h Time: 0 = AM/PM, 1 = 24h military, 2 = 24h normal\n\
-24_hour 0\n\
-# If true, automatically follow the crosshair when firing/throwing\n\
-snap_to_target F\n\
-# If true, safemode will be on after starting a new game or loading\n\
-safemode T\n\
-# If safemode is enabled, distance to hostiles when safemode should show a warning (0=Viewdistance)\n\
-safemodeproximity 0\n\
-# If true, auto-safemode will be on after starting a new game or loading\n\
-autosafemode F\n\
-# Number of turns after safemode is reenabled when no zombies are in safemodeproximity distance\n\
-autosafemodeturns 50\n\
-# If true, game will periodically save the map\n\
-autosave F\n\
-# If true will add nice gradual-lighting (should only make a difference @night)\n\
-gradual_night_light F\n\
-# If true, will query beefore disassembling items\n\
-query_disassemble T\n\
-# Player will automatically drop empty containers after use\n\
-# 0 - don't drop any, 1 - drop all except watertight containers, 2 - drop all containers\n\
-drop_empty 0\n\
-# \n\
-# GAMEPLAY OPTIONS: CHANGING THESE OPTIONS WILL AFFECT GAMEPLAY DIFFICULTY! \n\
-# Level of skill rust: 0 - vanilla Cataclysm, 1 - capped at skill levels, 2 - none at all\n\
-skill_rust 0\n\
-# Delete world after player death: 0 - no, 1 - yes, 2 - query\n\
-delete_world 0\n\
-# Initial points available in character generation\n\
-initial_points 6\n\
-# Initial time at character generation\n\
-initial_time 8\n\
-# The width of the terrain window in characters.\n\
-viewport_x 12\n\
-# The height of the terrain window, which is also the height of the main window, in characters.\n\
-viewport_y 12\n\
-# Spawn zombies at game start instead of during the game.  You must create a new world after changing\n\
+use_celsius T\n\
+metric_system T\n\
+initial_time 7\n\
 static_spawn T\n\
-# Only spawn classic zombies and natural wildlife.  You must create a new world after changing\n\
 classic_zombies F\n\
+viewport_x 12\n\
+viewport_y 12\n\
 ";
  fout.close();
 }
 
+
 std::string options_header()
 {
- return "\
-# This is the options file.  It works similarly to keymap.txt: the format is\n\
-# <option name> <option value>\n\
-# <option value> may be any number, positive or negative.  If you use a\n\
-# negative sign, do not put a space between it and the number.\n\
-#\n\
-# If # is at the start of a line, it is considered a comment and is ignored.\n\
-# In-line commenting is not allowed.  I think.\n\
-#\n\
-# If you want to restore the default options, simply delete this file.\n\
-# A new options.txt will be created next time you play.\n\
-\n\
-";
+ return "# This is the options file.\n";
 }
 
 void save_options()
 {
  std::ofstream fout;
- fout.open("data/options.txt");
+ fout.open("data/options-sdl.txt");
  if (!fout.is_open())
   return;
 
@@ -478,3 +435,4 @@ void save_options()
   fout << "\n";
  }
 }
+

@@ -235,8 +235,8 @@ moon_phase calendar::moon()
 {
  int phase = day / (DAYS_IN_SEASON / 4);
 
-//CAT-mgs: not redundant, necessaty
- phase %= 4;   
+//CAT-mgs: not redundant, necessary
+  phase %= 4;   
 
  if(phase == 3)
    return MOON_HALF;
@@ -351,37 +351,33 @@ int calendar::sunlight()
 
 std::string calendar::print_time(bool twentyfour)
 {
- std::stringstream ret;
- if (twentyfour) {
-  ret << hour << ":";
-  if (minute < 10)
-   ret << "0";
-  ret << minute;
- } else {
-  if (OPTIONS[OPT_24_HOUR] == 1) {
-   int hours = hour % 24;
-   if (hours < 10)
-    ret << "0";
-   ret << hours;
-  } else if (OPTIONS[OPT_24_HOUR] == 2) {
-   int hours = hour % 24;
-   ret << hours << ":";
-  }else {
-   int hours = hour % 12;
-   if (hours == 0)
-    hours = 12;
-   ret << hours << ":";
-  }
-  if (minute < 10)
-   ret << "0";
-  ret << minute;
-  if (OPTIONS[OPT_24_HOUR] == 0) {
-   if (hour < 12)
-    ret << " AM";
+   std::stringstream ret;
+/*
+   if(twentyfour)
+   {
+	ret << hour << ":";
+	if(minute < 10)
+		ret << "0";
+	ret << minute;
+   }
    else
-    ret << " PM";
-  }
- }
+*/
+   {
+
+	int hours = hour % 12;
+	if(hours == 0)
+		hours = 12;
+
+	ret << hours << ":";
+	if(minute < 10)
+		ret << "0";
+	ret << minute;
+
+	if(hour < 12)
+		ret << " AM";
+	else
+		ret << " PM";
+   }
 
  return ret.str();
 }

@@ -1,10 +1,11 @@
 #include <string>
 #include "weather.h"
 
-// How many minutes exist when the game starts - 8:00 AM
-#define STARTING_MINUTES 480
-// The number of days in a season - this also defines moon cycles
-#define DAYS_IN_SEASON 7
+//CAT-mgs: 480 - make milk last longer
+#define STARTING_MINUTES 90
+
+//CAT-mgs: 14
+#define DAYS_IN_SEASON 4
 
 // Convert minutes, hours, days to turns
 #define MINUTES(x) ((x) * 10)
@@ -22,9 +23,8 @@
 
 // How long, in minutes, does sunrise/sunset last?
 #define TWILIGHT_MINUTES 60
-
-// How much light moon provides--double for full moon
 #define MOONLIGHT_LEVEL 4
+
 // How much light is provided in full daylight
 #define DAYLIGHT_LEVEL 60
 
