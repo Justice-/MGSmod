@@ -122,7 +122,7 @@ enum oter_id {
 
 //CAT-mgs: aboveground
  ot_sky, ot_shelter_over, ot_shelter_over2,
- ot_church_tower1, ot_church_tower2,
+ ot_church_tower1, ot_church_tower2, ot_church_tower3,
 
 
 //CAT: from DDA.5 *** vvv
@@ -392,13 +392,15 @@ const oter_t oterlist[num_ter_types] = {
 {"ant queen chamber",	'O',	c_red,	5, no_extras, false, false},
 {"cavern",		'0',	c_ltgray,		5, no_extras, false, false},
 
+
 //CAT-mgs:
 {"sky",		'8',	c_ltcyan,		2, no_extras, false, false},
 {"evac shelter",	'+',	c_white,		2, no_extras, true, true},
 {"evac shelter",	'+',	c_white,		2, no_extras, true, false},
 
 {"church tower",	'c',	c_ltred,		2, no_extras, true, true},
-{"bell tower",	'c',	c_ltred,		2, no_extras, true, false},
+{"bell tower",	'c',	c_ltred,		2, no_extras, true, true},
+{"secret bell room",	'c',	c_ltred,	2, no_extras, true, false},
 
 
 //CAT-mgs: from DDA.5 *** vvv

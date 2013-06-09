@@ -50,17 +50,13 @@ void npc::move(game *g)
  int danger = 0, total_danger = 0, target = -1;
 
  choose_monster_target(g, target, danger, total_danger);
- if (g->debugmon)
-  debugmsg("NPC %s: target = %d, danger = %d, range = %d",
-           name.c_str(), target, danger, confident_range(-1));
+
 
  if (is_enemy()) {
   int pl_danger = player_danger( &(g->u) );
   if (pl_danger > danger || target == -1) {
    target = TARGET_PLAYER;
    danger = pl_danger;
-   if (g->debugmon)
-    debugmsg("NPC %s: Set target to PLAYER, danger = %d", name.c_str(), danger);
   }
  }
 // TODO: Place player-aiding actions here, with a weight
@@ -86,12 +82,8 @@ void npc::move(game *g)
 
  else {	// No present danger
   action = address_needs(g, danger);
-  if (g->debugmon)
-   debugmsg("address_needs %s", npc_action_name(action).c_str());
   if (action == npc_undecided)
    action = address_player(g);
-  if (g->debugmon)
-   debugmsg("address_player %s", npc_action_name(action).c_str());
   if (action == npc_undecided) {
    if (mission == NPC_MISSION_SHELTER || has_disease(DI_INFECTION))
     action = npc_pause;
@@ -99,8 +91,6 @@ void npc::move(game *g)
     action = scan_new_items(g, target);
    else if (!fetching_item)
     find_item(g);
-   if (g->debugmon)
-    debugmsg("find_item %s", npc_action_name(action).c_str());
    // check if in vehicle before rushing off to fetch things
    if (is_following() && g->u.in_vehicle)
     action = npc_follow_embarked;
@@ -110,8 +100,6 @@ void npc::move(game *g)
     action = npc_follow_player;
    else				// Do our long-term action
     action = long_term_goal_action(g);
-   if (g->debugmon)
-    debugmsg("long_term_goal_action %s", npc_action_name(action).c_str());
   }
  }
 
@@ -129,8 +117,6 @@ void npc::move(game *g)
     ))
   action = method_of_attack(g, target, danger);
 
- if (g->debugmon)
-  debugmsg("%s chose action %s.", name.c_str(), npc_action_name(action).c_str());
 
  execute_action(g, action, target);
 }
@@ -171,7 +157,7 @@ void npc::execute_action(game *g, npc_action action, int target)
   moves -= weapon.reload_time(*this);
   int ammo_index = weapon.pick_reload_ammo(*this, false);
   if (!weapon.reload(*this, ammo_index))
-   debugmsg("NPC reload failed.");
+//   debugmsg("NPC reload failed.");
   recoil = 6;
   if (g->u_see(posx, posy, linet))
    g->add_msg("%s reloads %s %s.", name.c_str(), (male ? "his" : "her"),
@@ -209,7 +195,7 @@ void npc::execute_action(game *g, npc_action action, int target)
    }
   }
   if (index == -1) {
-   debugmsg("NPC tried to wield a loaded gun, but has none!");
+//   debugmsg("NPC tried to wield a loaded gun, but has none!");
    move_pause();
   } else
    wield(g, index);
@@ -228,7 +214,7 @@ void npc::execute_action(game *g, npc_action action, int target)
    }
   }
   if (index == -1) {
-   debugmsg("NPC tried to wield a gun, but has none!");
+//   debugmsg("NPC tried to wield a gun, but has none!");
    move_pause();
   } else
    wield(g, index);
@@ -342,7 +328,7 @@ void npc::execute_action(game *g, npc_action action, int target)
    vehicle *veh = g->m.veh_at(g->u.posx, g->u.posy, p1);
 
    if (!veh) {
-    debugmsg("Following an embarked player with no vehicle at their location?");
+//    debugmsg("Following an embarked player with no vehicle at their location?");
     // TODO: change to wait? - for now pause
     move_pause();
    } else {
@@ -396,14 +382,17 @@ void npc::execute_action(game *g, npc_action action, int target)
  	break;
 
  default:
-  debugmsg("Unknown NPC action (%d)", action);
+  g->add_msg("Unknown NPC action (%d).", action);
  }
 
+/*
  if (oldmoves == moves) {
   dbg(D_ERROR) << "map::veh_at: NPC didn't use its moves.";
   debugmsg("NPC didn't use its moves.  Action %d.  Turning on debug mode.", action);
   g->debugmon = true;
  }
+*/
+
 }
 
 void npc::choose_monster_target(game *g, int &enemy, int &danger,
@@ -513,7 +502,7 @@ npc_action npc::method_of_attack(game *g, int target, int danger)
   tarx = g->z[target].posx;
   tary = g->z[target].posy;
  } else { // This function shouldn't be called...
-  debugmsg("Ran npc::method_of_attack without a target!");
+//  debugmsg("Ran npc::method_of_attack without a target!");
   return npc_pause;
  }
 
@@ -682,8 +671,7 @@ npc_action npc::address_player(game *g)
 
 npc_action npc::long_term_goal_action(game *g)
 {
- if (g->debugmon)
-  debugmsg("long_term_goal_action()");
+
  path.clear();
 
  if (mission == NPC_MISSION_SHOPKEEP || mission == NPC_MISSION_SHELTER)
@@ -737,8 +725,7 @@ int npc::choose_escape_item()
 void npc::use_escape_item(game *g, int index, int target)
 {
  if (index < 0 || index >= inv.size()) {
-  debugmsg("%s tried to use item %d (%d in inv)", name.c_str(), index,
-           inv.size());
+
   move_pause();
   return;
  }
@@ -765,8 +752,7 @@ void npc::use_escape_item(game *g, int index, int target)
   return;
  }
 
- debugmsg("NPC tried to use %s (%d) but it has no use?", used->tname().c_str(),
-          index);
+
  move_pause();
 }
 
@@ -809,12 +795,14 @@ int npc::confident_range(int index)
 
   deviation += .5 * encumb(bp_torso) + 2 * encumb(bp_eyes);
 
-  if (weapon.curammo == NULL)	// This shouldn't happen, but it does sometimes
-   debugmsg("%s has NULL curammo!", name.c_str()); // TODO: investigate this bug
-  else {
+  if(weapon.curammo != NULL)	// This shouldn't happen, but it does sometimes
+  {
    deviation += .5 * weapon.curammo->accuracy;
    max = weapon.range();
   }
+  else
+	return 1;
+
   deviation += .5 * firing->accuracy;
   deviation += 3 * recoil;
 
@@ -950,9 +938,13 @@ void npc::update_path(game *g, int x, int y)
 
 bool npc::can_move_to(game *g, int x, int y)
 {
- if ((g->m.move_cost(x, y) > 0 || g->m.has_flag(bashable, x, y)) &&
-     rl_dist(posx, posy, x, y) <= 1)
+ if( (g->m.move_cost(x, y) > 0 || g->m.has_flag(bashable, x, y)) 
+		&& g->m.ter(x, y) != t_air 
+		&& g->m.ter(x, y) != t_hole
+		&& g->m.ter(x, y) != t_indoor_hole
+		&& rl_dist(posx, posy, x, y) <= 1 )
   return true;
+
  return false;
 }
 
@@ -1004,7 +996,10 @@ void npc::move_to(game *g, int x, int y)
  } else if (g->npc_at(x, y) != -1)
 // TODO: Determine if it's an enemy NPC (hit them), or a friendly in the way
   moves -= 100;
- else if (g->m.move_cost(x, y) > 0) {
+ else 
+ if (can_move_to(g, x,y))
+ {
+//CAT-mgs:
   posx = x;
   posy = y;
   moves -= run_cost(g->m.move_cost(x, y) * 50);
@@ -1023,13 +1018,13 @@ void npc::move_to(game *g, int x, int y)
 void npc::move_to_next(game *g)
 {
  if (path.empty()) {
- if (g->debugmon)
-   debugmsg("npc::move_to_next() called with an empty path!");
+
   move_pause();
   return;
  }
  while (posx == path[0].x && posy == path[0].y)
   path.erase(path.begin());
+
  move_to(g, path[0].x, path[0].y);
  if (posx == path[0].x && posy == path[0].y) // Move was successful
   path.erase(path.begin());
@@ -1048,7 +1043,7 @@ void npc::avoid_friendly_fire(game *g, int target)
   if (!one_in(3))
    say(g, "<move> so I can shoot that %s!", g->z[target].name().c_str());
  } else {
-  debugmsg("npc::avoid_friendly_fire() called with no target!");
+//  debugmsg("npc::avoid_friendly_fire() called with no target!");
   move_pause();
   return;
  }
@@ -1237,15 +1232,11 @@ void npc::find_item(game *g)
 
 void npc::pick_up_item(game *g)
 {
- if (g->debugmon) {
-  debugmsg("%s::pick_up_item(); [%d, %d] => [%d, %d]", name.c_str(), posx, posy,
-           itx, ity);
- }
+
  update_path(g, itx, ity);
 
  if (path.size() > 1) {
-  if (g->debugmon)
-   debugmsg("Moving; [%d, %d] => [%d, %d]", posx, posy, path[0].x, path[0].y);
+
   move_to_next(g);
   return;
  }
@@ -1320,18 +1311,6 @@ void npc::pick_up_item(game *g)
 
 void npc::drop_items(game *g, int weight, int volume)
 {
- if (g->debugmon) {
-  debugmsg("%s is dropping items-%d,%d (%d items, wgt %d/%d, vol %d/%d)",
-           name.c_str(), weight, volume, inv.size(), weight_carried(),
-           weight_capacity() / 4, volume_carried(), volume_capacity());
-  int wgtTotal = 0, volTotal = 0;
-  for (int i = 0; i < inv.size(); i++) {
-   wgtTotal += inv[i].volume();
-   volTotal += inv[i].weight();
-   debugmsg("%s (%d of %d): %d/%d, total %d/%d", inv[i].tname().c_str(), i,
-            inv.size(), inv[i].weight(), inv[i].volume(), wgtTotal, volTotal);
-  }
- }
 
  int weight_dropped = 0, volume_dropped = 0;
  std::vector<ratio_index> rWgt, rVol; // Weight/Volume to value ratios
@@ -1388,11 +1367,8 @@ void npc::drop_items(game *g, int weight, int volume)
    rVol.erase(rVol.begin());
 // Fix the rest of those indices.
    for (int i = 0; i < rVol.size(); i++) {
-    if (i > rVol.size())
-     debugmsg("npc::drop_items() - looping through rVol - Size is %d, i is %d",
-              rVol.size(), i);
-    if (rVol[i].index > index)
-     rVol[i].index--;
+    if (i > rVol.size() && rVol[i].index > index)
+	rVol[i].index--;
    }
   }
   weight_dropped += inv[index].weight();
@@ -1483,7 +1459,6 @@ void npc::wield_best_melee(game *g)
   return;
  }
  if (index == -999) {
-  debugmsg("npc::wield_best_melee failed to find a melee weapon.");
   move_pause();
   return;
  }
@@ -1501,7 +1476,7 @@ void npc::alt_attack(game *g, int target)
   tarx = g->z[target].posx;
   tary = g->z[target].posy;
  } else {
-  debugmsg("npc::alt_attack() called with target = %d", target);
+//  debugmsg("npc::alt_attack() called with target = %d", target);
   move_pause();
   return;
  }
@@ -1519,7 +1494,8 @@ void npc::alt_attack(game *g, int target)
 
  if (which == itm_null) { // We ain't got shit!
 // Not sure if this should ever occur.  For now, let's warn with a debug msg
-  debugmsg("npc::alt_attack() couldn't find an alt attack item!");
+//  debugmsg("npc::alt_attack() couldn't find an alt attack item!");
+
   if (dist == 1) {
    if (target == TARGET_PLAYER)
     melee_player(g, g->u);
@@ -1639,7 +1615,7 @@ void npc::activate_item(game *g, int index)
 bool thrown_item(item *used)
 {
  if (used == NULL) {
-  debugmsg("npcmove.cpp's thrown_item() called with NULL item");
+//  debugmsg("npcmove.cpp's thrown_item() called with NULL item");
   return false;
  }
  itype_id type = itype_id(used->type->id);
@@ -1752,7 +1728,7 @@ void npc::heal_self(game *g)
   }
   use_charges(itm_bandages, 1);
  } else {
-  debugmsg("NPC tried to heal self, but has no bandages / first aid");
+//  debugmsg("NPC tried to heal self, but has no bandages / first aid");
   move_pause();
  }
  int t;
@@ -1786,7 +1762,7 @@ void npc::use_painkiller(game *g)
  }
 
  if (index == -1) {
-  debugmsg("NPC tried to use painkillers, but has none!");
+//  debugmsg("NPC tried to use painkillers, but has none!");
   move_pause();
  } else {
   eat(g, index);
@@ -1824,7 +1800,7 @@ void npc::pick_and_eat(game *g)
  }
 
  if (index == -1) {
-  debugmsg("NPC tried to eat food, but couldn't find any!");
+//  debugmsg("NPC tried to eat food, but couldn't find any!");
   move_pause();
   return;
  }
@@ -1919,11 +1895,7 @@ void npc::look_for_player(game *g, player &sought)
 {
  int linet, range = sight_range(g->light_level());
  if (g->m.sees(posx, posy, sought.posx, sought.posy, range, linet)) {
-  if (sought.is_npc())
-   debugmsg("npc::look_for_player() called, but we can see %s!",
-            sought.name.c_str());
-  else
-   debugmsg("npc::look_for_player() called, but we can see u!");
+
   move_pause();
   return;
  }
@@ -2047,10 +2019,10 @@ void npc::go_to_destination(game *g)
   for (int i = 0; i < 8; i++) {
    for (int dx = 0 - i; dx <= i; dx++) {
     for (int dy = 0 - i; dy <= i; dy++) {
-     if ((g->m.move_cost(x + dx, y + dy) > 0 ||
-          g->m.has_flag(bashable, x + dx, y + dy) ||
-          g->m.ter(x + dx, y + dy) == t_door_c) &&
-         g->m.sees(posx, posy, x + dx, y + dy, light, linet)) {
+     if ((can_move_to(g, x + dx, y + dy)
+		|| g->m.has_flag(bashable, x + dx, y + dy)
+		|| g->m.ter(x + dx, y + dy) == t_door_c) 
+		&& g->m.sees(posx, posy, x + dx, y + dy, light, linet)) {
       path = g->m.route(posx, posy, x + dx, y + dy);
       if (!path.empty() && can_move_to(g, path[0].x, path[0].y)) {
        move_to_next(g);

@@ -449,6 +449,12 @@ bool game::do_turn()
  if (turn >= nextweather)
   update_weather();
 
+ if(levz >= 0)
+ {
+	weather_effect weffect;
+	(weffect.*(weather_data[weather].effect))(this);
+ }
+
 //CAT-mgs: check this
 // The following happens when we stay still; 10/40 minutes overdue for spawn
  if ((!u.has_trait(PF_INCONSPICUOUS) && turn > nextspawn +  100) ||
@@ -458,30 +464,32 @@ bool game::do_turn()
   nextspawn = turn;
  }
 
- process_activity();
 
 //CAT-mgs:
- if(u.moves > 0)
+ if(u.has_disease(DI_SLEEP) && turn%10 == 0 )
+	draw();
+ else
+ if(u.activity.type != ACT_NULL)
+	process_activity();
+
+ while(u.moves > 0)
  {
-	 while(u.moves > 0)
-	 {
-		  cleanup_dead();
+	  cleanup_dead();
 
-		  if(!u.has_disease(DI_SLEEP) && u.activity.type == ACT_NULL)
-			draw();
+	  if(!u.has_disease(DI_SLEEP) && u.activity.type == ACT_NULL)
+		draw();
 
-		  if(handle_action())
-			  ++moves_since_last_save;
+	  if(handle_action())
+		  ++moves_since_last_save;
 
-		  if(is_game_over())
-		  {
-			   cleanup_at_end();
-			   return true;
-		  }
-	 }
+	  if(is_game_over())
+	  {
+		   cleanup_at_end();
+		   return true;
+	  }
  }
-		
- u.moves= 0;
+
+// u.moves= 0;
 
  m.vehmove(this);
  m.process_fields(this);
@@ -489,37 +497,15 @@ bool game::do_turn()
  m.step_in_field(u.posx, u.posy, this);
 
  u.reset(this);
+ u.update_bodytemp(this);
  u.process_active_items(this);
  u.suffer(this);
-
- if(levz >= 0)
- {
-	weather_effect weffect;
-	(weffect.*(weather_data[weather].effect))(this);
- }
-
- u.update_bodytemp(this);
-
- if( u.has_disease(DI_SLEEP) 
-		|| u.activity.type == ACT_WAIT
-		|| u.activity.type == ACT_READ
-		|| u.activity.type == ACT_TRAIN
-		|| u.activity.type == ACT_CRAFT )
- {
-	if(turn%10 == 0)
-		draw();
-	else
-		return false;
-
-//CAT-g: needed on Lin, not Win?
-//  refresh();
- }
 
 // rustCheck();
  if(turn%10 == 0)
 	u.update_morale();
 
- if(turn%3 == 0)
+ if(turn%2 == 0)
 	 update_scent();
 
  monmove();
@@ -575,8 +561,8 @@ void game::process_activity()
  it_book* reading;
  if (u.activity.type != ACT_NULL) {
 
-//  if(turn%10 == 0)
-//	draw();
+  if(turn%20 == 0)
+	draw();
 
   if (u.activity.type == ACT_WAIT) {	// Based on time, not speed
    u.activity.moves_left -= 100;
@@ -718,10 +704,12 @@ void game::process_activity()
    if (act_veh) {
     if (u.activity.values.size() < 7)
     {
+/*
      dbg(D_ERROR) << "game:process_activity: invalid ACT_VEHICLE values: "
                   << u.activity.values.size();
      debugmsg ("process_activity invalid ACT_VEHICLE values:%d",
                 u.activity.values.size());
+*/
     }
     else {
      vehicle *veh = m.veh_at(u.activity.values[0], u.activity.values[1]);
@@ -731,8 +719,10 @@ void game::process_activity()
       return;
      } else
      {
+/*
       dbg(D_ERROR) << "game:process_activity: ACT_VEHICLE: vehicle not found";
       debugmsg ("process_activity ACT_VEHICLE: vehicle not found");
+*/
      }
     }
    }
@@ -959,8 +949,10 @@ bool game::mission_complete(int id, int npc_id)
 {
  mission* miss = find_mission(id);
  if (miss == NULL) {
+/*
   dbg(D_ERROR) << "game:mission_complete: " << id << " - it's NULL!";
   debugmsg("game::mission_complete(%d) - it's NULL!", id);
+*/
   return false;
  }
  mission_type* type = miss->type;
@@ -1460,10 +1452,16 @@ bool game::handle_action()
    break;
 
   case ACTION_FIRE_BURST:
+//CAT-mgs: it's now runJump or Kick
+	playSound(1);
+	runJump();
+
+/*
    plfire(true);
    u.view_offset_x= 0;
    u.view_offset_y= 0;
    SNIPER= false;
+*/
    break;
 
   case ACTION_SELECT_FIRE_MODE:
@@ -1735,9 +1733,11 @@ void game::update_scent()
         newscent[x][y] < 10 * m.field_at(x, y).density)
      newscent[x][y] = 10 * m.field_at(x, y).density;
     if (newscent[x][y] > 10000) {
+/*
      dbg(D_ERROR) << "game:update_scent: Wacky scent at " << x << ","
                   << y << " (" << newscent[x][y] << ")";
      debugmsg("Wacky scent at %d, %d (%d)", x, y, newscent[x][y]);
+*/
      newscent[x][y] = 0; // Scent should never be higher
     }
    }
@@ -1899,8 +1899,10 @@ void game::load(std::string name)
  fin.open(playerfile.str().c_str());
 // First, read in basic game state information.
  if (!fin.is_open()) {
+/*
   dbg(D_ERROR) << "game:load: No save game exists!";
   debugmsg("No save game exists!");
+*/
   return;
  }
  u = player();
@@ -2207,7 +2209,7 @@ void game::debug()
   } break;
 
   case 4:
-   debugmsg("%d radio towers", cur_om.radios.size());
+//   debugmsg("%d radio towers", cur_om.radios.size());
 
    for (int i = 0; i < OMAPX; i++) {
     for (int j = 0; j < OMAPY; j++)
@@ -2271,8 +2273,10 @@ z.size(), events.size());
 
   case 10:
    if (m.veh_at(u.posx, u.posy)) {
+/*
     dbg(D_ERROR) << "game:load: There's already vehicle here";
     debugmsg ("There's already vehicle here");
+*/
    }
    else {
     for (int i = 2; i < vtypes.size(); i++)
@@ -2833,6 +2837,32 @@ void game::draw()
 	   time2growl= 0;
 	}
 
+//CAT-mgs: effect loops
+	vehicle *veh = m.veh_at (u.posx, u.posy);
+	if(u.in_vehicle && CARJUMPED)
+	{
+		playLoop(51);
+		loopVolume((int)(abs(veh->velocity*2)/100)+10);
+	}
+	else
+	if(m.is_outside(u.posx, u.posy) && levz >= 0)
+	{
+		if(weather == WEATHER_DRIZZLE || weather == WEATHER_ACID_DRIZZLE)
+			playLoop(64);
+		else
+		if(weather == WEATHER_RAINY || weather == WEATHER_ACID_RAIN)
+			playLoop(65);
+		else
+		if(weather == WEATHER_THUNDER || weather == WEATHER_LIGHTNING) 
+			playLoop(66);
+		else
+		if(weather == WEATHER_SNOWSTORM) 
+			playLoop(67);
+		else
+			stopLoop(-99);
+	}
+
+//CAT-mgs: music loops
 	if(u.underwater)
 	{
 		playMusic(7);
@@ -2861,7 +2891,6 @@ void game::draw()
 		{
 			playSound(55);
 			oldOutside= false;
-			stopLoop(-99);
 		}
 
 		if(levz < 0)
@@ -2879,40 +2908,13 @@ void game::draw()
 			oldOutside= true;
 		}
 
-		vehicle *veh = m.veh_at (u.posx, u.posy);
-
-		if(u.in_vehicle && CARJUMPED)
-		{
-			playLoop(51);
-			loopVolume((int)(abs(veh->velocity*2)/100)+10);
-		}
+		if(levz < 0)
+			playMusic(2);
 		else
-		{
 			playMusic(3);
-
-			if(weather == WEATHER_DRIZZLE || weather == WEATHER_ACID_DRIZZLE)
-				playLoop(64);
-			else
-			if(weather == WEATHER_RAINY || weather == WEATHER_ACID_RAIN)
-				playLoop(65);
-			else
-			if(weather == WEATHER_THUNDER || weather == WEATHER_LIGHTNING) 
-				playLoop(66);
-			else
-			if(weather == WEATHER_SNOWSTORM) 
-				playLoop(67);
-			else
-				stopLoop(-99);
-		}
 	}
-	else
-	if(levz < 0)
-		playMusic(2);
-	else
-	   stopLoop(-99);
 
-
-//CAT-s: END *** 
+//CAT-s: END *** ^^^
  }
 
  wrefresh(w_status);
@@ -3235,9 +3237,11 @@ werase(w_minimap);
     cur_ter = om_vert->ter(omx, omy, levz);
     seen    = om_vert->seen(omx, omy, levz);
    } else {
+/*
     dbg(D_ERROR) << "game:draw_minimap: No data loaded! omx: "
                  << omx << " omy: " << omy;
     debugmsg("No data loaded! omx: %d omy: %d", omx, omy);
+*/
    }
    nc_color ter_color = oterlist[cur_ter].color;
    long ter_sym = oterlist[cur_ter].sym;
@@ -4332,9 +4336,11 @@ void game::use_computer(int x, int y)
  computer* used = m.computer_at(x, y);
 
  if (used == NULL) {
+/*
   dbg(D_ERROR) << "game:use_computer: Tried to use computer at (" << x
                << ", " << y << ") - none there";
   debugmsg("Tried to use computer at (%d, %d) - none there", x, y);
+*/
   return;
  }
 
@@ -4530,9 +4536,11 @@ bool game::is_in_sunlight(int x, int y)
 void game::kill_mon(int index, bool u_did_it)
 {
  if (index < 0 || index >= z.size()) {
+/*
   dbg(D_ERROR) << "game:kill_mon: Tried to kill monster " << index
                << "! (" << z.size() << " in play)";
   debugmsg("Tried to kill monster %d! (%d in play)", index, z.size());
+*/
   return;
  }
  if (!z[index].dead) {
@@ -4554,9 +4562,11 @@ void game::kill_mon(int index, bool u_did_it)
 void game::explode_mon(int index)
 {
  if (index < 0 || index >= z.size()) {
+/*
   dbg(D_ERROR) << "game:explode_mon: Tried to explode monster " << index
                << "! (" << z.size() << " in play)";
   debugmsg("Tried to explode monster %d! (%d in play)", index, z.size());
+*/
   return;
  }
  if (!z[index].dead) {
@@ -4646,7 +4656,7 @@ void game::open()
  u.moves -= 100;
  bool didit = false;
 
- DebugLog() << __FUNCTION__ << "calling get_input() \n";
+// DebugLog() << __FUNCTION__ << "calling get_input() \n";
  int openx, openy;
  InputEvent input = get_input();
  last_action += input;
@@ -4708,7 +4718,7 @@ void game::close()
 
  bool didit = false;
 
- DebugLog() << __FUNCTION__ << "calling get_input() \n";
+// DebugLog() << __FUNCTION__ << "calling get_input() \n";
  int closex, closey;
  InputEvent input = get_input();
  last_action += input;
@@ -4757,7 +4767,7 @@ void game::smash()
  std::string bashsound, extra;
  int smashskill = int(u.str_cur / 2.5 + u.weapon.type->melee_dam);
 
- DebugLog() << __FUNCTION__ << "calling get_input() \n";
+// DebugLog() << __FUNCTION__ << "calling get_input() \n";
  InputEvent input = get_input();
  last_action += input;
  if (input == Close) {
@@ -4848,7 +4858,7 @@ bool game::pl_choose_vehicle (int &x, int &y)
  wrefresh(w_terrain);
  playSound(1);
 
- DebugLog() << __FUNCTION__ << "calling get_input() \n";
+// DebugLog() << __FUNCTION__ << "calling get_input() \n";
  InputEvent input = get_input();
  int dirx, diry;
  get_direction(dirx, diry, input);
@@ -5211,7 +5221,7 @@ void game::examine()
    u.moves -= 200;
    if (veh->velocity) {      // TODO: move player out of harms way
     int dsgn = veh->parts[vpart].mount_dx > 0? 1 : -1;
-    fling_player_or_monster (&u, 0, veh->face.dir() + 90 * dsgn, 35);
+    fling_player_or_monster(&u, 0, veh->face.dir() + 90 * dsgn, 35);
    }
 //CAT-g:
 //   return;
@@ -5228,7 +5238,7 @@ void game::examine()
  wrefresh(w_terrain);
  playSound(1);
 
- DebugLog() << __FUNCTION__ << "calling get_input() \n";
+// DebugLog() << __FUNCTION__ << "calling get_input() \n";
  int examx, examy;
  InputEvent input = get_input();
  last_action += input;
@@ -5797,6 +5807,124 @@ shape, but with long, twisted, distended limbs.");
 //CAT-mgs: *** vvv
 void game::runJump()
 {
+ if(query_yn("Y: Kick, N: Jump"))
+ {
+
+//CAT-mgs: KICK ********************************* vvv
+   refresh_all();
+   mvwprintw(w_terrain, 0, 0, "Kick where?");
+   wrefresh(w_terrain);
+   playSound(1);
+
+   int dirx, diry;
+   get_direction(this, dirx, diry, input());
+   if(dirx == -2)
+   {
+	add_msg("Invalid direction!");
+	return;
+   }
+
+
+   int x = dirx + u.posx;
+   int y = diry + u.posy;
+
+//CAT-mgs: any furnoture to kick?
+   int required_str = 0;
+   int mle= u.str_cur + rng(5+int(u.skillLevel("melee")/2), 10+u.skillLevel("melee"));
+
+   switch(m.ter(x, y))
+   {
+	  case t_fridge:
+	  case t_glass_fridge:
+	   required_str = 10;
+	   break;
+	  case t_bookcase:
+	  case t_locker:
+	   required_str = 9;
+	   break;
+	  case t_dresser:
+	  case t_rack:
+	  case t_chair:
+	  case t_armchair:
+	  case t_bench:
+	   required_str = 8;
+	   break;
+   }
+
+	int angle= 360;
+	if(dirx == 0 && diry == -1)
+		angle= 0;
+	else 
+	if(dirx == 1 && diry == -1)
+		angle= 45;
+	else 
+	if(dirx == 1 && diry == 0)
+		angle= 90;
+	else 
+	if(dirx == 1 && diry == 1)
+		angle= 135;
+	else 
+	if(dirx == 0 && diry == 1)
+		angle= 180;
+	else 
+	if(dirx == -1 && diry == 1)
+		angle= 225;
+	else 
+	if(dirx == -1 && diry == 0)
+		angle= 270;
+	else 
+	if(dirx == -1 && diry == -1)
+		angle= 315;
+
+   int xd=x+dirx;
+   int yd=y+diry;
+   int mi = mon_at(x, y);
+
+   if(mi >= 0)
+   {
+	mle= mle*2 - z[mi].type->size*10;
+	if(mle < 5)
+		mle= 5;
+
+	add_msg("You kick it with %d points of power!", mle);
+	fling_player_or_monster(0, &z[mi], angle-90, mle);
+
+//CAT-s: hoya & noiseWhack
+	playSound(38);
+	playSound(94);
+   }
+   else	
+   if(required_str > 0 && u.str_cur > required_str && m.ter(xd, yd) == t_floor)
+   {
+
+//CAT-s: hoya & noiseWhack
+	playSound(94);
+	mi = mon_at(xd, yd);
+	if(mi >= 0)
+		fling_player_or_monster(0, &z[mi], angle-90, 25);
+
+//	if(is_empty(xd, yd))
+	{
+		m.ter(xd, yd) = m.ter(x, y);
+		m.ter(x, y) = t_floor;
+	}
+   }
+   else
+   {
+//CAt-s: punchMiss
+	playSound(47);
+	std::string junk;
+	
+	m.bash(x, y, int(mle*1.4), junk);
+//	add_msg("You kick emty air.");
+   }
+
+   u.moves -= 40;
+return;
+
+ }
+
+//CAT-mgs: JUMP ********************************* vvv
  u.view_offset_x= 0;
  u.view_offset_y= 0;
  int lx = u.posx;
@@ -5919,7 +6047,7 @@ void game::runJump()
 		plmove(dx, dy);		
 		draw_ter();
 
-//CAT: shadow or motion blur, not looking good enough
+//CAT: shadow or motion blur, not looking good enough?
 //		mvwputch(w_terrain, VIEWY -dy, VIEWX -dx , c_dkgray, '@');
 
 		wrefresh(w_terrain);
@@ -5943,6 +6071,12 @@ void game::runJump()
 
 
 // add_msg("1234 1234 1234 1234 1234 1234 1234 1234 1234 1234 1234 1234 1234 1234 1234 1234 1234 1234");
+
+//   add_msg("The blah glows brightly!");
+//   add_event(EVENT_ARTIFACT_LIGHT, int(turn) + 30);
+
+//   add_msg("The sky starts to dim.");
+//   add_event(EVENT_DIM, int(turn) + 50);
 }
 
 
@@ -5950,14 +6084,6 @@ void game::runJump()
 //represents carfully peeking around a corner, hence the large move cost.
 void game::peek()
 {
-
- if(query_yn("Y: Jump, N: Peek"))
- {
-	runJump();
-	return;
- }
-
- refresh_all();
 
 //CAT-g:
  mvwprintw(w_terrain, 0, 0, "Peek from where?");
@@ -6012,7 +6138,7 @@ point game::look_around()
  wrefresh(w_terrain);
 
  do {
- DebugLog() << __FUNCTION__ << "calling get_input() \n";
+// DebugLog() << __FUNCTION__ << "calling get_input() \n";
   input = get_input();
   if (!u_see(lx, ly, junk))
    mvwputch(w_terrain, ly - u.posy + VIEWY, lx - u.posx + VIEWX, c_black, ' ');
@@ -6770,8 +6896,10 @@ void game::pickup(int posx, int posy, int min)
 bool game::handle_liquid(item &liquid, bool from_ground, bool infinite)
 {
  if (!liquid.made_of(LIQUID)) {
+/*
   dbg(D_ERROR) << "game:handle_liquid: Tried to handle_liquid a non-liquid!";
   debugmsg("Tried to handle_liquid a non-liquid!");
+*/
   return false;
  }
  if (liquid.type->id == itm_gasoline && vehicle_near() && query_yn("Refill vehicle?")) {
@@ -7112,7 +7240,7 @@ void game::drop_in_direction()
  playSound(1);
 
 
- DebugLog() << __FUNCTION__ << "calling get_input() \n";
+// DebugLog() << __FUNCTION__ << "calling get_input() \n";
  int dirx, diry;
  InputEvent input = get_input();
  get_direction(dirx, diry, input);
@@ -7324,6 +7452,10 @@ void game::plfire(bool burst)
 
  if(u.recoil < 30)
 	u.recoil= 30;
+
+//CAT-s:
+ playSound(0);
+
  do
  {
 	 SNIPER= false;
@@ -7342,22 +7474,29 @@ void game::plfire(bool burst)
 	 }
 
 
-	 if (u.weapon.has_flag(IF_CHARGE) && !u.weapon.active) {
-	  if (u.has_charges(itm_UPS_on, 1) || u.has_charges(itm_UPS_off, 1)) {
-	   add_msg("Your %s starts charging.", u.weapon.tname().c_str());
-	   u.weapon.charges = 0;
-	   u.weapon.curammo = dynamic_cast<it_ammo*>(itypes[itm_charge_shot]);
-	   u.weapon.active = true;
-	   return;
-	  } else {
-	   add_msg("You need a charged UPS.");
+//CAT-mgs: NX-17 charge rifle
+//... charge only with UPS turned ON
+	if (u.weapon.has_flag(IF_CHARGE) && !u.weapon.active)
+	{
+		 if (u.has_charges(itm_UPS_on, 1)) // || u.has_charges(itm_UPS_off, 1)
+		 {
+			   add_msg("Your %s starts charging.", u.weapon.tname().c_str());
+			   u.weapon.charges = 0;
+			   u.weapon.curammo = dynamic_cast<it_ammo*>(itypes[itm_charge_shot]);
+			   u.weapon.active = true;
+			   return;
+		 }
+		 else
+		 {
+			   add_msg("You need an active charged UPS.");
 
 //CAT-s: menuWrong sound
-		playSound(3);
+				playSound(3);
 
-	   return;
-	  }
-	 }
+			   return;
+		 }
+	}
+
 	 if (u.weapon.has_flag(IF_RELOAD_AND_SHOOT)) {
 	  reload_index = u.weapon.pick_reload_ammo(u, true);
 	  if (reload_index == -1) {
@@ -7895,8 +8034,14 @@ void game::unload(char chInput)
 
 void game::unload()
 {
- if( !u.weapon.is_gun() && u.weapon.contents.size() == 0 
-	&& (!u.weapon.is_tool() || u.weapon.ammo_type() == AT_NULL || u.weapon.has_flag(IF_NO_UNLOAD)) )
+//CAT-mgs: from DDA.5
+// if( !u.weapon.is_gun() && u.weapon.contents.size() == 0 
+//	&& (!u.weapon.is_tool() || u.weapon.ammo_type() == AT_NULL 
+//	|| u.weapon.has_flag(IF_NO_UNLOAD)) )
+
+ if( (u.weapon.ammo_type() == AT_NULL || u.weapon.has_flag(IF_NO_UNLOAD)) 
+	|| (!u.weapon.is_gun() && u.weapon.contents.size() == 0  && !u.weapon.is_tool()) )
+
  {
 
 	add_msg("You can't unload a %s!", u.weapon.tname(this).c_str());
@@ -8109,8 +8254,10 @@ void game::pldrive(int x, int y) {
  int part = -1;
  vehicle *veh = m.veh_at (u.posx, u.posy, part);
  if (!veh) {
+/*
   dbg(D_ERROR) << "game:pldrive: can't find vehicle! Drive mode is now off.";
   debugmsg ("game::pldrive error: can't find vehicle! Drive mode is now off.");
+*/
   u.in_vehicle = false;
   CARJUMPED= false;
   return;
@@ -8708,9 +8855,11 @@ void game::fling_player_or_monster(player *p, monster *zz, int dir, int flvel)
         is_player = false;
     else
     {
+/*
      dbg(D_ERROR) << "game:fling_player_or_monster: "
                      "neither player nor monster";
      debugmsg ("game::fling neither player nor monster");
+*/
      return;
     }
 
@@ -8725,6 +8874,7 @@ void game::fling_player_or_monster(player *p, monster *zz, int dir, int flvel)
     }
     else
         sname = zz->name() + " is";
+
     int range = flvel / 10;
     int x = (is_player? p->posx : zz->posx);
     int y = (is_player? p->posy : zz->posy);
@@ -8744,13 +8894,24 @@ void game::fling_player_or_monster(player *p, monster *zz, int dir, int flvel)
             dname = z[mondex].name();
             dam2 = flvel / 3 + rng (0, flvel * 1 / 3);
             if (z[mondex].hurt(dam2))
-             kill_mon(mondex, false);
+		{
+			kill_mon(mondex, false);
+//			add_msg("kill_mon 1");
+
+		}
             else
              thru = false;
+
             if (is_player)
              p->hitall (this, dam1, 40);
             else
-                zz->hurt(dam1);
+		if(zz->hurt(dam1))
+		{
+			kill_mon(mondex, false);
+//			add_msg("kill_mon2");
+		}
+
+
         } else if (m.move_cost(x, y) == 0 && !m.has_flag(swimmable, x, y)) {
             slam = true;
             int vpart;
@@ -8765,11 +8926,18 @@ void game::fling_player_or_monster(player *p, monster *zz, int dir, int flvel)
             if (is_player)
                 p->hitall (this, dam1, 40);
             else
-                zz->hurt (dam1);
+		if(zz->hurt(dam1))
+		{
+			kill_mon(mondex, false);
+//			add_msg("kill_mon3");
+		}
+
             flvel = flvel / 2;
         }
+
         if (slam)
             add_msg ("%s slammed against the %s for %d damage!", sname.c_str(), dname.c_str(), dam1);
+
         if (thru)
         {
             if (is_player)
@@ -8785,6 +8953,7 @@ void game::fling_player_or_monster(player *p, monster *zz, int dir, int flvel)
         }
         else
             break;
+
         range--;
         steps++;
         timespec ts;   // Timespec for the animation
@@ -8793,7 +8962,7 @@ void game::fling_player_or_monster(player *p, monster *zz, int dir, int flvel)
         nanosleep (&ts, 0);
     }
 
-    if (!m.has_flag(swimmable, x, y))
+    if(!m.has_flag(swimmable, x, y))
     {
         // fall on ground
         dam1 = rng (flvel / 3, flvel * 2 / 3) / 2;
@@ -8807,7 +8976,13 @@ void game::fling_player_or_monster(player *p, monster *zz, int dir, int flvel)
                 p->hitall (this, dam1, 40);
         }
         else
-            zz->hurt (dam1);
+	  if(zz->hurt(dam1))
+	  {
+			int mondex = mon_at(zz->posx, zz->posy);
+			kill_mon(mondex, false);
+//			add_msg("kill_mon4");
+	  }
+
         if (is_u)
             if (dam1 > 0)
                 add_msg ("You fall on the ground for %d damage.", dam1);
@@ -9780,7 +9955,7 @@ void game::msg_buffer()
    mvwprintz(w, 24, 51, c_magenta, "vvv");
   wrefresh(w);
 
-  DebugLog() << __FUNCTION__ << "calling get_input() \n";
+//  DebugLog() << __FUNCTION__ << "calling get_input() \n";
   input = get_input();
   int dirx = 0, diry = 0;
 
@@ -9883,8 +10058,12 @@ nc_color sev(int a)
 
 void game::display_scent()
 {
- int div = 1 + query_int("Sensitivity");
+//CAT-mgs:
+// int div = 1 + query_int("Sensitivity");
+
  draw_ter();
+
+ int div= 5;
  for (int x = u.posx - getmaxx(w_terrain)/2; x <= u.posx + getmaxx(w_terrain)/2; x++) {
   for (int y = u.posy - getmaxy(w_terrain)/2; y <= u.posy + getmaxy(w_terrain)/2; y++) {
    int sn = scent(x, y) / (div * 2);

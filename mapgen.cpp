@@ -384,7 +384,7 @@ mapf::formatted_set_terrain(this, 0, 0,
 ...:__|         #6__:...\n\
 ...:__|   ****  ##__:...\n\
 ...#__|  ******  |__#...\n\
-...#__| ******** |__#...\n\
+...#__| ***<**** |__#...\n\
 ...#__| ******** |__#...\n\
 ...#__| ******** |__#...\n\
 ...#__| ******** |__#...\n\
@@ -399,11 +399,12 @@ mapf::formatted_set_terrain(this, 0, 0,
 ........................\n\
 ........................\n",
 
-	mapf::basic_bind(". # _ | - > * : 6", 
+	mapf::basic_bind(". # _ | - > * : 6 <", 
 		t_air, t_rock, t_floor, t_railing_v, t_railing_h, 
-		t_stairs_down, t_bell, t_window, t_console),
+		t_stairs_down, t_bell, t_window, t_console, t_rope_up),
 mapf::end() );
-  
+
+//CAT-mgs: grafity don't rotate  
 add_graffiti(g, 18, 7, 
 "Bagabi laca bachabe,\n\
 Lamc cahi achababe...\n\
@@ -421,6 +422,73 @@ Samahac et famyolas, Harrahya.");
    rotate(1);
 
 }break;
+
+
+case ot_church_tower3:
+{
+
+  for(int i = 0; i < SEEX*2; i++)
+  {
+	for(int j = 0; j < SEEY*2; j++)
+		ter(i, j)= t_air;
+  }
+
+mapf::formatted_set_terrain(this, 0, 0,
+"........................\n\
+........................\n\
+........................\n\
+........................\n\
+........................\n\
+........................\n\
+........................\n\
+.......#########........\n\
+.......#*******#........\n\
+.......#*******#........\n\
+.......#*******#........\n\
+.......#*******#........\n\
+.......#*******#........\n\
+.......#*>*****#........\n\
+.......#*******#........\n\
+.......#########........\n\
+........................\n\
+........................\n\
+........................\n\
+........................\n\
+........................\n\
+........................\n\
+........................\n\
+........................\n",
+
+	mapf::basic_bind(". # * >", 
+		t_air, t_rock, t_floor, t_ladder_down),
+mapf::end() );
+
+
+  if(one_in(9))
+	add_item(11, 11, g->itypes[itm_v29], 0);
+  if(one_in(9))
+	add_item(12, 11, g->itypes[itm_ftk93], 0);
+  if(one_in(9))
+	add_item(11, 12, g->itypes[itm_nx17], 0);
+  if(one_in(9))
+	add_item(12, 12, g->itypes[itm_hk_g80], 0);
+  if(one_in(9))
+	add_item(10, 10, g->itypes[itm_plasma_rifle], 0);
+  if(one_in(9))
+	add_item(10, 10, g->itypes[itm_flamethrower], 0);
+
+
+  if(terrain_ground == ot_church_east)
+   rotate(3);
+  if(terrain_ground == ot_church_north)
+   rotate(2);
+  if(terrain_ground == ot_church_west)
+   rotate(1);
+
+}break;
+
+
+
 
 
 //CAT-mgs: from DDA.5 *** vvv --------------------------------------------------------
@@ -996,8 +1064,9 @@ ss%V.h..+...............\n\
 ss%V...^|...|---|---|...\n\
 ss%|----|...|.R>|EEE|...\n\
 ss%|rrrr|...|.R.|EEED...\n",
-     mapf::basic_bind("E > R # X G C , _ r V H 6 x % ^ . - | t + = D w T S e o h c d l s",
-            t_elevator, t_stairs_down, t_railing_v, t_bench, t_door_metal_locked, t_door_glass_c, t_crate_c, t_pavement_y ,t_pavement, t_rack, t_wall_glass_v, t_wall_glass_h,
+     mapf::basic_bind("E > < R # X G C , _ r V H 6 x % ^ . - | t + = D w T S e o h c d l s",
+            t_elevator, t_stairs_down, t_stairs_up, t_railing_v, t_bench, t_door_metal_locked, t_door_glass_c, 
+		t_crate_c, t_pavement_y ,t_pavement, t_rack, t_wall_glass_v, t_wall_glass_h,
             t_console, t_console_broken, t_shrub, t_indoor_plant,
             t_floor, t_wall_h, t_wall_v, t_table, t_door_c, t_door_locked, t_door_locked_alarm, t_window,
             t_toilet, t_sink, t_fridge, t_oven, t_chair, t_counter, t_desk, t_locker, t_sidewalk),
@@ -2150,8 +2219,8 @@ case ot_church_west:{
    mapf::formatted_set_terrain(this, 0, 0,
 "         ^^^^^^         \n\
      |---|--------|     \n\
-    ||dh.|.6ooo.ll||    \n\
-    |l...+...<.....Dsss \n\
+    ||dh.|.6ooo<ll||    \n\
+    |l...+.........Dsss \n\
   ^^|--+-|------+--|^^s \n\
   ^||..............||^s \n\
    w.......tt.......w s \n\
@@ -3596,6 +3665,7 @@ mapf::basic_bind( "# m s - t", t_sandbox, t_monkey_bars, t_slide, t_bench, t_tre
    rotate(3);
   break;
 
+
  case ot_house_base_north:
  case ot_house_base_east:
  case ot_house_base_south:
@@ -3907,7 +3977,6 @@ mapf::basic_bind( "# m s - t", t_sandbox, t_monkey_bars, t_slide, t_bench, t_tre
   if (terrain_type == ot_house_west  || terrain_type == ot_house_base_west)
    rotate(3);
   break;
-
 
 
  case ot_s_lot:
@@ -4981,6 +5050,7 @@ case ot_shelter_over2:
   for(int i= 0; i < 5; i++)	
 	  add_item(14+rng(-2,2), 14+rng(-2,2), g->itypes[itm_66mm_HEAT], 0);
 
+//  add_item(12, 12, g->itypes[itm_flamethrower], 0);
 }
  break;
 

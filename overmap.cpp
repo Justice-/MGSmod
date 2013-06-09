@@ -756,9 +756,9 @@ bool overmap::generate_sub(int const z)
      requires_sub = true;
     }
    }
-   else if (ter(i, j, z + 1) == ot_office_tower_1_entrance)
+   else if (ter(i, j, 0) == ot_office_tower_1_entrance)
     office_entrance_points.push_back( point(i, j) );
-   else if (ter(i, j, z + 1) == ot_office_tower_1)
+   else if (ter(i, j, 0) == ot_office_tower_1)
     office_points.push_back( point(i, j) ); 
 
 
@@ -849,7 +849,13 @@ bool overmap::generate_sub(int const z)
 	}
 	else
 	if(z == -3)
+	{
 	   ter(church_points[i].x, church_points[i].y, 3) = ot_church_tower2;
+	   requires_sub = true;
+	}
+	else
+	if(z == -4)
+	   ter(church_points[i].x, church_points[i].y, 4) = ot_church_tower3;
  }
 
 
@@ -875,12 +881,41 @@ bool overmap::generate_sub(int const z)
  }
 
 
-//CAT-mgs: from DDA.5
+//CAT-mgs: from DDA.5 -> modified *** vvv
  for (int i = 0; i < office_entrance_points.size(); i++)
-  ter(office_entrance_points[i].x, office_entrance_points[i].y, z) = ot_office_tower_b_entrance;
- for (int i = 0; i < office_points.size(); i++)
-  ter(office_points[i].x, office_points[i].y, z) = ot_office_tower_b; 
+ {
 
+	if(z == -1)
+	{
+		ter(office_entrance_points[i].x, office_entrance_points[i].y, z) = ot_office_tower_b_entrance;
+//		requires_sub = true;
+	}
+/*
+	else
+	if(z == -2)
+	{
+		ter(office_entrance_points[i].x, office_entrance_points[i].y, 1) = ot_office_tower_1_entrance;
+//		requires_sub = true;
+	}
+*/
+ }
+
+ for (int i = 0; i < office_points.size(); i++)
+ {
+	if(z == -1)
+	{
+		ter(office_points[i].x, office_points[i].y, z) = ot_office_tower_b; 
+//		requires_sub = true;
+	}
+/*
+	else
+	if(z == -2)
+	{
+		ter(office_points[i].x, office_points[i].y, 1) = ot_office_tower_1; 
+//		requires_sub = true;
+	}
+*/
+ }
 
 
  return requires_sub;

@@ -3522,6 +3522,7 @@ int player::active_item_charges(itype_id id)
  return max;
 }
 
+
 void player::process_active_items(game *g)
 {
  it_tool* tmp;
@@ -3535,10 +3536,16 @@ void player::process_active_items(game *g)
     if (has_charges(itm_UPS_on, 4)) {
      use_charges(itm_UPS_on, 4);
      maintain = true;
-    } else if (has_charges(itm_UPS_off, 4)) {
-     use_charges(itm_UPS_off, 4);
-     maintain = true;
-    }
+    } 
+    else 
+	maintain= false;
+
+//CAT-mgs: charge only with UPS turned ON
+//    if (has_charges(itm_UPS_off, 4)) {
+//     use_charges(itm_UPS_off, 4);
+//     maintain = true;
+//    }
+
     if (maintain) {
      if (one_in(20)) {
       g->add_msg("Your %s discharges!", weapon.tname().c_str());

@@ -1424,7 +1424,7 @@ void talk_function::assign_base(game *g, npc *p)
 	// TODO: decide what to do upon assign? maybe pathing required
 	basecamp* camp = g->m.camp_at(g->u.posx, g->u.posy);
 	if(!camp) {
-		dbg(D_ERROR) << "talk_function::assign_base: Assigned to base but no base here.";
+//		dbg(D_ERROR) << "talk_function::assign_base: Assigned to base but no base here.";
 		return;
 	}
 

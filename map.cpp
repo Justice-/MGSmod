@@ -34,7 +34,8 @@ map::map()
   my_MAPSIZE = 2;
  else
   my_MAPSIZE = MAPSIZE;
- dbg(D_INFO) << "map::map(): my_MAPSIZE: " << my_MAPSIZE;
+
+// dbg(D_INFO) << "map::map(): my_MAPSIZE: " << my_MAPSIZE;
  veh_in_active_range = true;
 }
 
@@ -52,7 +53,6 @@ map::map(std::vector<itype*> *itptr, std::vector<itype_id> (*miptr)[num_itloc],
   my_MAPSIZE = MAPSIZE;
  for (int n = 0; n < my_MAPSIZE * my_MAPSIZE; n++)
   grid[n] = NULL;
- dbg(D_INFO) << "map::map( itptr["<<itptr<<"], miptr["<<miptr<<"], trptr["<<trptr<<"] ): my_MAPSIZE: " << my_MAPSIZE;
  veh_in_active_range = true;
  memset(veh_exists_at, 0, sizeof(veh_exists_at));
 }
@@ -557,7 +557,9 @@ bool map::vehproceed(game* g){
 	g->add_msg("Skidding!");
 
       if(one_in(3)) 
-		veh->turn (one_in(2) ? -15 : 15);
+         veh->move.init( veh->move.dir() + (one_in(2) ? -15 : 15) );
+
+//		veh->turn (one_in(2) ? -15 : 15);
 
 //         veh->move.init (veh->move.dir() +
 //               (one_in(2) ? -15 * rng(1, 3) : 15 * rng(1, 3)));
@@ -812,7 +814,6 @@ bool map::vehproceed(game* g){
 
 //      nanosleep(&ts, NULL);
    }
-
 */
 
    if (can_move) {
@@ -1143,6 +1144,10 @@ bool map::bash(const int x, const int y, const int str, std::string &sound, int 
   }
  }
 
+//CAT-s:
+ int rlD= rl_dist(cat_px, cat_py, x, y);
+ bool playWav= (rlD < 15);
+
  int result = -1;
  int vpart;
  vehicle *veh = veh_at(x, y, vpart);
@@ -1151,13 +1156,12 @@ bool map::bash(const int x, const int y, const int str, std::string &sound, int 
   result = str;
   sound += "crash!";
 //CAT-s: playing to often?
+   if(playWav)
 	playSound(86);
   return true;
  }
 
-//CAT-s:
- int rlD= rl_dist(cat_px, cat_py, x, y);
- bool playWav= (rlD < 14);
+
 
  switch (ter(x, y)) {
 
@@ -2099,6 +2103,9 @@ void map::shoot(game *g, const int x, const int y, int &dam,
  case t_window_domestic:
  case t_curtains: 
  case t_window_alarm:
+ case t_window_stained_green:
+ case t_window_stained_red:
+ case t_window_stained_blue:
   dam -= rng(0, 5);
 	if(dam > 0)
 	{
@@ -2589,6 +2596,11 @@ void map::add_item(const int x, const int y, item new_item)
   return;
  if (new_item.made_of(LIQUID) && has_flag(swimmable, x, y))
   return;
+
+//CAT-mgs: no items or corpses holes and air
+ if(ter(x,y) == t_air || ter(x,y) == t_hole || ter(x,y) == t_indoor_hole)
+	return;
+
  if (has_flag(noitem, x, y) || i_at(x, y).size() >= 26) {// Too many items there
   std::vector<point> okay;
   for (int i = x - 1; i <= x + 1; i++) {
@@ -2942,10 +2954,8 @@ basecamp* map::camp_at(const int x, const int y, const int radius)
 
 void map::add_camp(const std::string& name, const int x, const int y)
 {
-	if (!allow_camp(x, y)) {
-		dbg(D_ERROR) << "map::add_camp: Attempting to add camp when one in local area.";
+	if (!allow_camp(x, y))
 		return;
-	}
 
 	const int nonant = int(x / SEEX) + int(y / SEEY) * my_MAPSIZE;
 	grid[nonant]->camp = basecamp(name, x, y);
@@ -3714,7 +3724,7 @@ void map::saven(overmap *om, unsigned const int turn, const int worldx, const in
 
  if ( !grid[n] || grid[n]->ter[0][0] == t_null)
  {
-  dbg(D_ERROR) << "map::saven grid NULL!";
+//  dbg(D_ERROR) << "map::saven grid NULL!";
   return;
  }
  const int abs_x = om->pos().x * OMAPX * 2 + worldx + gridx,

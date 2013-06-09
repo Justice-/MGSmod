@@ -1496,11 +1496,14 @@ veh_collision vehicle::part_collision (int vx, int vy, int part, int x, int y)
         int angle = (100 - degree) * 2 * (one_in(2)? 1 : -1);
         if (z)
         {
+
+//CAT-mgs: zombies hang on to the car?
             z->hurt(dam);
             if (vel2 / 100 > rng (5, 30))
                 g->fling_player_or_monster (0, z, move.dir() + angle, vel2 / 100);
             if (z->hp < 1)
                 g->kill_mon (mondex, pl_ctrl);
+
         }
         else
         {

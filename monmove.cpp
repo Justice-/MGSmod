@@ -36,6 +36,19 @@ bool monster::can_move_to(map &m, int x, int y)
      ((!has_flag(MF_AQUATIC) && !has_flag(MF_SWIMS)) ||
       !m.has_flag(swimmable, x, y)))
   return false;
+
+//CAT-mgs: monster stupidly fall in holes?
+/*
+ if(	!one_in(30)
+		&& (m.ter(x,y) == t_air || m.ter(x,y) == t_hole || m.ter(x,y) == t_indoor_hole) )
+	return false;
+*/
+
+ if(	!one_in(10)
+		&& (m.ter(x,y) == t_railing_v || m.ter(x,y) == t_railing_h) )
+	return false;
+
+
  if (has_flag(MF_DIGS) && !m.has_flag(diggable, x, y))
   return false;
  if (has_flag(MF_AQUATIC) && !m.has_flag(swimmable, x, y))

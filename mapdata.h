@@ -600,7 +600,7 @@ const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
 {"indoor hole",      ' ', c_black,   2,  tr_ledge,
 	mfb(transparent)|mfb(noitem)},
 {"church bell",      '#', c_yellow,    2, tr_null,
-	mfb(noitem)},
+	mfb(supports_roof)},
 
 
 //CAT-mgs: from DDA.5

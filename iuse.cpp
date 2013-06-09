@@ -984,9 +984,22 @@ void iuse::extinguisher(game *g, player *p, item *it, bool t)
   it->charges++;
   return;
  }
+
+
  p->moves -= 140;
  int x = dirx + p->posx;
  int y = diry + p->posy;
+
+//CAT-s: spray
+	playSound(62);
+
+
+//CAT-mgs:
+ g->sound(x, y, 4, "Fwoosh!");
+ g->m.add_field(NULL, x, y, fd_smoke, 1);
+ g->m.add_field(NULL, x+dirx, y+diry, fd_smoke, 1);
+
+
  if (g->m.field_at(x, y).type == fd_fire) {
   g->m.field_at(x, y).density -= rng(2, 3);
   if (g->m.field_at(x, y).density <= 0) {
@@ -1684,6 +1697,7 @@ void iuse::jackhammer(game *g, player *p, item *it, bool t)
   g->add_msg_if_player(p,"Don't do anything rash..");
   return;
  }
+
  dirx += p->posx;
  diry += p->posy;
  if (g->m.is_destructable(dirx, diry) && g->m.has_flag(supports_roof, dirx, diry) &&
@@ -1691,11 +1705,18 @@ void iuse::jackhammer(game *g, player *p, item *it, bool t)
   g->m.destroy(g, dirx, diry, false);
   p->moves -= 500;
   g->sound(dirx, diry, 45, "TATATATATATATAT!");
+
+//CAT-mgs: jackhammer
+	playSound(97);
+
  } else if (g->m.move_cost(dirx, diry) == 2 && g->levz != -1 &&
             g->m.ter(dirx, diry) != t_dirt && g->m.ter(dirx, diry) != t_grass) {
   g->m.destroy(g, dirx, diry, false);
   p->moves -= 500;
   g->sound(dirx, diry, 45, "TATATATATATATAT!");
+
+//CAT-mgs: jackhammer
+	playSound(97);
  } else {
   g->add_msg_if_player(p,"You can't drill there.");
   it->charges += (dynamic_cast<it_tool*>(it->type))->charges_per_use;
@@ -3950,7 +3971,12 @@ void iuse::spray_can(game *g, player *p, item *it, bool t)
 {
  std::string message = string_input_popup("Spray what?");
  if(g->m.add_graffiti(g, p->posx, p->posy, message))
-  g->add_msg("You spray a message on the ground.");
+ {
+//CAT-s: spray
+	playSound(62);
+	g->sound(p->posx, p->posy, 4, "Fwoosh!");
+	g->add_msg("You spray a message on the ground.");
+ }
  else
-  g->add_msg("You fail to spray a message here.");
+	g->add_msg("You fail to spray a message here.");
 }

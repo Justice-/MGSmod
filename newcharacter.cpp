@@ -786,7 +786,7 @@ int set_skills(WINDOW* w, game* g, player *u, int &points)
  } while (true);
 }
 
-//CAT-g: *****
+//CAT-g: *** vvv
 void drawDescription(WINDOW* w)
 {
  draw_tabs(w, "DESCRIPTION");

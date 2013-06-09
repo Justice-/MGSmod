@@ -119,8 +119,8 @@ void initAudio()
 	sound[34] = Mix_LoadWAV("./data/audio/reload1.wav");
 	sound[35] = Mix_LoadWAV("./data/audio/reload2.wav");
 
-//	sound[36] = Mix_LoadWAV("./data/audio/.wav");
-//	sound[37] = Mix_LoadWAV("./data/audio/.wav");
+	sound[36] = Mix_LoadWAV("./data/audio/silencer.wav");
+	sound[37] = Mix_LoadWAV("./data/audio/laser1.wav");
 
 	sound[38] = Mix_LoadWAV("./data/audio/hoya.wav");
 	sound[39] = Mix_LoadWAV("./data/audio/waterDive.wav");
@@ -154,7 +154,7 @@ void initAudio()
 
 	sound[61] = Mix_LoadWAV("./data/audio/rocket.wav");
 
-//	sound[62] = Mix_LoadWAV("./data/audio/.wav");
+	sound[62] = Mix_LoadWAV("./data/audio/spray.wav");
 
 	sound[63] = Mix_LoadWAV("./data/audio/bigCrash.wav");
 
@@ -201,7 +201,8 @@ void initAudio()
 
 	sound[95] = Mix_LoadWAV("./data/audio/shriek1.wav");
 	sound[96] = Mix_LoadWAV("./data/audio/monsterDie1.wav");
-//	sound[97] = Mix_LoadWAV("./data/audio/monsterDie2.wav");
+
+	sound[97] = Mix_LoadWAV("./data/audio/jackhammer.wav");
 
 	sound[98] = Mix_LoadWAV("./data/audio/lockOn.wav");
 
@@ -794,7 +795,7 @@ int getch(void)
     CheckMessages();
 
 //low cpu wait?
-    MsgWaitForMultipleObjects(0, NULL, FALSE, 10, QS_ALLEVENTS); 
+    MsgWaitForMultipleObjects(0, NULL, FALSE, 1, QS_ALLEVENTS); //QS_PAINT
   }while (lastchar==ERR);
 
 
@@ -882,6 +883,7 @@ int printw(const char *fmt, ...)
     return printstring(mainwin,printbuf);
 };
 
+
 //erases a window of all text and attributes
 int werase(WINDOW *win)
 {
@@ -896,12 +898,12 @@ int werase(WINDOW *win)
         win->line[j].touched=true;
     }
 
+
 //CAT-g:
 //    win->draw=true;
 
 //    wmove(win,0,0);
 //    wrefresh(win);
-
     return 1;
 };
 
@@ -961,7 +963,7 @@ int mvwaddch(WINDOW *win, int y, int x, const chtype ch)
 int wclear(WINDOW *win)
 {
     werase(win);
-    wrefresh(win);
+//    wrefresh(win);
     return 1;
 };
 

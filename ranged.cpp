@@ -612,9 +612,6 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
                                 item *relevent)
 {
 
-//CAT-s:
- playSound(0);
-
  std::vector<point> ret;
  int tarx, tary, tart, junk;
 
@@ -885,10 +882,12 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 	else
 	if(ch == KEY_ESCAPE || ch == 'q')
 	{
-
 		ltar_x= u.posx;
 		ltar_y= u.posy;
 		SNIPER= false;
+
+//CAT-s:
+		playSound(0);
 
 		ret.clear();
 		return ret;
@@ -1051,14 +1050,36 @@ void make_gun_sound_effect(game *g, player &p, bool burst, item* weapon)
 // g->add_msg("GUN NOISE= %d", noise);
 
 //CAT-mgs:
- if (weapon->curammo->type == AT_FUSION || weapon->curammo->type == AT_BATT ||
-     weapon->curammo->type == AT_PLUT)
-  g->sound(p.posx, p.posy, 8, "Fzzt!");
+ if( weapon->has_gunmod(itm_silencer) >= 0 )
+ {
+	g->sound(p.posx, p.posy, noise, "Ptseeww!");
+//CAT-s: silencer
+	playSound(36);
+
+ }
+ else
+ if(weapon->curammo->type == AT_FUSION
+	|| weapon->curammo->type == AT_BATT
+	|| weapon->curammo->type == AT_PLUT)
+ {
+	g->sound(p.posx, p.posy, 8, "Fzzt!");
+//CAT-s: laser
+	playSound(37);
+ }
  else if (weapon->curammo->type == AT_40MM)
-  g->sound(p.posx, p.posy, 8, "Thunk!");
+ {
+	g->sound(p.posx, p.posy, 8, "Thunk!");
+
+//CAT-s: noiseThump
+	playSound(93);
+ }
  else
  if (weapon->curammo->type == AT_GAS)
+ {
 	g->sound(p.posx, p.posy, 4, "Fwoosh!");
+//CAT-s: spray
+	playSound(62);
+ }
  else
  if(weapon->curammo->type == AT_66MM)
  {

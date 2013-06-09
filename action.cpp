@@ -180,7 +180,7 @@ std::string action_ident(action_id act)
   case ACTION_FIRE:
    return "fire";
   case ACTION_FIRE_BURST:
-   return "fire_burst";
+   return "kick_jump";
   case ACTION_SELECT_FIRE_MODE:
    return "select_fire_mode";
   case ACTION_DROP:
@@ -342,7 +342,7 @@ std::string action_name(action_id act)
   case ACTION_FIRE:
    return "Fire Wielded Item";
   case ACTION_FIRE_BURST:
-   return "Burst-Fire Wielded Item";
+   return "Kick and Jump";
   case ACTION_SELECT_FIRE_MODE:
    return "Toggle attack mode of Wielded Item";
   case ACTION_DROP:
@@ -392,7 +392,7 @@ std::string action_name(action_id act)
   case ACTION_DISPLAY_SCENT:
    return "View Scentmap";
   case ACTION_TOGGLE_DEBUGMON:
-   return "Toggle Debug Messages";
+   return "Unused";
   case ACTION_NULL:
    return "No Action";
   case ACTION_RECRAFT:

@@ -3,6 +3,7 @@
 #include "game.h"
 #include "lightmap.h"
 
+//CAT-mgs:
 #define INBOUNDS(x, y) (x >= -CAT_VX && x <= CAT_VX && y >= -CAT_VY && y <= CAT_VY)
 #define INBOUNDS_LARGE(x, y) (x >= -LIGHTMAP_RANGE_X && x <= LIGHTMAP_RANGE_X &&\
                                y >= -LIGHTMAP_RANGE_Y && y <= LIGHTMAP_RANGE_Y)

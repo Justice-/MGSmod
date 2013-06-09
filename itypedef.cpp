@@ -106,7 +106,7 @@ DRINK("root beer",	65, 30,	c_brown,  itm_can_drink,
 Like cola, but without caffeine. Still not that healthy.");
 
 DRINK("milk",		50, 35,	c_white,  itm_bottle_glass,
-	25,  8,  8,  0,  1,  0,  1,  0,&iuse::none,	ADD_NULL, "\
+	25,  8,  21,  0,  1,  0,  1,  0,&iuse::none,	ADD_NULL, "\
 Baby cow food, appropriated for adult humans. Spoils rapidly.");
 
 DRINK("V8",		15, 35,	c_red,    itm_can_drink,
