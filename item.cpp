@@ -799,7 +799,7 @@ std::string item::tname(game *g)
   food = dynamic_cast<it_comest*>(contents[0].type);
  if (food != NULL && g != NULL && food->spoils != 0 &&
    int(g->turn) < (int)bday + 100)
-  ret << " (hot)";
+  ret << " (fresh)";
  if (food != NULL && g != NULL && food->spoils != 0 &&
    int(g->turn) - (int)bday > food->spoils * 600)
   ret << " (rotten)";
@@ -1174,6 +1174,19 @@ bool item::is_gun()
   return false;
 
  return type->is_gun();
+}
+
+bool item::is_silent()
+{
+ if ( is_null() )
+  return false;
+
+ // So far only gun code uses this check
+ return type->is_gun() && (
+   noise() < 5 ||              // almost silent
+   curammo->type == AT_BOLT || // crossbows
+   curammo->type == AT_ARROW   // bows
+ );
 }
 
 bool item::is_gunmod()
@@ -1672,7 +1685,7 @@ int item::pick_reload_ammo(player &u, bool interactive)
  int index = -1;
 
  if (am.size() > 1 && interactive) {// More than one option; list 'em and pick
-   WINDOW* w_ammo = newwin(am.size() + 1, 80, 0, 0);
+   WINDOW* w_ammo = newwin(am.size() + 1, 80, VIEW_OFFSET_Y, VIEW_OFFSET_X);
    char ch;
    clear();
    it_ammo* ammo_type;

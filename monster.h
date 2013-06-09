@@ -59,11 +59,11 @@ class monster {
  void print_info(game *g, WINDOW* w); // Prints information to w.
  char symbol();			// Just our type's symbol; no context
 
-//CAT:
+//CAT-g:
  void draw(WINDOW* w, int plx, int ply, bool inv, bool nv);
+ nc_color color_with_effects(nc_color ret);	
 
- nc_color color_with_effects(nc_color ret);	// Color with fire, beartrapped, etc.
-				// Inverts color if inv==true
+
  bool has_flag(m_flag f);	// Returns true if f is set (see mtype.h)
  bool can_see();		// MF_SEES and no ME_BLIND
  bool can_hear();		// MF_HEARS and no ME_DEAF

@@ -59,6 +59,8 @@ class iuse
   void two_way_radio	(game *g, player *p, item *it, bool t);
   void radio_off	(game *g, player *p, item *it, bool t);
   void radio_on		(game *g, player *p, item *it, bool t);
+  void roadmap (game *g, player *p, item *it, bool t);
+  void roadmap_a_target (game *g, player *p, item *it, bool t, int target);
   void picklock         (game *g, player *p, item *it, bool t);
   void crowbar		(game *g, player *p, item *it, bool t);
   void makemound	(game *g, player *p, item *it, bool t);
@@ -94,6 +96,10 @@ class iuse
   void molotov_lit	(game *g, player *p, item *it, bool t);
   void dynamite		(game *g, player *p, item *it, bool t);
   void dynamite_act	(game *g, player *p, item *it, bool t);
+  void firecracker_pack (game *g, player *p, item *it, bool t);
+  void firecracker_pack_act (game *g, player *p, item *it, bool t);
+  void firecracker (game *g, player *p, item *it, bool t);
+  void firecracker_act (game *g, player *p, item *it, bool t);
   void mininuke		(game *g, player *p, item *it, bool t);
   void mininuke_act	(game *g, player *p, item *it, bool t);
   void pheromone	(game *g, player *p, item *it, bool t);
@@ -112,6 +118,7 @@ class iuse
   void lumber    	(game *g, player *p, item *it, bool t);
   void hacksaw          (game *g, player *p, item *it, bool t);
   void tent             (game *g, player *p, item *it, bool t);
+  void shelter          (game *g, player *p, item *it, bool t);
   void torch            (game *g, player *p, item *it, bool t);
   void torch_lit        (game *g, player *p, item *it, bool t);
   void candle           (game *g, player *p, item *it, bool t);

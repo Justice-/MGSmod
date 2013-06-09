@@ -9,6 +9,7 @@
 #include "item.h"
 #include "options.h"
 
+
 int time_to_fire(player &p, it_gun* firing);
 int recoil_add(player &p);
 void make_gun_sound_effect(game *g, player &p, bool burst, item* weapon);
@@ -22,6 +23,7 @@ void splatter(game *g, std::vector<point> trajectory, int dam,
 
 void ammo_effects(game *g, int x, int y, long flags);
 
+//CAT-g: BEGIN ***** whole lot ***
 void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
                 bool burst)
 {
@@ -206,7 +208,7 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
     casing.charges = 1;
     m.add_item(x, y, casing);
 
-//CAT: shellDrop sound
+//CAT-s: shellDrop sound
 	playSound(41);
 
    }
@@ -394,9 +396,10 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
 
  if (weapon->num_charges() == 0)
   weapon->curammo = NULL;
-
-
 }
+//CAT-g: END *****
+
+
 
 
 void game::throw_item(player &p, int tarx, int tary, item &thrown,
@@ -483,7 +486,7 @@ void game::throw_item(player &p, int tarx, int tary, item &thrown,
      message += z[mon_at(tx, ty)].name();
      message += "!";
 
-//CAT:
+//CAT-s:
 	playSound(92);	//noiseSwoosh sound
     }
     if (thrown.type->melee_cut > z[mon_at(tx, ty)].armor_cut())
@@ -548,7 +551,6 @@ void game::throw_item(player &p, int tarx, int tary, item &thrown,
    ty = u.posy;
   }
  }
-
  if (thrown.made_of(GLASS) && !thrown.active && // active means molotov, etc
      rng(0, thrown.volume() + 8) - rng(0, p.str_cur) < thrown.volume()) {
   if (u_see(tx, ty, tart))
@@ -557,19 +559,18 @@ void game::throw_item(player &p, int tarx, int tary, item &thrown,
    m.add_item(tx, ty, thrown.contents[i]);
   sound(tx, ty, 16, "glass breaking!");
 
-//CAT:
+//CAT-s:
 	playSound(25);
 
  } else {
   sound(tx, ty, 8, "thud.");
-
   m.add_item(tx, ty, thrown);
+
+//CAT-s:
+	playSound(91);
  }
 }
 
-
-
-//*** T A R G E T **************
 
 std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
                                 int hiy, std::vector <monster> t, int &target,
@@ -600,7 +601,7 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
  } else
   target = -1;	// No monsters in range, don't use target, reset to -1
 
- WINDOW* w_target = newwin(13, 48, 12, TERRAIN_WINDOW_WIDTH + 7);
+ WINDOW* w_target = newwin(13, 48, 12 + VIEW_OFFSET_Y, TERRAIN_WINDOW_WIDTH + 7 + VIEW_OFFSET_X);
  wborder(w_target, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
                  LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
  if (!relevent) // currently targetting vehicle to refill with fuel
@@ -612,7 +613,6 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
             u.weapon.charges);
  else
   mvwprintz(w_target, 1, 1, c_red, "Throwing %s", relevent->tname().c_str());
-
  mvwprintz(w_target, 2, 1, c_white,
            "Move cursor to target with directional keys.");
  if (relevent) {
@@ -622,7 +622,7 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
             "'0' target self; '*' toggle snap-to-target");
  }
 
-//CAT: check this
+//CAT-mgs: BEGIN ***** whole lot ***
  wrefresh(w_target);
 
 
@@ -656,12 +656,15 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 	   for (int j = 1; j < 46; j++)
 		mvwputch(w_target, i, j, c_white, ' ');
 	}
+	
+	int cat_r= 1+rl_dist(u.posx, u.posy, x, y)/SEEX;
 
-	cat_x= (int)(x-u.posx)/3;
-	cat_y= (int)(y-u.posy)/3;
+	cat_x= (int)(x-u.posx)/cat_r;
+	cat_y= (int)(y-u.posy)/cat_r;
 
-	do
-	{
+//	do
+//	{
+/*
 		if(cat_xOld > cat_x)
 			cat_xOld--;
 	
@@ -673,7 +676,9 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 	
 		if(cat_yOld < cat_y)
 			cat_yOld++;
-
+*/
+		cat_xOld= cat_x;
+		cat_yOld= cat_y;
 
 		center = point(x-cat_xOld, y-cat_yOld);
 		u.view_offset_x= cat_xOld;
@@ -704,20 +709,12 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 		wrefresh(w_terrain);
 		//nanosleep(&ts, NULL);
 
-	}while( (cat_xOld != cat_x) || (cat_yOld != cat_y) );
+//	}while( (cat_xOld != cat_x) || (cat_yOld != cat_y) );
 	
 
 //CAT: blink, maybe?
 	if(x != u.posx || y != u.posy)
 	{
-		// Calculate the return vector (and draw it too)
-		/*
-		   for(int i = 0; i < ret.size(); i++)
-			m.drawsq(w_terrain, u, ret[i].x, ret[i].y, false, true, center.x, center.y);
-		*/
-
-
-
 		if(m.sees(u.posx, u.posy, x, y, -1, tart))
 		{
 		    // Selects a valid line-of-sight
@@ -787,15 +784,11 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 		mvwputch(w_terrain, aty, atx, u.color(), '@');
 
 
-
-
 	wrefresh(w_target);
 	wrefresh(w_terrain);
 
 
-//.
-//.
-//CAT:
+//CAT-g:
 //  wrefresh(w_status);
 //  refresh();
 
@@ -828,8 +821,8 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 	y = hiy;
 
 //CAT:
-	cat_xOld= (int)(x-u.posx)/3;
-	cat_yOld= (int)(y-u.posy)/3;
+	cat_xOld= (int)(x-u.posx)/cat_r;
+	cat_yOld= (int)(y-u.posy)/cat_r;
    }
    else
    if((ch == '<') && (target != -1))
@@ -876,8 +869,8 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 	y = u.posy;
 
 //CAT:
-	cat_xOld= (int)(x-u.posx)/3;
-	cat_yOld= (int)(y-u.posy)/3;
+	cat_xOld= (int)(x-u.posx)/cat_r;
+	cat_yOld= (int)(y-u.posy)/cat_r;
 
   }
   else
@@ -886,6 +879,11 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
   else
   if(ch == KEY_ESCAPE || ch == 'q')
   {
+
+//CAT-g:
+	u.view_offset_x= 0;
+	u.view_offset_y= 0;
+
 	// return empty vector (cancel)
 	ret.clear();
 	return ret;
@@ -894,6 +892,8 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
  } while (true);
 
 }
+//CAT-mgs: END *****
+
 
 
 void game::hit_monster_with_flags(monster &z, unsigned int effects)
@@ -914,7 +914,7 @@ void game::hit_monster_with_flags(monster &z, unsigned int effects)
    z.add_effect(ME_ONFIRE, rng(1, 4));
 
  }
-}
+} 
 
 int time_to_fire(player &p, it_gun* firing)
 {
@@ -957,6 +957,7 @@ int time_to_fire(player &p, it_gun* firing)
  return time;
 }
 
+//CAT-s: *** whole lot ***
 void make_gun_sound_effect(game *g, player &p, bool burst, item* weapon)
 {
  std::string gunsound;
@@ -1153,15 +1154,21 @@ void shoot_monster(game *g, player &p, monster &mon, int &dam, double goodhit, i
   if (dam > 0) {
    mon.moves -= dam * 5;
    if (&p == &(g->u) && u_see_mon)
-    g->add_msg("%s You hit the %s for %d damage.", message.c_str(),
-            mon.name().c_str(), dam);
+    g->add_msg("%s You hit the %s for %d damage.", message.c_str(), mon.name().c_str(), dam);
    else if (u_see_mon)
-    g->add_msg("%s %s shoots the %s.", message.c_str(), p.name.c_str(),
-            mon.name().c_str());
-   if (mon.hurt(dam))
+    g->add_msg("%s %s shoots the %s.", message.c_str(), p.name.c_str(), mon.name().c_str());
+
+   bool bMonDead = mon.hurt(dam);
+//CAT-g:
+   hit_animation(g->w_terrain, mon.posx - g->u.posx + VIEWX - g->u.view_offset_x,
+                 mon.posy - g->u.posy + VIEWY - g->u.view_offset_y,
+                 red_background(mon.type->color), (bMonDead) ? '%' : mon.symbol());
+
+   if (bMonDead)
     g->kill_mon(g->mon_at(mon.posx, mon.posy), (&p == &(g->u)));
    else if (weapon->curammo->ammo_effects != 0)
     g->hit_monster_with_flags(mon, weapon->curammo->ammo_effects);
+
    dam = 0;
   }
  }
@@ -1241,7 +1248,7 @@ void shoot_player(game *g, player &p, player *h, int &dam, double goodhit)
 void splatter(game *g, std::vector<point> trajectory, int dam, monster* mon)
 {
 
-//CAT:
+//CAT-s:
   playSound(27); 
 
  field_id blood = fd_blood;

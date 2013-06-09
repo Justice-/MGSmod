@@ -26,18 +26,18 @@ enum dis_type {
  DI_NULL,
 // Weather
  DI_GLARE, DI_WET,
-// Temperature, the order is important
+// Temperature, the order is important (dependant on bodypart.h)
  DI_COLD,
- DI_COLD_HEAD, DI_COLD_EYES, DI_COLD_MOUTH, DI_COLD_TORSO,
+ DI_COLD_TORSO, DI_COLD_HEAD, DI_COLD_EYES, DI_COLD_MOUTH, 
  DI_COLD_ARMS, DI_COLD_HANDS, DI_COLD_LEGS, DI_COLD_FEET,
  DI_FROSTBITE,
- DI_FROSTBITE_HEAD, DI_FROSTBITE_EYES, DI_FROSTBITE_MOUTH, DI_FROSTBITE_TORSO,
+ DI_FROSTBITE_TORSO, DI_FROSTBITE_HEAD, DI_FROSTBITE_EYES, DI_FROSTBITE_MOUTH,
  DI_FROSTBITE_ARMS, DI_FROSTBITE_HANDS, DI_FROSTBITE_LEGS, DI_FROSTBITE_FEET,
  DI_HOT,
- DI_HOT_HEAD, DI_HOT_EYES, DI_HOT_MOUTH, DI_HOT_TORSO,
+ DI_HOT_TORSO, DI_HOT_HEAD, DI_HOT_EYES, DI_HOT_MOUTH, 
  DI_HOT_ARMS, DI_HOT_HANDS, DI_HOT_LEGS, DI_HOT_FEET,
  DI_BLISTERS,
- DI_BLISTERS_HEAD, DI_BLISTERS_EYES, DI_BLISTERS_MOUTH, DI_BLISTERS_TORSO,
+ DI_BLISTERS_TORSO, DI_BLISTERS_HEAD, DI_BLISTERS_EYES, DI_BLISTERS_MOUTH, 
  DI_BLISTERS_ARMS, DI_BLISTERS_HANDS, DI_BLISTERS_LEGS, DI_BLISTERS_FEET,
 // Diseases
  DI_INFECTION,
@@ -57,7 +57,7 @@ enum dis_type {
   DI_HALLU, DI_VISUALS, DI_IODINE, DI_TOOK_XANAX, DI_TOOK_PROZAC,
   DI_TOOK_FLUMED, DI_ADRENALINE, DI_ASTHMA, DI_GRACK, DI_METH,
 // Traps
- DI_BEARTRAP, DI_IN_PIT, DI_STUNNED, DI_DOWNED,
+ DI_BEARTRAP, DI_LIGHTSNARE, DI_HEAVYSNARE, DI_IN_PIT, DI_STUNNED, DI_DOWNED,
 // Martial Arts
  DI_ATTACK_BOOST, DI_DAMAGE_BOOST, DI_DODGE_BOOST, DI_ARMOR_BOOST,
   DI_SPEED_BOOST, DI_VIPER_COMBO,
@@ -183,9 +183,9 @@ enum pl_flag {
  PF_INCONSPICUOUS,// Less spawns due to timeouts
  PF_MASOCHIST,	// Morale boost from pain
  PF_LIGHTSTEP,	// Less noise from movement
- PF_HEARTLESS,	// No morale penalty for murder &c
  PF_ANDROID,	// Start with two bionics (occasionally one)
  PF_ROBUST,	// Mutations tend to be good (usually they tend to be bad)
+ PF_CANNIBAL, // No penalty for eating human meat
  PF_MARTIAL_ARTS, // Start with a martial art
 
  PF_SPLIT,	// Null trait, splits between bad & good
@@ -434,18 +434,19 @@ Although you still suffer the negative effects of pain, it also brings a\n\
 unique pleasure to you."},
 {"Light Step", 1, 0, 0, "\
 You make less noise while walking.  You're also less likely to set off traps."},
-{"Heartless", 2, 0, 0, "\
-You have few qualms, and no capacity for pity. Killing the helpless, the\n\
-young, and your friends will not affect your morale at all."},
 {"Android", 4, 0, 0, "\
 At some point in the past you had a bionic upgrade installed in your body.\n\
 You start the game with a power system, and one random bionic enhancement."},
 {"Robust Genetics", 2, 0, 0, "\
 You have a very strong genetic base.  If you mutate, the odds that the\n\
 mutation will be beneficial are greatly increased."},
+{"Cannibal", 3, 0, 0, "\
+For your whole life you've been forbidden from indulging in your peculiar\n\
+tastes. Now the world's ended, and you'll be damned if anyone is going to\n\
+tell you you can't eat people."},
 {"Martial Arts Training", 3, 0, 0, "\
-You have receives some martial arts training at a local dojo.  You will start\n\
-with your choice of karate, judo, aikido, tai chi, or taekwando."},
+You have received some martial arts training at a local dojo.  You will start\n\
+with your choice of karate, judo, aikido, tai chi, or taekwondo."},
 
 {"NULL", 0, 0, 0, " -------------------------------------------------- "},
 
@@ -467,7 +468,7 @@ You never learned to read!  Books and computers are off-limits to you."},
 Your hearing is poor, and you may not hear quiet or far-off noises."},
 {"Insomniac", -2, 0, 0, "\
 You have a hard time falling asleep, even under the best circumstances!"},
-{"Meat Allergy", -3, 0, 0, "\
+{"Meat Intolerance", -3, 0, 0, "\
 You have problems with eating meat, it's possible for you to eat it but\n\
 you will suffer morale penalties due to nausea."},
 {"Glass Jaw", -3, 0, 0, "\

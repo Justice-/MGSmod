@@ -98,22 +98,22 @@ void setvector(std::vector<m_flag> &vec, ... )
  va_end(ap);
 }
 
+void setvector(std::vector<m_category> &vec, ... )
+{
+ va_list ap;
+ va_start(ap, vec);
+ m_category tmp;
+ while ((tmp = (m_category)va_arg(ap, int)))
+  vec.push_back(tmp);
+ va_end(ap);
+}
+
 void setvector(std::vector<monster_trigger> &vec, ... )
 {
  va_list ap;
  va_start(ap, vec);
  monster_trigger tmp;
  while ((tmp = (monster_trigger)va_arg(ap, int)))
-  vec.push_back(tmp);
- va_end(ap);
-}
-
-void setvector(std::vector<moncat_id> &vec, ... )
-{
- va_list ap;
- va_start(ap, vec);
- moncat_id tmp;
- while ((tmp = (moncat_id)va_arg(ap, int)))
   vec.push_back(tmp);
  va_end(ap);
 }

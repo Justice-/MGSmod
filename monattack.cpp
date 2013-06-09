@@ -63,10 +63,11 @@ void mattack::antqueen(game *g, monster *z)
  }
 }
 
+//CAT-s: ***
 void mattack::shriek(game *g, monster *z)
 {
  int j;
-//CAT: too often, cut it down... 
+//CAT-s: too often, cut it down... 
  if( !one_in(30) 
 	|| !g->sees_u(z->posx, z->posy, j) 
 	|| rl_dist(z->posx, z->posy, g->u.posx, g->u.posy) > 9 )
@@ -77,7 +78,7 @@ void mattack::shriek(game *g, monster *z)
  z->sp_timeout = z->type->sp_freq;	// Reset timer
  g->sound(z->posx, z->posy, 50, "a terrible shriek!");
 
-//CAT:
+//CAT-s:
 	playSound(95);
 }
 
@@ -87,12 +88,11 @@ void mattack::acid(game *g, monster *z)
  if (rl_dist(z->posx, z->posy, g->u.posx, g->u.posy) > 10 ||
      !g->sees_u(z->posx, z->posy, junk))
   return;	// Out of range
-
  z->moves = -300;			// It takes a while
  z->sp_timeout = z->type->sp_freq;	// Reset timer
  g->sound(z->posx, z->posy, 4, "a spitting noise.");
 
-//CAT:
+//CAT-s:
 	playSound(29); //splat1 sound
 
  int hitx = g->u.posx + rng(-2, 2), hity = g->u.posy + rng(-2, 2);
@@ -126,11 +126,12 @@ void mattack::shockstorm(game *g, monster *z)
  if (!g->sees_u(z->posx, z->posy, t) ||
      rl_dist(z->posx, z->posy, g->u.posx, g->u.posy) > 12)
   return;	// Can't see you, no attack
+
  z->moves = -50;			// It takes a while
  z->sp_timeout = z->type->sp_freq;	// Reset timer
  g->add_msg("A bolt of electricity arcs towards you!");
 
-//CAT:
+//CAT-s:
 	playSound(24); //spark2 (long) sound
 
  int tarx = g->u.posx + rng(-1, 1) + rng(-1, 1),// 3 in 9 chance of direct hit,
@@ -169,65 +170,46 @@ void mattack::smokecloud(game *g, monster *z)
   }
 }
 
-
 void mattack::boomer(game *g, monster *z)
 {
-	int j;
-	if( rl_dist(z->posx, z->posy, g->u.posx, g->u.posy) > 3 
-			|| !g->sees_u(z->posx, z->posy, j) )
-		return;	// Out of range
+ int j;
+ if (rl_dist(z->posx, z->posy, g->u.posx, g->u.posy) > 3 ||
+     !g->sees_u(z->posx, z->posy, j))
+  return;	// Out of range
+ std::vector<point> line = line_to(z->posx, z->posy, g->u.posx, g->u.posy, j);
+ z->sp_timeout = z->type->sp_freq;	// Reset timer
+ z->moves = -250;			// It takes a while
+ bool u_see = g->u_see(z->posx, z->posy, j);
+ if (u_see)
+  g->add_msg("The %s spews bile!", z->name().c_str());
 
-	std::vector<point> line = line_to(z->posx, z->posy, g->u.posx, g->u.posy, j);
-
-	z->sp_timeout = z->type->sp_freq; 			// Reset timer
-	z->moves = -250;						// It takes a while
-	bool u_see = g->u_see(z->posx, z->posy, j);
-
-	if(u_see)
-	{
-		g->add_msg("The %s spews bile!", z->name().c_str());
-
-//CAT: splat1 sound
+//CAT-s: splat1 sound
 		playSound(29); 
 
-		for(int i = 0; i < line.size(); i++)
-		{
-			if(g->m.field_at(line[i].x, line[i].y).type == fd_blood)
-			{
-			   g->m.field_at(line[i].x, line[i].y).type = fd_bile;
-			   g->m.field_at(line[i].x, line[i].y).density = 1;
-			}
-			else
-			if(g->m.field_at(line[i].x, line[i].y).type == fd_bile 
-				&& g->m.field_at(line[i].x, line[i].y).density < 3)
-			   g->m.field_at(line[i].x, line[i].y).density++;
-			else
-			   g->m.add_field(g, line[i].x, line[i].y, fd_bile, 1);
+ for (int i = 0; i < line.size(); i++) {
+  if (g->m.field_at(line[i].x, line[i].y).type == fd_blood) {
+   g->m.field_at(line[i].x, line[i].y).type = fd_bile;
+   g->m.field_at(line[i].x, line[i].y).density = 1;
+  } else if (g->m.field_at(line[i].x, line[i].y).type == fd_bile &&
+             g->m.field_at(line[i].x, line[i].y).density < 3)
+   g->m.field_at(line[i].x, line[i].y).density++;
+  else
+   g->m.add_field(g, line[i].x, line[i].y, fd_bile, 1);
+// If bile hit a solid tile, return.
+  if (g->m.move_cost(line[i].x, line[i].y) == 0) {
+   g->m.add_field(g, line[i].x, line[i].y, fd_bile, 3);
+   if (g->u_see(line[i].x, line[i].y, j))
+    g->add_msg("Bile splatters on the %s!",
+               g->m.tername(line[i].x, line[i].y).c_str());
+   return;
+  }
+ }
+ if (rng(0, 10) > g->u.dodge(g) || one_in(g->u.dodge(g)))
+  g->u.infect(DI_BOOMERED, bp_eyes, 3, 12, g);
+ else if (u_see)
+  g->add_msg("You dodge it!");
 
-			// If bile hit a solid tile, return.
-			if (g->m.move_cost(line[i].x, line[i].y) == 0)
-			{
-				g->m.add_field(g, line[i].x, line[i].y, fd_bile, 3);
-
-				if(g->u_see(line[i].x, line[i].y, j))
-					g->add_msg("Bile splatters on the %s!",
-						g->m.tername(line[i].x, line[i].y).c_str());
-
-				return;
-			}
-		}
-
-		if(rng(0, 10) > g->u.dodge(g) || one_in(g->u.dodge(g)))
-			g->u.infect(DI_BOOMERED, bp_eyes, 3, 12, g);
-		else
-		{
-			g->add_msg("You dodge it!");
-//CAT:
-			playSound(47);
-		}
-	}
 }
-
 
 void mattack::resurrect(game *g, monster *z)
 {
@@ -915,23 +897,15 @@ void mattack::tentacle(game *g, monster *z)
   g->m.shoot(g, line[i].x, line[i].y, tmpdam, true, 0);
  }
 
- if (rng(0, 20) > g->u.dodge(g) || one_in(g->u.dodge(g)))
- {
-//CAT:
-	playSound(47);
-
-	g->add_msg("You dodge it!");
-	return;
+ if (rng(0, 20) > g->u.dodge(g) || one_in(g->u.dodge(g))) {
+  g->add_msg("You dodge it!");
+  return;
  }
  body_part hit = random_body_part();
  int dam = rng(10, 20), side = rng(0, 1);
- g->add_msg("Your %s is hit for %d damage!", 
-		body_part_name(hit, side).c_str(),dam);
-
-//CAT: pain sound, add heartBeat somewhere when low on health
-	playSound(rng(8,9));
-
-	g->u.hit(g, hit, side, dam, 0);
+ g->add_msg("Your %s is hit for %d damage!", body_part_name(hit, side).c_str(),
+            dam);
+ g->u.hit(g, hit, side, dam, 0);
 }
 
 void mattack::vortex(game *g, monster *z)
@@ -983,10 +957,6 @@ void mattack::vortex(game *g, monster *z)
        int side = rng(0, 1);
        g->add_msg("A %s hits your %s for %d damage!", thrown.tname().c_str(),
                   body_part_name(hit, side).c_str(), dam);
-
-//CAT: pain sound, add heartBeat somewhere when low on health
-	playSound(8);
-
        g->u.hit(g, hit, side, dam, 0);
        dam = 0;
       }
@@ -1081,12 +1051,6 @@ void mattack::vortex(game *g, monster *z)
      if (i > 0 && monhit != -1 && !g->z[monhit].has_flag(MF_DIGS)) {
       if (g->u_see(traj[i].x, traj[i].y, t))
        g->add_msg("You hit a %s!", g->z[monhit].name().c_str());
-
-//CAT: punch1, punch2, punch3 
-//	playSound(rng(44,46));  
-// not here?
-
-
       if (g->z[monhit].hurt(damage))
        g->kill_mon(monhit, true); // We get the kill :)
       hit_wall = true;
@@ -1248,10 +1212,11 @@ void mattack::smg(game *g, monster *z)
 
  if (!z->has_effect(ME_TARGETED)) {
   g->sound(z->posx, z->posy, 6, "beep-beep-beep!");
-  z->add_effect(ME_TARGETED, 8);
 
-//CAT:
+//CAT-s:
   playSound(98);
+
+  z->add_effect(ME_TARGETED, 8);
   z->moves -= 100;
   return;
  }
@@ -1443,6 +1408,7 @@ void mattack::breathe(game *g, monster *z)
  }
 }
 
+//CAT-mgs: *** whole lot ***
 void mattack::bite(game *g, monster *z)
 {
  if(rl_dist(z->posx, z->posy, g->u.posx, g->u.posy) > 1)
@@ -1451,8 +1417,8 @@ void mattack::bite(game *g, monster *z)
  g->add_msg("The %s lunges forward attempting to bite you!", z->name().c_str());
  z->moves -= 100;
 
-//CAT: more chance for bite if boomered or blind
- if( ( rng(0, 20) > g->u.dodge(g) || one_in(g->u.dodge(g)) )
+//CAT: more chance for bite, especially if boomered or blind
+ if( ( rng(0, 15) > g->u.dodge(g) || one_in(g->u.dodge(g)) )
 	&& !( (g->u.has_disease(DI_BOOMERED) || g->u.has_disease(DI_BLIND)) && one_in(3) ) )
 {
 //CAT:
@@ -1466,7 +1432,7 @@ void mattack::bite(game *g, monster *z)
  g->add_msg("Your %s is bitten for %d damage!", 
 	body_part_name(hit, side).c_str(),dam);
 
-//CAT: pain2 sound, add heartBeat somewhere when low on health
+//CAT: pain2 sound
 	playSound(9);
 
 	 g->u.hit(g, hit, side, dam, 0);

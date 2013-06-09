@@ -661,6 +661,15 @@ std::vector<int> vehicle::boarded_parts()
     return res;
 }
 
+int vehicle::free_seat()
+{
+ for (int p = 0; p < parts.size(); p++)
+  if (part_flag (p, vpf_seat) && !parts[p].has_flag(vehicle_part::passenger_flag))
+   return p;
+
+ return -1;
+}
+
 player *vehicle::get_passenger (int p)
 {
     p = part_with_feature (p, vpf_seat, false);
@@ -1185,11 +1194,14 @@ veh_collision vehicle::part_collision (int vx, int vy, int part, int x, int y)
     bool u_here = x == g->u.posx && y == g->u.posy && !g->u.in_vehicle;
     monster *z = mondex >= 0? &g->z[mondex] : 0;
     player *ph = (npcind >= 0? &g->active_npc[npcind] : (u_here? &g->u : 0));
+
+    if (ph && ph->in_vehicle) // if in a vehicle assume it's this one
+    	ph = 0;
+
     int target_part = -1;
     vehicle *oveh = g->m.veh_at (x, y, target_part);
     bool is_veh_collision = oveh && (oveh->posx != posx || oveh->posy != posy);
-    bool is_body_collision = (g->u.posx == x && g->u.posy == y && !g->u.in_vehicle) ||
-                           mondex >= 0 || npcind >= 0;
+    bool is_body_collision = ph || mondex >= 0;
 
     veh_coll_type collision_type = veh_coll_nothing;
     std::string obs_name = g->m.tername(x, y).c_str();
@@ -1308,17 +1320,35 @@ veh_collision vehicle::part_collision (int vx, int vy, int part, int x, int y)
     }
     if (!is_body_collision)
     {
-        if (pl_ctrl)
+        if(pl_ctrl)
         {
             if (snd.length() > 0)
                 g->add_msg ("Your %s's %s rams into a %s with a %s", name.c_str(), part_info(part).name, obs_name.c_str(), snd.c_str());
             else
                 g->add_msg ("Your %s's %s rams into a %s.", name.c_str(), part_info(part).name, obs_name.c_str());
-        }
+
+//CAT-mgs: ***
+		int cat_f= 50 - velocity;
+		if(cat_f < 0)
+			cat_f= 0;
+	
+		int cat_s= g->u.skillLevel("driving");
+
+		if(one_in(5 + cat_f + cat_s*10))
+		{
+				g->add_msg("You lose control for a moment.");
+				turn(one_in(2) ? -15 : 15);
+
+				if(one_in(5 + cat_f + cat_s*10))
+					skidding = true;
+		}
+
+	  }
         else
         if (snd.length() > 0)
             g->add_msg ("You hear a %s", snd.c_str());
     }
+
     if (part_flag(part, vpf_sharp) && smashed)
         imp2 /= 2;
     int imp1 = imp - imp2;
@@ -1359,9 +1389,28 @@ veh_collision vehicle::part_collision (int vx, int vy, int part, int x, int y)
         else
             dname = ph->name;
         if (pl_ctrl)
+	  {
             g->add_msg ("Your %s's %s rams into %s, inflicting %d damage%s!",
                     name.c_str(), part_info(part).name, dname.c_str(), dam,
                     turns_stunned > 0 && z? " and stunning it" : "");
+
+//CAT-mgs: ***
+		int cat_f= 50 - velocity;
+		if(cat_f < 0)
+			cat_f= 0;
+	
+		int cat_s= g->u.skillLevel("driving");
+
+		if(one_in(3 + cat_f + cat_s*5))
+		{
+				g->add_msg("You lose control for a moment.");
+				turn(one_in(2) ? -15 : 15);
+
+				if(one_in(3 + cat_f + cat_s*5))
+					skidding = true;
+		}
+
+	  }
 
         int angle = (100 - degree) * 2 * (one_in(2)? 1 : -1);
         if (z)
@@ -1393,12 +1442,11 @@ veh_collision vehicle::part_collision (int vx, int vy, int part, int x, int y)
 
     if (!smashed) // tree, wall, or bear sometimes wins
     {
-//CAT:
+//CAT-mgs:
 //	cruise_on = false;
 	cruise_velocity= 0;
 
         stop();
-
         imp2 = imp;
     }
     else

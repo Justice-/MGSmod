@@ -2,9 +2,9 @@
 # WARNINGS will spam hundreds of warnings, mostly safe, if turned on
 # DEBUG is best turned on if you plan to debug in gdb -- please do!
 # PROFILE is for use with gprof or a similar program -- don't bother generally
-# WARNINGS = -Wall -Wextra -Wno-switch -Wno-sign-compare -Wno-missing-braces -Wno-unused-parameter -Wno-char-subscripts
-#DEBUG = -g
+#WARNINGS = -Wall -Wextra -Wno-switch -Wno-sign-compare -Wno-missing-braces -Wno-unused-parameter -Wno-char-subscripts
 #PROFILE = -pg
+#DEBUG = -g
 OTHERS = -O3
 
 ODIR = objwin
@@ -19,6 +19,8 @@ LINKERFLAGS = -Wl,-stack,12000000,-subsystem,windows
 
 CFLAGS = $(WARNINGS) $(DEBUG) $(PROFILE) $(OTHERS)
 
+#CAT-s:
+#LDFLAGS = -static -lgdi32
 LDFLAGS = -static -lgdi32 -lmingw32 -lSDLmain -lSDL.dll -lSDL_mixer.dll -mwindows
 
 #ifeq ($(OS), Msys)

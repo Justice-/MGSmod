@@ -11,6 +11,7 @@
 #include "computer.h"
 #include "vehicle.h"
 #include "graffiti.h"
+#include "basecamp.h"
 #include <iosfwd>
 
 class game;
@@ -58,6 +59,7 @@ enum t_flag {
  collapses,    // Tiles that have a roof over them (which can collapse)
  flammable2,   // Burn to ash rather than rubble.
  deconstruct,  // Can be deconstructed
+ reduce_scent, // Reduces the scent even more, only works if object is bashable as well
  num_t_flags   // MUST be last
 };
 
@@ -88,10 +90,11 @@ t_slime,
 t_bridge,
 // Tent Walls & doors
 t_canvas_wall, t_canvas_door, t_canvas_door_o, t_groundsheet, t_fema_groundsheet,
+t_skin_wall, t_skin_door, t_skin_door_o,  t_skin_groundsheet,
 // Lighting related
 t_skylight, t_emergency_light_flicker, t_emergency_light,
 // Walls
-t_wall_log_half, t_wall_log, t_wall_log_chipped, t_wall_log_broken, t_palisade, t_palisade_gate, t_palisade_gate_o,
+t_wall_log_half, t_wall_log, t_wall_log_chipped, t_wall_log_broken, t_palisade, t_palisade_gate,
 t_wall_half, t_wall_wood, t_wall_wood_chipped, t_wall_wood_broken,
 t_wall_v, t_wall_h, t_concrete_v, t_concrete_h,
 t_wall_metal_v, t_wall_metal_h,
@@ -131,7 +134,7 @@ t_gas_pump, t_gas_pump_smashed, t_gas_pump_empty,
 t_missile, t_missile_exploded,
 t_counter,
 t_radio_tower, t_radio_controls,
-t_console_broken, t_console, t_gates_mech_control, t_barndoor,
+t_console_broken, t_console, t_gates_mech_control, t_barndoor, t_palisade_pulley,
 t_sewage_pipe, t_sewage_pump,
 t_centrifuge,
 t_column,
@@ -160,7 +163,7 @@ num_terrain_types
 const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
 {"nothing",	     ' ', c_white,   2, tr_null,
 	mfb(transparent)|mfb(diggable)},
-{"empty space",      '#', c_black,   2, tr_ledge,
+{"empty space",      ' ', c_black,   2, tr_ledge,
 	mfb(transparent)},
 {"dirt",	     '.', c_brown,   2, tr_null,
 	mfb(transparent)|mfb(diggable)|mfb(tentable)},
@@ -222,6 +225,14 @@ const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
         mfb(transparent)|mfb(tentable)},
 {"groundsheet",      ';', c_green,   2, tr_null,
         mfb(transparent)},
+{"animalskin wall",      '#', c_brown,   0, tr_null,
+        mfb(l_flammable)|mfb(bashable)|mfb(noitem)|mfb(tentable)},
+{"animalskin flap",      '+', c_white,   0, tr_null,
+        mfb(l_flammable)|mfb(bashable)|mfb(noitem)|mfb(tentable)},
+{"open animalskin flap", '.', c_white,   2, tr_null,
+        mfb(transparent)},
+{"animalskin floor",      ';', c_brown,   2, tr_null,
+        mfb(transparent)|mfb(tentable)},
 {"floor",	     '.', c_white,    2, tr_null,
 	mfb(transparent)|mfb(l_flammable)|mfb(supports_roof)|mfb(collapses)}, // Skylight
 {"floor",	     '.', c_white,    2, tr_null,
@@ -241,8 +252,6 @@ const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
         mfb(bashable)|mfb(flammable)|mfb(noitem)|mfb(supports_roof)|mfb(transparent)},
 {"palisade gate",        '+', c_ltred,    0, tr_null,
         mfb(bashable)|mfb(flammable)|mfb(noitem)|mfb(supports_roof)|mfb(door)|mfb(transparent)},
-{"open palisade gate",   '#', c_ltred,   2, tr_null,
-        mfb(bashable)|mfb(flammable)|mfb(noitem)|mfb(supports_roof)|mfb(transparent)},
 {"half-built wall",  '#', c_ltred,   4, tr_null,
 	mfb(transparent)|mfb(bashable)|mfb(flammable2)|mfb(noitem)},
 {"wooden wall",      '#', c_ltred,   0, tr_null,
@@ -325,12 +334,12 @@ const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
 	mfb(transparent)|mfb(bashable)|mfb(flammable)|mfb(noitem)|
         mfb(supports_roof)|mfb(deconstruct)}, // Plain Ol' window
 {"taped window",  '"', c_dkgray,    0, tr_null,
-	mfb(bashable)|mfb(flammable)|mfb(noitem)| mfb(supports_roof)}, // Regular window
+	mfb(bashable)|mfb(flammable)|mfb(noitem)| mfb(supports_roof)| mfb(reduce_scent)}, // Regular window
 {"window",	     '"', c_ltcyan,  0, tr_null,
 	mfb(transparent)|mfb(bashable)|mfb(flammable)|mfb(noitem)|
         mfb(supports_roof)|mfb(deconstruct)}, //has curtains
 {"taped window",  '"', c_dkgray,    0, tr_null,
-	mfb(bashable)|mfb(flammable)|mfb(noitem)| mfb(supports_roof)}, // Curtain window
+	mfb(bashable)|mfb(flammable)|mfb(noitem)| mfb(supports_roof)| mfb(reduce_scent)}, // Curtain window
 {"open window",      '\'', c_ltcyan, 4, tr_null,
 	mfb(transparent)|mfb(flammable)|mfb(noitem)| mfb(supports_roof)},
 {"closed curtains",  '"', c_dkgray,    0, tr_null,
@@ -339,7 +348,7 @@ const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
 	mfb(transparent)|mfb(bashable)|mfb(flammable)|mfb(alarmed)|mfb(noitem)|
         mfb(supports_roof)},
 {"taped window",  '"', c_dkgray,    0, tr_null,
-	mfb(bashable)|mfb(flammable)|mfb(noitem)| mfb(supports_roof)|mfb(alarmed)}, //Alarmed, duh.
+	mfb(bashable)|mfb(flammable)|mfb(noitem)| mfb(supports_roof)|mfb(alarmed)| mfb(reduce_scent)}, //Alarmed, duh.
 {"empty window",     '0', c_yellow,  8, tr_null,
 	mfb(transparent)|mfb(flammable)|mfb(supports_roof)},
 {"window frame",     '0', c_ltcyan,  8, tr_null,
@@ -482,7 +491,9 @@ const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
 	mfb(transparent)|mfb(console)|mfb(noitem)|mfb(collapses)},
 {"mechanical winch", '6', c_cyan_red, 0, tr_null,
         mfb(transparent)|mfb(noitem)|mfb(collapses)},
-{"rope and pulley", '|', i_brown, 0, tr_null,
+{"rope and pulley", '|', c_brown, 0, tr_null,
+        mfb(transparent)|mfb(noitem)|mfb(collapses)},
+{"rope and pulley", '|', c_brown, 0, tr_null,
         mfb(transparent)|mfb(noitem)|mfb(collapses)},
 {"sewage pipe",      '1', c_ltgray,  0, tr_null,
 	mfb(transparent)},
@@ -666,6 +677,8 @@ enum field_id {
  fd_fire,
  fd_smoke,
  fd_toxic_gas,
+
+//CAT: 10
  fd_tear_gas,
  fd_nuke_gas,
  fd_gas_vent,
@@ -676,8 +689,15 @@ enum field_id {
  fd_push_items,
  fd_shock_vent,
  fd_acid_vent,
+
+//CAT-mgs: 20
+ fd_water,
+ fd_snow,
+ fd_ice,
+ fd_oil,
  num_fields
 };
+
 
 const field_t fieldlist[] = {
 {{"",	"",	""},					'%',
@@ -738,7 +758,20 @@ const field_t fieldlist[] = {
  {c_white, c_white, c_white}, {true, true, true}, {false, false, false}, 0},
 
 {{"", "", ""}, '&', // acid vents
- {c_white, c_white, c_white}, {true, true, true}, {false, false, false}, 0}
+ {c_white, c_white, c_white}, {true, true, true}, {false, false, false}, 0},
+
+{{"water splatter", "water streak", "puddle of water"},	'5',
+ {c_ltblue, c_ltblue, c_ltblue},	{true, true, true}, {false, false, false}, 5},
+
+{{"snow splatter", "snow bunch", "pile of snow"},		'5',
+ {c_ltgray, c_white, c_white}, {true, true, true}, {false, false, false}, 100},
+
+{{"frost", "ice", "frozen water"},					'#',
+ {c_white, c_ltblue, c_ltblue}, {true, true, true}, {false, false, false}, 3000},
+
+{{"oil splatter", "oil streak", "puddle of oil"},		'5',
+ {c_ltgray, c_ltgray, c_ltgray}, {true, true, true}, {false, false, false}, 3500}
+
 };
 
 struct field {
@@ -798,6 +831,7 @@ struct submap {
  std::vector<spawn_point> spawns;
  std::vector<vehicle*> vehicles;
  computer comp;
+ basecamp camp;  // only allowing one basecamp per submap
 };
 
 std::ostream & operator<<(std::ostream &, const submap *);

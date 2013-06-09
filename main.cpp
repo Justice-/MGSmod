@@ -74,11 +74,12 @@ int main(int argc, char *argv[])
    quit_game = true;
  } while (!quit_game);
 
-//CAT: what is deleting save-games after death, not this?
- if(delete_world)
+ if (delete_world)
+ {
    g->delete_save();
- else
+ } else {
   MAPBUFFER.save_if_dirty();
+ }
 
  exit_handler(-999);
 
@@ -89,13 +90,13 @@ void exit_handler(int s) {
  bool bExit = false;
 
  if (s == 2) {
-  if (query_yn("Really Quit without saving?")) {
+  if (query_yn("Really Quit? All unsafed changes will be lost.")) {
    bExit = true;
   }
  } else if (s == -999) {
   bExit = true;
  } else {
-  //query_yn("Signal received: %d", s);
+  //query_yn(g, "Signal received: %d", s);
   bExit = true;
  }
 
@@ -109,6 +110,6 @@ void exit_handler(int s) {
    system("clear"); // Tell the terminal to clear itself
   #endif
 
-  exit(1);
+  exit(0);
  }
 }

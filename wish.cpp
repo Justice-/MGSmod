@@ -156,21 +156,21 @@ void game::wish()
    ch = input();
  } while (ch != '\n');
 
+//CAT-g:
  werase(w_list);
-
  mvwprintw(w_list, 0, 0, "\nWish granted - %d (%d).", tmp.type->id, itm_antibiotics);
+
  tmp.invlet = nextinv;
  u.i_add(tmp);
  advance_nextinv();
 
-//CAT:
+//CAT-g:
  wrefresh(w_list);
 
  getch();
  delwin(w_info);
  delwin(w_list);
 }
-
 
 void game::monster_wish()
 {
@@ -307,13 +307,12 @@ void game::monster_wish()
   else
    ch = input();
  } while (ch != '\n');
-
  clear();
  delwin(w_info);
  delwin(w_list);
  refresh_all();
 
-//CAT:
+//CAT-g:
 // wrefresh(w_terrain);
 
  point spawn = look_around();

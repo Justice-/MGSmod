@@ -50,14 +50,14 @@ struct weather_effect
  void none		(game *) {};
  void glare		(game *);
  void wet		(game *);
- void very_wet		(game *);
- void thunder		(game *);
- void lightning		(game *);
+ void very_wet	(game *);
+ void thunder	(game *);
+ void lightning	(game *);
  void light_acid	(game *);
  void acid		(game *);
- void flurry		(game *) {};
- void snow		(game *) {};
- void snowstorm		(game *) {};
+ void flurry	(game *);
+ void snow		(game *);
+ void snowstorm	(game *);
 };
 
 struct weather_datum

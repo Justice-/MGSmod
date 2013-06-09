@@ -150,9 +150,11 @@ int player::hit_mon(game *g, monster *z, bool allow_grab) // defaults to true
    else
     g->add_msg("You miss.");
 
-    playSound(26);
+//CAT-s: punchMiss sound
+	playSound(47); 
 
   }
+
   melee_practice(*this, false, unarmed_attack(),
                  weapon.is_bashing_weapon(), weapon.is_cutting_weapon(),
                  (weapon.has_flag(IF_SPEAR) || weapon.has_flag(IF_STAB)));
@@ -253,9 +255,10 @@ void player::hit_player(game *g, player &p, bool allow_grab)
    else
     g->add_msg("You miss.");
 
-//CAT: 
-	playSound(26); //miss
+//CAT-s: punchMiss sound
+	playSound(47); 
   }
+
   melee_practice(*this, false, unarmed_attack(),
                  weapon.is_bashing_weapon(), weapon.is_cutting_weapon(),
                  (weapon.has_flag(IF_SPEAR) || weapon.has_flag(IF_STAB)));
@@ -754,6 +757,9 @@ technique_id player::pick_technique(game *g, monster *z, player *p,
       else
        enemy_count -= 2;
      }
+
+//CAT-mgs: no NPCs
+
      int npcdex = g->npc_at(x, y);
      if (npcdex != -1) {
       if (g->active_npc[npcdex].attitude == NPCATT_KILL)
@@ -761,6 +767,8 @@ technique_id player::pick_technique(game *g, monster *z, player *p,
       else
        enemy_count -= 2;
      }
+
+
     }
    }
    if (enemy_count >= (possible.empty() ? 2 : 3)) {
@@ -858,9 +866,12 @@ void player::perform_technique(technique_id technique, game *g, monster *z,
        g->add_msg("%s hit%s %s for %d damage!", You.c_str(), s.c_str(),
                                                 target.c_str(), dam);
 
-//CAT: punch1, punch2, punch3 
+//CAT-s: punch1, punch2, punch3 
 //	playSound(rng(44,46)); 
      }
+
+
+//CAT-mgs: no NPCs
 
      int npcdex = g->npc_at(x, y);
      if (npcdex != -1 &&
@@ -869,19 +880,26 @@ void player::perform_technique(technique_id technique, game *g, monster *z,
       int dam = roll_bash_damage(NULL, false);
       int cut = roll_cut_damage (NULL, false);
       g->active_npc[npcdex].hit(g, bp_legs, 3, dam, cut);
+
       if (u_see)
        g->add_msg("%s hit%s %s for %d damage!", You.c_str(), s.c_str(),
                   g->active_npc[npcdex].name.c_str(), dam + cut);
-
-//CAT: punch1, punch2, punch3 
-//	playSound(rng(44,46)); 
-
      }
+
+
     }
    }
   }
-  if (!is_npc())
-   g->add_msg("%d enemies hit!", count_hit);
+
+//CAT-s:
+  if(!is_npc())
+  {
+	g->add_msg("%d enemies hit!", count_hit);
+//CAT-s: punch1, punch2, punch3 
+//	playSound(rng(44,46)); 
+
+  }
+
  } break;
 
  case TEC_DISARM:
@@ -1002,7 +1020,7 @@ void player::perform_defensive_technique(
 // Special reductions for certain styles
    if (weapon.typeId() == itm_style_tai_chi)
     reduction -= double(0.08 * double(per_cur - 6));
-   if (weapon.typeId() == itm_style_taekwando)
+   if (weapon.typeId() == itm_style_taekwondo)
     reduction -= double(0.08 * double(str_cur - 6));
    if (reduction > 1.0)
     reduction = 1.0;
@@ -1553,7 +1571,7 @@ std::string melee_verb(technique_id tech, std::string your, player &p,
  return ret.str();
 }
 
-
+//CAT-s: *** whole lot ***
 void hit_message(game *g, std::string subject, std::string verb,
                           std::string target, int dam, bool crit)
 {
@@ -1571,14 +1589,21 @@ void hit_message(game *g, std::string subject, std::string verb,
 		g->add_msg("%s%s %s %s for %d damage.", (crit ? "Critical! " : ""),
             	 subject.c_str(), verb.c_str(), target.c_str(), dam);
 
-//CAT:
+//CAT-s:
 		if( subject == "You" 
 			&& (verb == "hack" || verb == "slice" 
 			|| verb == "cut" || verb == "stab") )
-				playSound(54); // noiseSwoosh sound
+				playSound(54); // cut sound
 		else
 		if(subject == "You")
+		{
 			playSound(rng(44,46)); //punch sounds, no bashing or other yet
+
+//CAT-s: monster sound, play or not?
+// not while rabbits are monsters
+//			playSound(rng(13,22));
+
+		}
 	}
 }
 

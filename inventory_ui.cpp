@@ -6,38 +6,48 @@
 #include <map>
 #include <sstream>
 
-std::string CATEGORIES[10] =
- {"GROUND:", "FIREARMS:", "AMMUNITION:", "CLOTHING:", "COMESTIBLES:",
-  "TOOLS:", "BOOKS:", "WEAPONS:", "MODS/BIONICS", "OTHER:"};
+const int iCategorieNum = 11;
+std::string CATEGORIES[iCategorieNum] =
+ {"GROUND:", "FIREARMS:", "AMMUNITION:", "CLOTHING:", "FOOD/DRINKS:",
+  "TOOLS:", "BOOKS:", "WEAPONS:", "MODS/BIONICS", "MEDICINE/DRUGS", "OTHER:"};
 
 std::vector<int> find_firsts(inventory &inv)
 {
- std::vector<int> firsts;
- for (int i = 0; i < 9; i++)
-  firsts.push_back(-1);
+    std::vector<int> firsts;
+    for (int i = 0; i < iCategorieNum-1; i++) {
+        firsts.push_back(-1);
+    }
 
- for (int i = 0; i < inv.size(); i++) {
-  if (firsts[0] == -1 && inv[i].is_gun())
-   firsts[0] = i;
-  else if (firsts[1] == -1 && inv[i].is_ammo())
-   firsts[1] = i;
-  else if (firsts[2] == -1 && inv[i].is_armor())
-   firsts[2] = i;
-  else if (firsts[3] == -1 && (inv[i].is_food() || inv[i].is_food_container()))
-   firsts[3] = i;
-  else if (firsts[4] == -1 && inv[i].is_tool())
-   firsts[4] = i;
-  else if (firsts[5] == -1 && inv[i].is_book())
-   firsts[5] = i;
-  else if (firsts[6] == -1 && inv[i].is_weap())
-   firsts[6] = i;
-  else if (firsts[7] == -1 && (inv[i].is_gunmod() || inv[i].is_bionic()))
-   firsts[7] = i;
-  else if (firsts[8] == -1 && inv[i].is_other())
-   firsts[8] = i;
- }
+    for (int i = 0; i < inv.size(); i++) {
+        if (firsts[0] == -1 && inv[i].is_gun()) {
+            firsts[0] = i;
+        } else if (firsts[1] == -1 && inv[i].is_ammo()) {
+            firsts[1] = i;
+        } else if (firsts[2] == -1 && inv[i].is_armor()) {
+            firsts[2] = i;
+        } else if (firsts[3] == -1 && inv[i].is_food_container()) {
+            firsts[3] = i;
+        } else if (inv[i].is_food()) {
+            it_comest* comest = dynamic_cast<it_comest*>(inv[i].type);
+            if (firsts[3] == -1 && comest->comesttype != "MED") {
+                firsts[3] = i;
+            } else if (firsts[8] == -1 && comest->comesttype == "MED") {
+                firsts[8] = i;
+            }
+        } else if (firsts[4] == -1 && inv[i].is_tool()) {
+            firsts[4] = i;
+        } else if (firsts[5] == -1 && inv[i].is_book()) {
+            firsts[5] = i;
+        } else if (firsts[6] == -1 && inv[i].is_weap()) {
+            firsts[6] = i;
+        } else if (firsts[7] == -1 && (inv[i].is_gunmod() || inv[i].is_bionic())) {
+            firsts[7] = i;
+        } else if (firsts[9] == -1 && inv[i].is_other()) {
+            firsts[9] = i;
+        }
+    }
 
- return firsts;
+    return firsts;
 }
 
 void print_inv_statics(game *g, WINDOW* w_inv, std::string title,
@@ -113,7 +123,7 @@ void print_inv_statics(game *g, WINDOW* w_inv, std::string title,
 // Display current inventory.
 char game::inv(std::string title)
 {
- WINDOW* w_inv = newwin(((VIEWY < 12) ? 25 : VIEWY*2+1), ((VIEWX < 12) ? 80 : VIEWX*2+56), 0, 0);
+ WINDOW* w_inv = newwin(((VIEWY < 12) ? 25 : VIEWY*2+1), ((VIEWX < 12) ? 80 : VIEWX*2+56), VIEW_OFFSET_Y, VIEW_OFFSET_X);
  const int maxitems = (VIEWY < 12) ? 20 : VIEWY*2-4;    // Number of items to show at one time.
  char ch = '.';
  int start = 0, cur_it;
@@ -144,7 +154,7 @@ char game::inv(std::string title)
 // Clear the current line;
    mvwprintw(w_inv, cur_line, 0, "                                             ");
 // Print category header
-   for (int i = 1; i < 10; i++) {
+   for (int i = 1; i < iCategorieNum; i++) {
     if (cur_it == firsts[i-1]) {
      mvwprintz(w_inv, cur_line, 0, c_magenta, CATEGORIES[i].c_str());
      cur_line++;
@@ -183,7 +193,7 @@ char game::inv_type(std::string title, int inv_item_type)
 // this function lists inventory objects by type
 // refer to enum item_cat in itype.h for list of categories
 
- WINDOW* w_inv = newwin(((VIEWY < 12) ? 25 : VIEWY*2+1), ((VIEWX < 12) ? 80 : VIEWX*2+56), 0, 0);
+ WINDOW* w_inv = newwin(((VIEWY < 12) ? 25 : VIEWY*2+1), ((VIEWX < 12) ? 80 : VIEWX*2+56), VIEW_OFFSET_Y, VIEW_OFFSET_X);
  const int maxitems = (VIEWY < 12) ? 20 : VIEWY*2-4;    // Number of items to show at one time.
  char ch = '.';
  int start = 0, cur_it;
@@ -263,7 +273,7 @@ char game::inv_type(std::string title, int inv_item_type)
 // Clear the current line;
    mvwprintw(w_inv, cur_line, 0, "                                             ");
 
-   for (int i = 1; i < 10; i++) {
+   for (int i = 1; i < iCategorieNum; i++) {
     if (cur_it == firsts[i-1]) {
      mvwprintz(w_inv, cur_line, 0, c_magenta, CATEGORIES[i].c_str());
      cur_line++;
@@ -304,7 +314,7 @@ std::vector<item> game::multidrop()
 {
  u.sort_inv();
  u.inv.restack(&u);
- WINDOW* w_inv = newwin(((VIEWY < 12) ? 25 : VIEWY*2+1), ((VIEWX < 12) ? 80 : VIEWX*2+56), 0, 0);
+ WINDOW* w_inv = newwin(((VIEWY < 12) ? 25 : VIEWY*2+1), ((VIEWX < 12) ? 80 : VIEWX*2+56), VIEW_OFFSET_Y, VIEW_OFFSET_X);
  const int maxitems = (VIEWY < 12) ? 20 : VIEWY*2-4;    // Number of items to show at one time.
  int dropping[u.inv.size()]; // Count of how many we'll drop from each stack
  for (int i = 0; i < u.inv.size(); i++)
@@ -338,7 +348,7 @@ std::vector<item> game::multidrop()
 // Clear the current line;
    mvwprintw(w_inv, cur_line, 0, "                                             ");
 // Print category header
-   for (int i = 1; i < 10; i++) {
+   for (int i = 1; i < iCategorieNum; i++) {
     if (cur_it == firsts[i-1]) {
      mvwprintz(w_inv, cur_line, 0, c_magenta, CATEGORIES[i].c_str());
      cur_line++;
@@ -483,7 +493,7 @@ void game::compare(int iCompareX, int iCompareY)
   examy = iCompareY;
  } else {
 
-//CAT:
+//CAT-g:
   mvwprintw(w_terrain, 0, 0, "Compare where?");
   wrefresh(w_terrain);
   playSound(1);
@@ -516,11 +526,9 @@ void game::compare(int iCompareX, int iCompareY)
  const int groundsize = (grounditems.size() > 10 ? 10 : grounditems.size());
  u.sort_inv();
  u.inv.restack(&u);
- int iMaxX = 55 + ((VIEWX < 12) ? 25 : VIEWX*2+1);
- int iMaxY = ((VIEWY < 12) ? 25 : (VIEWX*2)+1);
 
- WINDOW* w_inv = newwin(iMaxY, iMaxX, 0, 0);
- int maxitems = iMaxY-5;    // Number of items to show at one time.
+ WINDOW* w_inv = newwin(TERMY-VIEW_OFFSET_Y*2, TERMX-VIEW_OFFSET_X*2, VIEW_OFFSET_Y, VIEW_OFFSET_X);
+ int maxitems = TERMY-5-VIEW_OFFSET_Y*2;    // Number of items to show at one time.
  int compare[u.inv.size() + groundsize]; // Count of how many we'll drop from each stack
  bool bFirst = false; // First Item selected
  bool bShowCompare = false;
@@ -562,7 +570,7 @@ void game::compare(int iCompareX, int iCompareY)
 // Clear the current line;
    mvwprintw(w_inv, cur_line, 0, "                                             ");
 // Print category header
-   for (int i = iHeaderOffset; i < 10; i++) {
+   for (int i = iHeaderOffset; i < iCategorieNum; i++) {
     if (cur_it == firsts[i-iHeaderOffset]) {
      mvwprintz(w_inv, cur_line, 0, c_magenta, CATEGORIES[i].c_str());
      cur_line++;
@@ -693,15 +701,14 @@ void game::compare(int iCompareX, int iCompareY)
     sItemCh = u.i_at(ch).tname(this);
    }
 
-   compare_split_screen_popup(0, iMaxX/2, iMaxY, sItemLastCh, vItemLastCh, vItemCh);
-   compare_split_screen_popup(iMaxX/2, iMaxX/2, iMaxY, sItemCh, vItemCh, vItemLastCh);
+   compare_split_screen_popup(0, (TERMX-VIEW_OFFSET_X*2)/2, TERMY-VIEW_OFFSET_Y*2, sItemLastCh, vItemLastCh, vItemCh);
+   compare_split_screen_popup((TERMX-VIEW_OFFSET_X*2)/2, (TERMX-VIEW_OFFSET_X*2)/2, TERMY-VIEW_OFFSET_Y*2, sItemCh, vItemCh, vItemLastCh);
 
    wclear(w_inv);
    print_inv_statics(this, w_inv, "Compare:", weapon_and_armor);
    bShowCompare = false;
   }
  } while (ch != '\n' && ch != KEY_ESCAPE && ch != ' ');
-
  werase(w_inv);
  delwin(w_inv);
  erase();

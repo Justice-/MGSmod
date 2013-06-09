@@ -42,7 +42,7 @@ void game::init_construction()
 
  CONSTRUCT("Dig Pit", 0, &construct::able_dig, &construct::done_nothing);
   STAGE(t_pit_shallow, 10);
-   TOOL(itm_shovel, itm_primitive_shovel, NULL);
+   TOOL(itm_shovel, itm_primitive_shovel, itm_digging_stick, NULL);
   STAGE(t_pit, 10);
    TOOL(itm_shovel, itm_primitive_shovel, NULL);
 
@@ -87,14 +87,14 @@ void game::init_construction()
 
  CONSTRUCT("Board Up Door", 0, &construct::able_door, &construct::done_nothing);
   STAGE(t_door_boarded, 8);
-   TOOL(itm_hammer, itm_primitive_hammer, itm_hatchet, itm_nailgun, NULL);
+   TOOL(itm_hammer, itm_hammer_sledge, itm_primitive_hammer, itm_hatchet, itm_nailgun, NULL);
    COMP(itm_2x4, 4, NULL);
    COMP(itm_nail, 8, NULL);
 
  CONSTRUCT("Board Up Window", 0, &construct::able_window,
                                  &construct::done_nothing);
   STAGE(t_window_boarded, 5);
-   TOOL(itm_hammer, itm_primitive_hammer, itm_hatchet, itm_nailgun, NULL);
+   TOOL(itm_hammer, itm_hammer_sledge, itm_primitive_hammer, itm_hatchet, itm_nailgun, NULL);
    COMP(itm_2x4, 4, NULL);
    COMP(itm_nail, 8, NULL);
 
@@ -123,6 +123,11 @@ void game::init_construction()
    TOOL(itm_shovel, itm_primitive_shovel, NULL);
    COMP(itm_log, 3, NULL);
    COMP(itm_rope_30, 1, itm_rope_6, 5, NULL);
+
+ CONSTRUCT("Build Rope and Pulley System", 2, &construct::able_empty, &construct::done_nothing);
+  STAGE(t_palisade_pulley, 0);
+  COMP(itm_rope_30, 1, NULL);
+  COMP(itm_stick, 8, itm_2x4, 8, NULL);
 
  CONSTRUCT("Build Palisade Gate", 2, &construct::able_pit, &construct::done_nothing);
   STAGE(t_palisade_gate, 20);
@@ -192,6 +197,15 @@ void game::init_construction()
    COMP(itm_2x4, 8, NULL);
    COMP(itm_nail, 40, NULL);
 
+// Base stuff
+ CONSTRUCT("Build Bulletin Board", 0, &construct::able_empty,
+ 		                                   &construct::done_nothing);
+  STAGE(t_bulletin, 10)
+   TOOL(itm_saw, NULL);
+   TOOL(itm_hammer, itm_hatchet, itm_nailgun, NULL);
+   COMP(itm_2x4, 4, NULL);
+   COMP(itm_nail, 8, NULL);
+
 // Household stuff
  CONSTRUCT("Build Dresser", 1, &construct::able_indoors,
                                 &construct::done_nothing);
@@ -249,13 +263,13 @@ void game::init_construction()
 
 void game::construction_menu()
 {
- int iMaxY = (VIEWY*2)+1;
+ int iMaxY = TERMY;
  if (constructions.size()+2 < iMaxY)
   iMaxY = constructions.size()+2;
  if (iMaxY < 25)
   iMaxY = 25;
 
- WINDOW *w_con = newwin(iMaxY, 80, 0, 0);
+ WINDOW *w_con = newwin(iMaxY, 80, (TERMY > iMaxY) ? (TERMY-iMaxY)/2 : 0, (TERMX > 80) ? (TERMX-80)/2 : 0);
  wborder(w_con, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
                 LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
  mvwprintz(w_con, 0, 8, c_ltred, " Construction ");
@@ -440,40 +454,38 @@ void game::construction_menu()
 
     if (ch < constructions.size()) {
      if (player_can_build(u, total_inv, constructions[ch])) {
-
       place_construction(constructions[ch]);
       ch = 'q';
      } else {
-//CAT:
-	playSound(3);
-
       popup("You can't build that!");
+
+//CAT-s: menuWrong sound
+	playSound(3);
 
       if (ch != '\n')
        select = ch;
-
       for (int i = 1; i < iMaxY-1; i++)
        mvwputch(w_con, i, 30, c_ltgray, LINE_XOXO);
-
       update_info = true;
 
-//CAT: menuClose sound will not play, why?
+//CAT0-s: 
 	playSound(2);
      }
-
     }
     break;
   }
-//CAT:
-	playSound(0);
+
+//CAT-s:
+  playSound(0);
 
  } while (ch != 'q' && ch != 'Q' && ch != KEY_ESCAPE);
 
  for (int i = iMaxY-25; i < iMaxY+1; i++) {
-  for (int j = (VIEWX*2)+1; j < 81; j++)
+  for (int j = TERRAIN_WINDOW_WIDTH; j < 81; j++)
    mvwputch(w_con, i, j, c_black, ' ');
  }
 
+//CAT-g:
 // wrefresh(w_con);
 // refresh_all();
 }
@@ -543,9 +555,7 @@ bool game::player_can_build(player &p, inventory inv, constructable* con,
 
 void game::place_construction(constructable *con)
 {
-
  refresh_all();
-
  inventory total_inv = crafting_inventory();
 
  std::vector<point> valid;
@@ -567,28 +577,23 @@ void game::place_construction(constructable *con)
      if (m.ter(x, y) == con->stages[i].terrain)
       starting_stage = i + 1;
     }
-
     for(int i = starting_stage; i < con->stages.size(); i++) {
      if (player_can_build(u, total_inv, con, i, true, true))
        max_stage = i;
      else
        break;
     }
-
     if (max_stage >= starting_stage) {
      valid.push_back(point(x, y));
-
      m.drawsq(w_terrain, u, x, y, true, false);
-
-//CAT:
+//CAT-g:
 //     wrefresh(w_terrain);
     }
-
    }
   }
  }
 
-//CAT: 
+//CAT-g: 
 //mvprintz(0, 0, c_red, "Pick a direction in which to construct:");
 
  mvwprintw(w_terrain, 0, 0, "What/where?");
@@ -622,7 +627,7 @@ void game::place_construction(constructable *con)
    max_stage = i;
  }
 
- u.assign_activity(ACT_BUILD, con->stages[starting_stage].time * 1000, con->id);
+ u.assign_activity(this, ACT_BUILD, con->stages[starting_stage].time * 1000, con->id);
 
  u.moves = 0;
  std::vector<int> stages;
@@ -806,12 +811,11 @@ void construct::done_window_pane(game *g, point p)
 
 void construct::done_furniture(game *g, point p)
 {
-//CAT:
+//CAT-g:
 // mvprintz(0, 0, c_red, "Press a direction for the furniture to move (. to cancel):");
 
- mvwprintw(g->w_terrain, 0, 0, "Move it where?");
+ mvwprintw(g->w_terrain, 0, 0, "Move where?");
  wrefresh(g->w_terrain);
-
 
  int x = 0, y = 0;
  //Keep looping until we get a valid direction or a cancel.
@@ -824,11 +828,11 @@ void construct::done_furniture(game *g, point p)
   x += p.x;
   y += p.y;
   if(!g->m.ter(x, y) == t_floor || !g->is_empty(x, y)) {
-//CAT:
-//   mvprintz(0, 0, c_red, "Can't move furniture there! Choose a direction with open floor.");
 
- mvwprintw(g->w_terrain, 0, 0, "Can't move there.");
- wrefresh(g->w_terrain);
+//CAT-g:
+//   mvprintz(0, 0, c_red, "Can't move furniture there! Choose a direction with open floor.");
+   mvwprintw(g->w_terrain, 0, 0, "Can't move there.");
+   wrefresh(g->w_terrain);
 
    continue;
   }
@@ -848,12 +852,12 @@ void construct::done_furniture(game *g, point p)
 
 void construct::done_tree(game *g, point p)
 {
-//CAT:
+
+//CAT-g:
 // mvprintz(0, 0, c_red, "Press a direction for the tree to fall in:");
 
  mvwprintw(g->w_terrain, 0, 0, "To fall where?");
  wrefresh(g->w_terrain);
-
 
  int x = 0, y = 0;
  do
@@ -961,7 +965,7 @@ void construct::done_deconstruct(game *g, point p)
     break;
 
     case t_slide:
-      g->m.add_item(p.x, p.y, g->itypes[itm_steel_plate], 0);
+      g->m.add_item(p.x, p.y, g->itypes[itm_sheet_metal], 3);
       g->m.add_item(p.x, p.y, g->itypes[itm_pipe], 0, rng(4,8));
       g->m.ter(p.x, p.y) = t_grass;
     break;

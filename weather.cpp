@@ -4,11 +4,12 @@
 
 #define PLAYER_OUTSIDE (g->m.is_outside(g->u.posx, g->u.posy) && g->levz >= 0)
 
-//CAT: 
+//CAT-mgs:
 #define THUNDER_CHANCE 70
-#define LIGHTNING_CHANCE 500
+#define LIGHTNING_CHANCE 900
 
-
+//CAT-mgs: *** whole file ***
+//...
 void weather_effect::glare(game *g)
 {
  if (g->is_in_sunlight(g->u.posx, g->u.posy) && !g->u.is_wearing(itm_sunglasses))
@@ -19,7 +20,8 @@ void weather_effect::wet(game *g)
 {
  if (!g->u.is_wearing(itm_coat_rain) && !g->u.has_trait(PF_FEATHERS) &&
      !g->u.warmth(bp_torso) >= 35 && PLAYER_OUTSIDE && one_in(2))
-  g->u.add_morale(MORALE_WET, -1, -30);
+  g->u.add_morale(MORALE_WET, -1, -20);
+
 // Put out fires and reduce scent
  for (int x = g->u.posx - SEEX * 2; x <= g->u.posx + SEEX * 2; x++) {
   for (int y = g->u.posy - SEEY * 2; y <= g->u.posy + SEEY * 2; y++) {
@@ -36,9 +38,25 @@ void weather_effect::wet(game *g)
 
 void weather_effect::very_wet(game *g)
 {
- if (!g->u.is_wearing(itm_coat_rain) && !g->u.has_trait(PF_FEATHERS) &&
-     PLAYER_OUTSIDE)
-  g->u.add_morale(MORALE_WET, -1, -60);
+ if (!g->u.is_wearing(itm_coat_rain) 
+		&& !g->u.has_trait(PF_FEATHERS) && PLAYER_OUTSIDE)
+	g->u.add_morale(MORALE_WET, -1, -30);
+
+//CAT-mgs:
+	if(g->levz >= 0)
+	{
+		for(int x = g->u.posx - SEEX * 2; x <= g->u.posx + SEEX * 2; x++)
+		{
+			for(int y = g->u.posy - SEEY * 2; y <= g->u.posy + SEEY * 2; y++)
+			{
+				if(!g->m.has_flag(noitem, x, y) && g->m.move_cost(x, y) > 0 
+						&& g->m.is_outside(x, y) && one_in(500))
+					g->m.add_field(g, x, y, fd_water, 1);
+			}
+		}
+	}
+
+
 // Put out fires and reduce scent
  for (int x = g->u.posx - SEEX * 2; x <= g->u.posx + SEEX * 2; x++) {
   for (int y = g->u.posy - SEEY * 2; y <= g->u.posy + SEEY * 2; y++) {
@@ -55,27 +73,44 @@ void weather_effect::very_wet(game *g)
 
 void weather_effect::thunder(game *g)
 {
-//CAT:
-
  very_wet(g);
- if(one_in(THUNDER_CHANCE)) {
-
+ if (one_in(THUNDER_CHANCE)) {
   if (g->levz >= 0)
    g->add_msg("You hear a distant rumble of thunder.");
   else if (!g->u.has_trait(PF_BADHEARING) && one_in(1 - 3 * g->levz))
    g->add_msg("You hear a rumble of thunder from above.");
 
-//CAT:
+//CAT-mgs:
+	g->cat_lightning= true;
+
+//CAT-s:
 	playSound(rng(75,78));
  }
+
 }
 
+//CAT-s: *** 
 void weather_effect::lightning(game *g)
 {
-   thunder(g);
-   thunder(g);
+//CAT-s:
+ very_wet(g);
+   if (one_in(THUNDER_CHANCE/2)) {
+	  if (g->levz >= 0)
+	     g->add_msg("You hear a distant rumble of thunder.");
+	  else
+  	  if(!g->u.has_trait(PF_BADHEARING) && one_in(1 - 3 * g->levz))
+		   g->add_msg("You hear a rumble of thunder from above.");
+
+//CAT-mgs:
+	g->cat_lightning= true;
+
+//CAT-s:
+	playSound(rng(75,78));
+   }
+
    if(one_in(LIGHTNING_CHANCE))
    {
+
 	std::vector<point> strike;
 	for(int x = g->u.posx - SEEX * 2; x <= g->u.posx + SEEX * 2; x++)
 	{
@@ -94,11 +129,15 @@ void weather_effect::lightning(game *g)
 	   g->explosion(hit.x, hit.y, 10, 0, one_in(4));
 	}
 
-//CAT:
+//CAT-mgs:
+	g->cat_lightning= true;
+
+//CAT-s:
 	playSound(78);
 	playSound(63); //bigCrash sound
    }
 }
+
 
 void weather_effect::light_acid(game *g)
 {
@@ -132,7 +171,7 @@ void weather_effect::acid(game *g)
   for (int x = g->u.posx - SEEX * 2; x <= g->u.posx + SEEX * 2; x++) {
    for (int y = g->u.posy - SEEY * 2; y <= g->u.posy + SEEY * 2; y++) {
     if (!g->m.has_flag(diggable, x, y) && !g->m.has_flag(noitem, x, y) &&
-        g->m.move_cost(x, y) > 0 && g->m.is_outside(x, y) && one_in(400))
+        g->m.move_cost(x, y) > 0 && g->m.is_outside(x, y) && one_in(500))
      g->m.add_field(g, x, y, fd_acid, 1);
    }
   }
@@ -143,5 +182,35 @@ void weather_effect::acid(game *g)
     g->z[i].hurt(1);
   }
  }
- very_wet(g);
+//CAT-mgs:
+// very_wet(g);
+ wet(g);
 }
+
+//CAT-mgs: *** vvv ***
+void weather_effect::flurry(game *g)
+{
+	//get wet, other effect?
+}
+
+void weather_effect::snow(game *g)
+{
+	if(g->levz >= 0)
+	{
+		for(int x = g->u.posx - SEEX * 2; x <= g->u.posx + SEEX * 2; x++)
+		{
+			for(int y = g->u.posy - SEEY * 2; y <= g->u.posy + SEEY * 2; y++)
+			{
+				if(!g->m.has_flag(noitem, x, y) && g->m.move_cost(x, y) > 0 
+						&& g->m.is_outside(x, y) && one_in(700))
+					g->m.add_field(g, x, y, fd_snow, 1);
+			}
+		}
+	}
+}
+
+void weather_effect::snowstorm(game *g)
+{
+	snow(g);
+}
+//CAT-mgs: *** ^^^ ***

@@ -212,14 +212,15 @@ char monster::symbol()
  return type->sym;
 }
 
-//CAT: make everyone green with night vision
+//CAT-mgs: *** whole lot ***
+// make everyone green with night vision
 void monster::draw(WINDOW *w, int plx, int ply, bool inv, bool nv)
 {
  int x = getmaxx(w)/2 + posx - plx;
  int y = getmaxy(w)/2 + posy - ply;
  nc_color color = type->color;
 
-//CAT:
+//CAT-g:
  if(nv)
 	color= c_ltgreen;
 
@@ -233,7 +234,7 @@ void monster::draw(WINDOW *w, int plx, int ply, bool inv, bool nv)
  }
 }
 
-//CAT:
+//CAT-mgs: *** 
 nc_color monster::color_with_effects(nc_color ret)
 {
  if (has_effect(ME_BEARTRAP) || has_effect(ME_STUNNED) || has_effect(ME_DOWNED))
@@ -243,6 +244,7 @@ nc_color monster::color_with_effects(nc_color ret)
 
  return ret;
 }
+
 
 bool monster::has_flag(m_flag f)
 {
@@ -333,49 +335,63 @@ bool monster::is_fleeing(player &u)
          (att == MATT_FOLLOW && rl_dist(posx, posy, u.posx, u.posy) <= 4));
 }
 
+//CAT-mgs: ***
 monster_attitude monster::attitude(player *u)
 {
  if (friendly != 0)
-  return MATT_FRIEND;
+	return MATT_FRIEND;
+
  if (has_effect(ME_RUN))
-  return MATT_FLEE;
+	return MATT_FLEE;
 
  int effective_anger  = anger;
  int effective_morale = morale;
 
- if (u != NULL) {
+ if(u != NULL)
+ {
+	if(((type->species == species_mammal 
+			&& u->has_trait(PF_PHEROMONE_MAMMAL))
+			|| (type->species == species_insect 
+			&& u->has_trait(PF_PHEROMONE_INSECT)))
+			&& effective_anger >= 10)
+		effective_anger -= 20;
 
-  if (((type->species == species_mammal && u->has_trait(PF_PHEROMONE_MAMMAL)) ||
-       (type->species == species_insect && u->has_trait(PF_PHEROMONE_INSECT)))&&
-      effective_anger >= 10)
-   effective_anger -= 20;
+	if (u->has_trait(PF_TERRIFYING))
+		effective_morale -= 10;
 
-  if (u->has_trait(PF_TERRIFYING))
-   effective_morale -= 10;
+	if (u->has_trait(PF_ANIMALEMPATH) && has_flag(MF_ANIMAL))
+	{
+	   if (effective_anger >= 10)
+	    effective_anger -= 10;
 
-  if (u->has_trait(PF_ANIMALEMPATH) && has_flag(MF_ANIMAL)) {
-   if (effective_anger >= 10)
-    effective_anger -= 10;
-   if (effective_anger < 10)
-    effective_morale += 5;
-  }
+	   if (effective_anger < 10)
+	    effective_morale += 5;
+	}
+
+//CAT-mgs: make the game easier
+//... depending on time, on skills, on monster time
+//...connect with character loudness 
+      effective_anger -= rl_dist(posx, posy, u->posx, u->posy)*3;
 
  }
 
- if (effective_morale < 0) {
-  if (effective_morale + effective_anger > 0)
-   return MATT_FOLLOW;
-  return MATT_FLEE;
+ if(effective_morale < 0)
+ {
+	if(effective_morale + effective_anger > 0)
+		return MATT_FOLLOW;
+	else
+		return MATT_FLEE;
  }
 
- if (effective_anger < 0)
-  return MATT_IGNORE;
+ if(effective_anger < 0)
+	return MATT_IGNORE;
 
- if (effective_anger < 10)
-  return MATT_FOLLOW;
+ if(effective_anger < 10)
+	return MATT_FOLLOW;
 
  return MATT_ATTACK;
 }
+
 
 void monster::process_triggers(game *g)
 {
@@ -387,6 +403,7 @@ void monster::process_triggers(game *g)
  } else
   morale -= trigger_sum(g, &(type->fear));
 }
+
 
 // This Adjustes anger/morale levels given a single trigger.
 void monster::process_trigger(monster_trigger trig, int amount)
@@ -403,6 +420,7 @@ void monster::process_trigger(monster_trigger trig, int amount)
   if (type->fear[i] == trig)
    morale -= amount;
  }
+
 }
 
 
@@ -623,97 +641,64 @@ int monster::fall_damage()
 
 void monster::die(game *g)
 {
-   if (!dead)
-	dead = true;
+ if (!dead)
+  dead = true;
 
-//	playSound(rng(96,97)); 
-	playSound(96); //monsterDie sound
-
-//CAT:
+//CAT-s: monsterDie sound
+	playSound(96);
+//CAT-s: actionDrop sound
 	playSound(5);
+
+//CAT-s: monster sound, play or not?
+// not while rabbits are monsters
+//			playSound(rng(13,22));
 
 
 // Drop goodies
-	int total_chance = 0;
-	int total_it_chance, cur_chance;
-	int selected_location, selected_item;
+ int total_chance = 0, total_it_chance, cur_chance, selected_location,
+     selected_item;
+ bool animal_done = false;
+ std::vector<items_location_and_chance> it = g->monitems[type->id];
+ std::vector<itype_id> mapit;
+ if (type->item_chance != 0 && it.size() == 0)
+  debugmsg("Type %s has item_chance %d but no items assigned!",
+           type->name.c_str(), type->item_chance);
+ else {
+  for (int i = 0; i < it.size(); i++)
+   total_chance += it[i].chance;
 
-	bool animal_done = false;
-	std::vector<items_location_and_chance> it = g->monitems[type->id];
-	std::vector<itype_id> mapit;
-
-	if(type->item_chance != 0 && it.size() == 0)
-	{
-		debugmsg("Type %s has item_chance %d but no items assigned!",
-			type->name.c_str(), type->item_chance);
-	}
-	else
-	{
-	   for (int i = 0; i < it.size(); i++)
-	   	total_chance += it[i].chance;
-
-	   while (rng(0, 99) < abs(type->item_chance) && !animal_done)
-	   {
-		   cur_chance = rng(1, total_chance);
-		   selected_location = -1;
-		   while (cur_chance > 0) {
-		    selected_location++;
-		    cur_chance -= it[selected_location].chance;
-	   }
-
-	   total_it_chance = 0;
-	   mapit = g->mapitems[it[selected_location].loc];
-
-	   for (int i = 0; i < mapit.size(); i++)
-		    total_it_chance += g->itypes[mapit[i]]->rarity;
-
-	   cur_chance = rng(1, total_it_chance);
-	   selected_item = -1;
-
-	   while (cur_chance > 0)
-	   {
-		    selected_item++;
-		    cur_chance -= g->itypes[mapit[selected_item]]->rarity;
-	   }
-
-	   g->m.add_item(posx, posy, g->itypes[mapit[selected_item]], 0);
-
-	   if (type->item_chance < 0)
-		animal_done = true; // Only drop ONE item.
-	}
+  while (rng(0, 99) < abs(type->item_chance) && !animal_done) {
+   cur_chance = rng(1, total_chance);
+   selected_location = -1;
+   while (cur_chance > 0) {
+    selected_location++;
+    cur_chance -= it[selected_location].chance;
+   }
+   total_it_chance = 0;
+   mapit = g->mapitems[it[selected_location].loc];
+   for (int i = 0; i < mapit.size(); i++)
+    total_it_chance += g->itypes[mapit[i]]->rarity;
+   cur_chance = rng(1, total_it_chance);
+   selected_item = -1;
+   while (cur_chance > 0) {
+    selected_item++;
+    cur_chance -= g->itypes[mapit[selected_item]]->rarity;
+   }
+   g->m.add_item(posx, posy, g->itypes[mapit[selected_item]], 0);
+   if (type->item_chance < 0)
+    animal_done = true;	// Only drop ONE item.
+  }
  } // Done dropping items
-
 
 // If we're a queen, make nearby groups of our type start to die out
  if (has_flag(MF_QUEEN)) {
-  std::vector<mongroup*> groups = g->cur_om.monsters_at(g->levx, g->levy);
-  for (int i = 0; i < groups.size(); i++) {
-   moncat_id moncat_type = groups[i]->type;
-   bool match = false;
-   for (int j = 0; !match && j < g->moncats[moncat_type].size(); j++) {
-    if (g->moncats[moncat_type][j] == type->id)
-     match = true;
-   }
-   if (match)
-    groups[i]->dying = true;
-  }
 // Do it for overmap above/below too
-  overmap tmp;
-  if (g->cur_om.posz == 0)
-   tmp = overmap(g, g->cur_om.posx, g->cur_om.posy, -1);
-  else
-   tmp = overmap(g, g->cur_om.posx, g->cur_om.posy, 0);
-
-  groups = tmp.monsters_at(g->levx, g->levy);
-  for (int i = 0; i < groups.size(); i++) {
-   moncat_id moncat_type = groups[i]->type;
-   bool match = false;
-   for (int j = 0; !match && j < g->moncats[moncat_type].size(); j++) {
-    if (g->moncats[moncat_type][j] == type->id)
-     match = true;
-   }
-   if (match)
+  for(int z = 0; z >= -1; --z) {
+   std::vector<mongroup*> groups = g->cur_om.monsters_at(g->levx, g->levy, z);
+   for (int i = 0; i < groups.size(); i++) {
+   if (MonsterGroupManager::IsMonsterInGroup(groups[i]->type, mon_id(type->id)))
     groups[i]->dying = true;
+   }
   }
  }
 // If we're a mission monster, update the mission

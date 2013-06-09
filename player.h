@@ -11,6 +11,7 @@
 #include "inventory.h"
 #include "artifact.h"
 #include "mutation.h"
+#include "crafting.h"
 #include <vector>
 #include <string>
 #include <map>
@@ -56,11 +57,12 @@ public:
  virtual std::string save_info();		// Save to file matching name
 
  void disp_info(game *g);	// '@' key; extended character info
- void disp_morale();		// '%' key; morale info
+ void disp_morale(game *g);		// '%' key; morale info
  void disp_status(WINDOW* w, game *g = NULL);// On-screen data
 
  void reset(game *g = NULL);// Resets movement points, stats, applies effects
  void update_morale();	// Ticks down morale counters and removes them
+ void update_bodytemp(game *g);  // Maintains body temperature
  int  current_speed(game *g = NULL); // Number of movement points we get a turn
  int  run_cost(int base_cost); // Adjust base_cost
  int  swim_speed();	// Our speed when swimming
@@ -208,7 +210,7 @@ public:
  void practice(Skill *s, int amount);
  void practice(std::string s, int amount);
 
- void assign_activity(activity_type type, int moves, int index = -1);
+ void assign_activity(game* g, activity_type type, int moves, int index = -1);
  void cancel_activity();
 
  int weight_carried();
@@ -318,6 +320,8 @@ public:
 
  std::vector <disease> illness;
  std::vector <addiction> addictions;
+
+ recipe* lastrecipe;
 };
 
 #endif

@@ -2,9 +2,10 @@
 #include "action.h"
 #include "game.h"
 
-long input()
+//CAT-g:
+int input()
 {
- long ch = getch();
+ int ch = getch();
 
  switch (ch) {
   case KEY_UP:    return 'k';
@@ -16,6 +17,8 @@ long input()
  }
 }
 
+//CAT-g: not used
+/*
 bool input_wait(char & ret_ch, int delay_ms)
 {
  while(true)
@@ -53,6 +56,7 @@ bool input_wait(char & ret_ch, int delay_ms)
   return false;
  }
 }
+*/
 
 void get_direction(game *g, int &x, int &y, char ch)
 {
@@ -209,6 +213,7 @@ player_data @\n\
 map m :\n\
 missions M\n\
 factions #\n\
+kills )\n\
 morale %\n\
 messages P\n\
 help ?\n\

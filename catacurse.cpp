@@ -4,9 +4,9 @@
 #include <cstdlib>
 #include <fstream>
 
+//CAT-s:
 #include <SDL.h>
 #include <SDL_mixer.h>
-
 
 
 //***********************************
@@ -39,6 +39,7 @@ unsigned char *dcbits;  //the bits of the screen image, for direct access
 char szDirectory[MAX_PATH] = "";
 
 
+//CATs: *** whole lot *** 
 Mix_Music *music[10];
 Mix_Chunk *sound[99];
 
@@ -69,7 +70,7 @@ void initAudio()
 //	music[7] = Mix_LoadMUS("./data/audio/bkg_mp3-4.ogg");
 //	music[8] = Mix_LoadMUS("./data/audio/bkg_mp3-5.ogg");
 
-	music[10] = Mix_LoadMUS("./data/audio/bkg_tense2.ogg");
+//	music[9] = Mix_LoadMUS("./data/audio/bkg_tense2.ogg");
 
 //*** sound effects
 	sound[0] = Mix_LoadWAV("./data/audio/menuClick.wav");
@@ -323,7 +324,10 @@ void loopVolume(int volume)
 	loopVol= volume;
 	Mix_Volume(0, loopVol);
 }
- 
+
+
+
+
 //***********************************
 //Non-curses, Window functions      *
 //***********************************
@@ -331,15 +335,13 @@ void loopVolume(int volume)
 //Registers, creates, and shows the Window!!
 bool WinCreate()
 {
-
-
     int success;
     WNDCLASSEXW WindowClassType;
     int WinBorderHeight;
     int WinBorderWidth;
     int WinTitleSize;
     unsigned int WindowStyle;
-    const WCHAR *szTitle=  (L"Cataclysm");
+    const WCHAR *szTitle=  (L"Cataclysm: Dark Days Ahead - 0.3 Prerelease :: MGSmod");
     WinTitleSize = GetSystemMetrics(SM_CYCAPTION);      //These lines ensure
     WinBorderWidth = GetSystemMetrics(SM_CXDLGFRAME) * 2;  //that our window will
     WinBorderHeight = GetSystemMetrics(SM_CYDLGFRAME) * 2; // be a perfect size
@@ -370,7 +372,7 @@ bool WinCreate()
     }
     ShowWindow(WindowHandle,5);
 
-//CAT:
+//CAT-s:
     initAudio();
 
     return true;
@@ -536,7 +538,7 @@ void DrawWindow(WINDOW *win)
     };// for (j=0;j<_windows[w].height;j++)
     win->draw=false;                //We drew the window, mark it as so
 
-//CAT:
+//CAT-g:
   InvalidateRect(WindowHandle,NULL,true);
   UpdateWindow(WindowHandle);
 
@@ -587,17 +589,10 @@ fin.open("data\\FONTDATA");
  }
     halfwidth=fontwidth / 2;
     halfheight=fontheight / 2;
-//CAT:
-//    WindowWidth= 80 *fontwidth; //(55 + (OPTIONS[OPT_VIEWPORT_X] * 2 + 1)) * fontwidth;
-//    WindowHeight= 50 *fontwidth; //(OPTIONS[OPT_VIEWPORT_Y] * 2 + 1) *fontheight;
-
     WindowWidth= (55 + (OPTIONS[OPT_VIEWPORT_X] * 2 + 1)) * fontwidth;
     WindowHeight= (OPTIONS[OPT_VIEWPORT_Y] * 2 + 1) *fontheight;
-
-//CAT: 
-    WindowX= 10; //(GetSystemMetrics(SM_CXSCREEN) / 2)-WindowWidth/2;    //center this
-    WindowY= 400; //(GetSystemMetrics(SM_CYSCREEN) / 2)-WindowHeight/2;   //sucker
-
+    WindowX=(GetSystemMetrics(SM_CXSCREEN) / 2)-WindowWidth/2;    //center this
+    WindowY=(GetSystemMetrics(SM_CYSCREEN) / 2)-WindowHeight/2;   //sucker
     WinCreate();    //Create the actual window, register it, etc
     CheckMessages();    //Let the message queue handle setting up the window
     WindowDC = GetDC(WindowHandle);
@@ -651,8 +646,8 @@ WINDOW *newwin(int nlines, int ncols, int begin_y, int begin_x)
     newwindow->draw=false;
     newwindow->BG=0;
 
-//CAT:
-    newwindow->FG=7;
+//CAT-g: make it yellow
+    newwindow->FG= 11; 
 
     newwindow->cursorx=0;
     newwindow->cursory=0;
@@ -757,8 +752,8 @@ int refresh(void)
     return wrefresh(mainwin);
 };
 
-//Not terribly sure how this function is suppose to work,
-//but jday helped to figure most of it out
+
+//CAT-g:
 int getch(void)
 {
 
@@ -766,13 +761,12 @@ int getch(void)
   do{
     CheckMessages();
 
-//CAT: low cpu wait?
+//low cpu wait?
     MsgWaitForMultipleObjects(0, NULL, FALSE, 10, QS_ALLEVENTS); 
   }while (lastchar==ERR);
 
 
-//CAT:
-/*
+/* attempt to fix keyboard buffering problems on Linux...
 int out= 0;
 asm
 (
@@ -783,10 +777,6 @@ asm
 	: 
 );
 */
-
-//CAT: move this refresh() from here
-//  refresh();
-
   return lastchar;
 };
 
@@ -866,16 +856,15 @@ int werase(WINDOW *win)
     int j,i;
     for (j=0; j<win->height; j++)
     {
-	for (i=0; i<win->width; i++)
-	{
-	     win->line[j].chars[i]=0;
-	     win->line[j].FG[i]=0;
-	     win->line[j].BG[i]=0;
-	}
+     for (i=0; i<win->width; i++)   {
+     win->line[j].chars[i]=0;
+     win->line[j].FG[i]=0;
+     win->line[j].BG[i]=0;
+     }
         win->line[j].touched=true;
     }
 
-//CAT:
+//CAT-g:
 //    win->draw=true;
 //    wmove(win,0,0);
 //    wrefresh(win);
@@ -957,6 +946,20 @@ int getmaxy(WINDOW *win)
     return win->height;
 };
 
+//gets the beginning x of a window (the x pos)
+int getbegx(WINDOW *win)
+{
+    if (win==0) return mainwin->x;     //StdScr
+    return win->x;
+};
+
+//gets the beginning y of a window (the y pos)
+int getbegy(WINDOW *win)
+{
+    if (win==0) return mainwin->y;     //StdScr
+    return win->y;
+};
+
 inline RGBQUAD BGR(int b, int g, int r)
 {
     RGBQUAD result;
@@ -967,26 +970,21 @@ inline RGBQUAD BGR(int b, int g, int r)
     return result;
 };
 
+//CAT-g:
 int start_color(void)
 {
  colorpairs=new pairs[50];
  windowsPalette=new RGBQUAD[16]; //Colors in the struct are BGR!! not RGB!!
  windowsPalette[0]= BGR(0,0,0); // Black
  windowsPalette[1]= BGR(0, 0, 200); // Red
-
-//CAT:
  windowsPalette[2]= BGR(0,150,0); // Green
  windowsPalette[3]= BGR(50,90,170); // Brown???
  windowsPalette[4]= BGR(200, 0, 0); // Blue
-
  windowsPalette[5]= BGR(98, 58, 139); // Purple
  windowsPalette[6]= BGR(180, 150, 0); // Cyan
  windowsPalette[7]= BGR(196, 196, 196);// Gray
-
-//CAT:
  windowsPalette[8]= BGR(90, 90, 90);// Dark Gray
- windowsPalette[9]= BGR(100, 100, 255); // Light Red/Salmon?
-
+ windowsPalette[9]= BGR(0, 80, 255); // Light Red
  windowsPalette[10]= BGR(0, 255, 0); // Bright Green
  windowsPalette[11]= BGR(0, 255, 255); // Yellow
  windowsPalette[12]= BGR(255, 100, 100); // Light Blue
@@ -998,7 +996,7 @@ int start_color(void)
 
 int keypad(WINDOW *faux, bool bf)
 {
-    return 1;
+return 1;
 };
 
 int noecho(void)
@@ -1034,11 +1032,12 @@ int wattron(WINDOW *win, int attrs)
     if (isBlink) win->BG += 8;
     return 1;
 };
+
 int wattroff(WINDOW *win, int attrs)
 {
-//CAT:
-     win->FG=7;                                  //reset to white
-     win->BG=0;                                  //reset to black
+//CAT-g: make it yellow
+     win->FG= 11;		//reset to white (gray actually)
+     win->BG= 0;		//reset to black
     return 1;
 };
 int attron(int attrs)
@@ -1093,16 +1092,22 @@ int waddch(WINDOW *win, const chtype ch)
             break;
         }
 
+
 int curx=win->cursorx;
 int cury=win->cursory;
 
+//if (win2 > -1){
    win->line[cury].chars[curx]=charcode;
    win->line[cury].FG[curx]=win->FG;
    win->line[cury].BG[curx]=win->BG;
 
+
     win->draw=true;
     addedchar(win);
     return 1;
+  //  else{
+  //  win2=win2+1;
+
 };
 
 

@@ -109,6 +109,9 @@ void monster::plan(game *g)
   closest = -2;
   stc = tc;
  }
+
+//CAT-mgs: no NPCs
+
  for (int i = 0; i < g->active_npc.size(); i++) {
   npc *me = &(g->active_npc[i]);
   int medist = rl_dist(posx, posy, me->posx, me->posy);
@@ -129,6 +132,8 @@ void monster::plan(game *g)
    }
   }
  }
+
+
  if (!fleeing) {
   fleeing = attitude() == MATT_FLEE;
   for (int i = 0; i < g->z.size(); i++) {
@@ -148,6 +153,7 @@ void monster::plan(game *g)
    }
   }
  }
+
  if (!fleeing) {
   if (closest == -2)
    set_dest(g->u.posx, g->u.posy, stc);
@@ -155,7 +161,10 @@ void monster::plan(game *g)
    set_dest(g->z[-3 - closest].posx, g->z[-3 - closest].posy, stc);
   else if (closest >= 0)
    set_dest(g->active_npc[closest].posx, g->active_npc[closest].posy, stc);
+
+//CAT-mgs: no NPCs - above 'else if'
  }
+
 }
 
 // General movement.
@@ -213,11 +222,16 @@ void monster::move(game *g)
   if (plans.back().x == g->u.posx && plans.back().y == g->u.posy)
    current_attitude = attitude(&(g->u));
   else {
+
+//CAT-mgs: no NPCs
+
    for (int i = 0; i < g->active_npc.size(); i++) {
     if (plans.back().x == g->active_npc[i].posx &&
         plans.back().y == g->active_npc[i].posy)
      current_attitude = attitude(&(g->active_npc[i]));
    }
+
+
   }
  }
 
@@ -484,17 +498,19 @@ void monster::hit_player(game *g, player &p, bool can_grab)
  if (dam == 0 && u_see)
   g->add_msg("The %s misses %s.", name().c_str(), you.c_str());
  else if (dam > 0) {
+//CAT-s: *
   if (u_see && tech != TEC_BLOCK)
   {
 	g->add_msg("The %s hits %s %s.", name().c_str(), your.c_str(),
               body_part_name(bphit, side).c_str());
 
-//CAT: pain sound, add heartBeat somewhere when low on health
+//CAT-s: pain1 sound
 	if(!is_npc)
 		playSound(8);
    }
 
 // Attempt defensive moves
+
   if (!is_npc) {
    if (g->u.activity.type == ACT_RELOAD)
     g->add_msg("You stop reloading.");
@@ -552,6 +568,10 @@ void monster::hit_player(game *g, player &p, bool can_grab)
    hurt( p.hit_mon(g, this) );
   }
  } // if dam > 0
+
+
+//CAT-mgs: no NPCs
+
  if (is_npc) {
   if (p.hp_cur[hp_head] <= 0 || p.hp_cur[hp_torso] <= 0) {
    npc* tmp = dynamic_cast<npc*>(&p);
@@ -562,6 +582,8 @@ void monster::hit_player(game *g, player &p, bool can_grab)
    plans.clear();
   }
  }
+
+
 // Adjust anger/morale of same-species monsters, if appropriate
  int anger_adjust = 0, morale_adjust = 0;
  for (int i = 0; i < type->anger.size(); i++) {
@@ -712,6 +734,8 @@ void monster::knock_back_from(game *g, int x, int y)
   return;
  }
 
+//CAT-mgs: no NPCs
+
  int npcdex = g->npc_at(to.x, to.y);
  if (npcdex != -1) {
   npc *p = &(g->active_npc[npcdex]);
@@ -723,6 +747,7 @@ void monster::knock_back_from(game *g, int x, int y)
 
   return;
  }
+
 
 // If we're still in the function at this point, we're actually moving a tile!
  if (g->m.move_cost(to.x, to.y) == 0) { // Wait, it's a wall (or water)
@@ -771,6 +796,10 @@ bool monster::will_reach(game *g, int x, int y)
 
  if (has_flag(MF_IMMOBILE) && (posx != x || posy != y))
   return false;
+
+ std::vector<point> path = g->m.route(posx, posy, x, y, has_flag(MF_BASHES));
+ if (path.size() == 0)
+   return false;
 
  if (has_flag(MF_SMELLS) && g->scent(posx, posy) > 0 &&
      g->scent(x, y) > g->scent(posx, posy))

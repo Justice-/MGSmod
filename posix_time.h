@@ -34,8 +34,9 @@ struct timespec
    resolution of about 0.01 ms.  In order to measure such short timespans,
    we use the QueryPerformanceCounter() function.  */
 
-int nanosleep(const struct timespec *requested_delay,
-				struct timespec *remaining_delay);
+int
+nanosleep (const struct timespec *requested_delay,
+           struct timespec *remaining_delay);
 
 #endif
 #endif

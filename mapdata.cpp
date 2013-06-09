@@ -1,6 +1,6 @@
 #include "mapdata.h"
-#include <ostream>
 
+#include <ostream>
 
 std::ostream & operator<<(std::ostream & out, const submap * sm)
 {

@@ -5,6 +5,7 @@
 #include "rng.h"
 #include "line.h"
 #include "keypress.h"
+#include "debug.h"
 #include <vector>
 #include <string>
 #include <sstream>
@@ -40,6 +41,8 @@
 #define FAILURE_ACTION(func)  ret.back().effect_failure = func
 
 #define SUCCESS_MISSION(type) ret.back().miss = type
+
+#define dbg(x) dout((DebugLevel)(x),D_GAME) << __FILE__ << ":" << __LINE__ << ": "
 
 std::string dynamic_line(talk_topic topic, game *g, npc *p);
 std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p);
@@ -103,7 +106,7 @@ void npc::talk_to_u(game *g)
  moves -= 100;
  decide_needs();
 
- d.win = newwin(25, 80, 0, 0);
+ d.win = newwin(25, 80, (TERMY > 25) ? (TERMY-25)/2 : 0, (TERMX > 80) ? (TERMX-80)/2 : 0);
  wborder(d.win, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
                 LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
  for (int i = 1; i < 24; i++)
@@ -233,7 +236,7 @@ std::string dynamic_line(talk_topic topic, game *g, npc *p)
  } break;
 
  case TALK_TRAIN_START:
-  if (g->cur_om.is_safe(g->om_location().x, g->om_location().y))
+  if (g->cur_om.is_safe(g->om_location().x, g->om_location().y, g->levz))
    return "Alright, let's begin.";
   else
    return "It's not safe here.  Let's get to safety first.";
@@ -297,7 +300,8 @@ std::string dynamic_line(talk_topic topic, game *g, npc *p)
   case ENGAGE_ALL:   status << "engaging all enemies.";         break;
   }
   status << " " << (p->male ? "He" : "She") << " will " <<
-            (p->combat_rules.use_guns ? "" : "not ") << "use firearms.";
+            (p->combat_rules.use_guns ? (p->combat_rules.use_silent ? "use silenced" : "use")
+              : "not use") << " firearms";
   status << " " << (p->male ? "He" : "She") << " will " <<
             (p->combat_rules.use_grenades ? "" : "not ") << "use grenades.";
 
@@ -661,6 +665,14 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
    int score = p->op_of_u.trust + p->op_of_u.value * 3 +
                p->personality.altruism * 2;
    int missions_value = p->assigned_missions_value(g);
+   if (g->u.has_amount(itm_mininuke, 1)) {
+   RESPONSE("Because I'm holding a thermal detonator!");
+    SUCCESS(TALK_GIVE_EQUIPMENT);
+     SUCCESS_ACTION(&talk_function::give_equipment);
+     SUCCESS_OPINION(0, 0, -1, 0, score * 300);
+    FAILURE(TALK_DENY_EQUIPMENT);
+     FAILURE_OPINION(0, 0, -1, 0, 0);
+  }
    RESPONSE("Because I'm your friend!");
     TRIAL(TALK_TRIAL_PERSUADE, 10 + score);
     SUCCESS(TALK_GIVE_EQUIPMENT);
@@ -732,8 +744,8 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
   if (trainable.empty() && styles.empty()) {
    RESPONSE("Oh, okay."); // Nothing to learn here
     SUCCESS(TALK_NONE);
+   break;
   }
-  break;
   int printed = 0;
   int shift = p->chatbin.tempvalue;
   bool more = trainable.size() + styles.size() - shift > 9;
@@ -773,7 +785,7 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
   } break;
 
  case TALK_TRAIN_START:
-  if (g->cur_om.is_safe(g->om_location().x, g->om_location().y)) {
+  if (g->cur_om.is_safe(g->om_location().x, g->om_location().y, g->levz)) {
    RESPONSE("Sounds good.");
     SUCCESS(TALK_DONE);
     SUCCESS_ACTION(&talk_function::start_training);
@@ -928,6 +940,11 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
   RESPONSE("Let's trade items.");
    SUCCESS(TALK_NONE);
    SUCCESS_ACTION(&talk_function::start_trade);
+  if (p->is_following() && g->m.camp_at(g->u.posx, g->u.posy)) {
+   RESPONSE("Wait at this base,");
+    SUCCESS(TALK_DONE);
+    SUCCESS_ACTION(&talk_function::assign_base);
+  }
   RESPONSE("Let's go.");
    SUCCESS(TALK_DONE);
   break;
@@ -943,6 +960,15 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
    RESPONSE("You can use guns.");
     SUCCESS(TALK_COMBAT_COMMANDS);
     SUCCESS_ACTION(&talk_function::toggle_use_guns);
+  }
+  if (p->combat_rules.use_silent) {
+   RESPONSE("Don't worry about noise.");
+    SUCCESS(TALK_COMBAT_COMMANDS);
+    SUCCESS_ACTION(&talk_function::toggle_use_silent);
+  } else {
+   RESPONSE("Use only silent weapons.");
+    SUCCESS(TALK_COMBAT_COMMANDS);
+    SUCCESS_ACTION(&talk_function::toggle_use_silent);
   }
   if (p->combat_rules.use_grenades) {
    RESPONSE("Don't use grenades anymore.");
@@ -1287,6 +1313,20 @@ void talk_function::start_trade(game *g, npc *p)
  trade(g, p, trade_amount, "Trade");
 }
 
+void talk_function::assign_base(game *g, npc *p)
+{
+	// TODO: decide what to do upon assign? maybe pathing required
+	basecamp* camp = g->m.camp_at(g->u.posx, g->u.posy);
+	if(!camp) {
+		dbg(D_ERROR) << "talk_function::assign_base: Assigned to base but no base here.";
+		return;
+	}
+
+	g->add_msg("%s waits at %s", p->name.c_str(), camp->camp_name().c_str());
+	p->mission = NPC_MISSION_BASE;
+	p->attitude = NPCATT_NULL;
+}
+
 void talk_function::give_equipment(game *g, npc *p)
 {
  std::vector<int> giving;
@@ -1393,12 +1433,18 @@ void talk_function::lead_to_safety(game *g, npc *p)
  point target = g->find_mission( missid )->target;
  p->goalx = target.x;
  p->goaly = target.y;
+ p->goalz = g->levz;
  p->attitude = NPCATT_LEAD;
 }
 
 void talk_function::toggle_use_guns(game *g, npc *p)
 {
  p->combat_rules.use_guns = !p->combat_rules.use_guns;
+}
+
+void talk_function::toggle_use_silent(game *g, npc *p)
+{
+ p->combat_rules.use_silent = !p->combat_rules.use_silent;
 }
 
 void talk_function::toggle_use_grenades(game *g, npc *p)
@@ -1452,7 +1498,7 @@ void talk_function::start_training(game *g, npc *p)
  else if (!trade(g, p, cost, "Pay for training:"))
   return;
 // Then receive it
- g->u.assign_activity(ACT_TRAIN, time, p->chatbin.tempvalue);
+ g->u.assign_activity(g, ACT_TRAIN, time, p->chatbin.tempvalue);
 }
 
 void parse_tags(std::string &phrase, player *u, npc *me)
@@ -1680,9 +1726,10 @@ talk_topic special_talk(char ch)
 
 bool trade(game *g, npc *p, int cost, std::string deal)
 {
- WINDOW* w_head = newwin( 4, 80,  0,  0);
- WINDOW* w_them = newwin(21, 40,  4,  0);
- WINDOW* w_you  = newwin(21, 40,  4, 40);
+ WINDOW* w_head = newwin(4, 80, (TERMY > 25) ? (TERMY-25)/2 : 0, (TERMX > 80) ? (TERMX-80)/2 : 0);
+ WINDOW* w_them = newwin(21, 40, 4+((TERMY > 25) ? (TERMY-25)/2 : 0), (TERMX > 80) ? (TERMX-80)/2 : 0);
+ WINDOW* w_you = newwin(21, 40, 4+((TERMY > 25) ? (TERMY-25)/2 : 0), 40+((TERMX > 80) ? (TERMX-80)/2 : 0));
+
  WINDOW* w_tmp;
  mvwprintz(w_head, 0, 0, c_white, "\
 Trading with %s\n\
@@ -1810,7 +1857,7 @@ Tab key to switch lists, letters to pick items, Enter to finalize, Esc to quit\n
    break;
   case '?':
    update = true;
-   w_tmp = newwin(3, 21, 1, 30);
+   w_tmp = newwin(3, 21, 1+(TERMY-25)/2, 30+(TERMX-80)/2);
    mvwprintz(w_tmp, 1, 1, c_red, "Examine which item?");
    wborder(w_tmp, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
                   LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );

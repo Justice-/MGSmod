@@ -94,10 +94,11 @@ void iuse::bandage(game *g, player *p, item *it, bool t)
             }
         }
     } else { // Player--present a menu
-        WINDOW* hp_window = newwin(10, 22, 8, 1);
+        WINDOW* hp_window = newwin(10, 22, (TERMY-10)/2, (TERMX-22)/2);
         wborder(hp_window, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
-        LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
-        mvwprintz(hp_window, 1, 1, c_ltred,  "Bandage where?");
+                           LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
+
+        mvwprintz(hp_window, 1, 1, c_ltred,  "Use Bandage:");
         mvwprintz(hp_window, 2, 1, c_ltgray, "1: Head");
         mvwprintz(hp_window, 3, 1, c_ltgray, "2: Torso");
         mvwprintz(hp_window, 4, 1, c_ltgray, "3: Left Arm");
@@ -114,7 +115,7 @@ void iuse::bandage(game *g, player *p, item *it, bool t)
             int temporary_bonus = bonus;
             if (current_hp != 0) {
                 switch (hp_part(i)) {
-                    case hp_head: 
+                    case hp_head:
                         current_hp += 1;
                         temporary_bonus *=  .8;
                         break;
@@ -225,8 +226,8 @@ void iuse::bandage(game *g, player *p, item *it, bool t)
         dam = 4 + bonus * 1.5;
     } else {
         dam = 3 + bonus;
-        p->heal(healed, dam);
     }
+    p->heal(healed, dam);
 }
 
 void iuse::firstaid(game *g, player *p, item *it, bool t)
@@ -248,10 +249,10 @@ void iuse::firstaid(game *g, player *p, item *it, bool t)
             }
         }
     } else { // Player--present a menu
-        WINDOW* hp_window = newwin(10, 22, 8, 1);
+        WINDOW* hp_window = newwin(10, 22, (TERMY-10)/2, (TERMX-22)/2);
         wborder(hp_window, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
-        LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
-        mvwprintz(hp_window, 1, 1, c_ltred,  "First Aid where?");
+                           LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
+        mvwprintz(hp_window, 1, 1, c_ltred,  "Use First Aid:");
         mvwprintz(hp_window, 2, 1, c_ltgray, "1: Head");
         mvwprintz(hp_window, 3, 1, c_ltgray, "2: Torso");
         mvwprintz(hp_window, 4, 1, c_ltgray, "3: Left Arm");
@@ -268,7 +269,7 @@ void iuse::firstaid(game *g, player *p, item *it, bool t)
             int temporary_bonus = bonus;
             if (current_hp != 0) {
                 switch (hp_part(i)) {
-                    case hp_head: 
+                    case hp_head:
                         current_hp += 10;
                         temporary_bonus *=  .8;
                         break;
@@ -379,8 +380,8 @@ void iuse::firstaid(game *g, player *p, item *it, bool t)
         dam = 18 + bonus * 1.5;
     } else {
         dam = 14 + bonus;
-        p->heal(healed, dam);
     }
+    p->heal(healed, dam);
 }
 
 // Aspirin
@@ -713,7 +714,7 @@ void iuse::marloss(game *g, player *p, item *it, bool t)
 
 void iuse::dogfood(game *g, player *p, item *it, bool t)
 {
-//CAT:
+//CAT-g:
 // g->draw();
 // mvprintw(0, 0, "Which direction?");
 
@@ -748,7 +749,7 @@ void iuse::dogfood(game *g, player *p, item *it, bool t)
 
 void iuse::lighter(game *g, player *p, item *it, bool t)
 {
-//CAT:
+//CAT-g:
 // g->draw();
 // mvprintw(0, 0, "Light where?");
 
@@ -776,7 +777,7 @@ void iuse::lighter(game *g, player *p, item *it, bool t)
   if (g->m.add_field(g, dirx, diry, fd_fire, 1))
    g->m.field_at(dirx, diry).age = 30;
 
-//CAT:
+//CAT-s:
 	playSound(74); //set flame (fireLight sound)
 
  } else {
@@ -961,7 +962,7 @@ void iuse::scissors(game *g, player *p, item *it, bool t)
 
 void iuse::extinguisher(game *g, player *p, item *it, bool t)
 {
-//CAT:
+//CAT-g:
 // g->draw();
 // mvprintz(0, 0, c_red, "Pick a direction to spray:");
 
@@ -1016,13 +1017,14 @@ void iuse::extinguisher(game *g, player *p, item *it, bool t)
 
 void iuse::hammer(game *g, player *p, item *it, bool t)
 {
-//CAT:
+//CAT-g:
 // g->draw();
 // mvprintz(0, 0, c_red, "Pick a direction in which to pry:");
 
  mvwprintw(g->w_terrain, 0, 0, "Hammer where?");
  wrefresh(g->w_terrain);
  playSound(1);
+
 
  int dirx, diry;
  get_direction(g, dirx, diry, input());
@@ -1114,7 +1116,7 @@ void iuse::water_purifier(game *g, player *p, item *it, bool t)
 
 void iuse::two_way_radio(game *g, player *p, item *it, bool t)
 {
- WINDOW* w = newwin(6, 36, 9, 5);
+ WINDOW* w = newwin(6, 36, (TERMY-6)/2, (TERMX-36)/2);
  wborder(w, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
             LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
 // TODO: More options here.  Thoughts...
@@ -1122,7 +1124,7 @@ void iuse::two_way_radio(game *g, player *p, item *it, bool t)
 //       > Report something to a faction
 //       > Call another player
  mvwprintz(w, 1, 1, c_white, "1: Radio a faction for help...");
- mvwprintz(w, 2, 1, c_white, "2: Call Acquaitance...");
+ mvwprintz(w, 2, 1, c_white, "2: Call Acquaintance...");
  mvwprintz(w, 3, 1, c_white, "3: General S.O.S.");
  mvwprintz(w, 4, 1, c_white, "0: Cancel");
  wrefresh(w);
@@ -1245,9 +1247,43 @@ void iuse::radio_on(game *g, player *p, item *it, bool t)
  }
 }
 
+void iuse::roadmap(game *g, player *p, item *it, bool t)
+{
+ roadmap_a_target(g, p, it, t, (int)ot_hospital);
+}
+
+void iuse::roadmap_a_target(game *g, player *p, item *it, bool t, int target)
+{
+ int dist = 0;
+ oter_t oter_target = oterlist[target];
+ point place = g->cur_om.find_closest(g->om_location(), (oter_id)target, 1, dist,
+                                      false);
+
+ int pomx = (g->levx + int(MAPSIZE / 2)) / 2; //overmap loc
+ int pomy = (g->levy + int(MAPSIZE / 2)) / 2; //overmap loc
+
+ if (g->debugmon) debugmsg("Map: %s at %d,%d found! You @ %d %d",oter_target.name.c_str(), place.x, place.y, pomx,pomy);
+
+ if (place.x >= 0 && place.y >= 0) {
+  for (int x = place.x - 3; x <= place.x + 3; x++) {
+   for (int y = place.y - 3; y <= place.y + 3; y++)
+    g->cur_om.seen(x, y, g->levz) = true;
+  }
+
+  direction to_hospital = direction_from(pomx,pomy, place.x, place.y);
+  int distance = trig_dist(pomx,pomy, place.x, place.y);
+
+  g->add_msg_if_player(p, "You add a %s location to your map.", oterlist[target].name.c_str());
+  g->add_msg_if_player(p, "It's %d squares to the %s", distance,  direction_name(to_hospital).c_str());
+ } else {
+  g->add_msg_if_player(p, "You can't find a hospital near your location.");
+ }
+}
+
+//CAT-mgs: *** whole lot ***
 void iuse::picklock(game *g, player *p, item *it, bool t)
 {
-//CAT:
+//CAT-g:
 // g->draw();
 // mvprintw(0, 0, "Pick where?");
 
@@ -1287,7 +1323,7 @@ void iuse::picklock(game *g, player *p, item *it, bool t)
  } else {
   g->add_msg("That cannot be picked.");
 
-//CAT:
+//CAT-s:
 	playSound(3); //menuWrong sound
   return;
  }
@@ -1303,7 +1339,7 @@ void iuse::picklock(game *g, player *p, item *it, bool t)
 		"With a satisfying click, the lock on the %s opens.", door_name);
 	g->m.ter(dirx, diry) = new_type;
 
-//CAT:
+//CAT-s:
 	playSound(59); //unlock sound
  }
  else 
@@ -1323,7 +1359,7 @@ void iuse::picklock(game *g, player *p, item *it, bool t)
 		("The lock stumps your efforts to pick it, and you " 
 		+ sStatus + " your tool.").c_str());
 
-//CAT:
+//CAT-s:
 	playSound(92); //noiseSwoosh sound
 
  }
@@ -1331,7 +1367,7 @@ void iuse::picklock(game *g, player *p, item *it, bool t)
  {
 	g->add_msg_if_player(p,"The lock stumps your efforts to pick it.");
 
-//CAT:
+//CAT-s:
 	playSound(92); //noiseSwoosh sound
  }
 
@@ -1342,7 +1378,7 @@ void iuse::picklock(game *g, player *p, item *it, bool t)
  {
 	g->sound(p->posx, p->posy, 30, "An alarm sounds!");
 
-//CAT:
+//CAT-s:
 	playSound(58); //alarm1 sound
 
 	if (!g->event_queued(EVENT_WANTED))
@@ -1350,10 +1386,10 @@ void iuse::picklock(game *g, player *p, item *it, bool t)
  }
 }
 
-
+//CAT-mgs: *** whole lot ***
 void iuse::crowbar(game *g, player *p, item *it, bool t)
 {
-//CAT:
+//CAT-g:
 // g->draw();
 // mvprintw(0, 0, "Pry where?");
 
@@ -1444,7 +1480,7 @@ void iuse::crowbar(game *g, player *p, item *it, bool t)
 
 	  default:
 		g->add_msg_if_player(p,"There's nothing to pry there.");
-//CAT:
+//CAT-s:
 		playSound(3); //menuWrong sound
 		return;
 	}
@@ -1467,8 +1503,8 @@ void iuse::crowbar(game *g, player *p, item *it, bool t)
 	p->practice("mechanics", 1);
 	g->add_msg_if_player(p,"You %s the %s.", action_name, door_name);
 
-//CAT:
-		playSound(60); //crowbar sound
+//CAT-s:
+	playSound(60); //crowbar sound
 
 	g->m.ter(dirx, diry) = new_type;
 	if(noisy)
@@ -1477,7 +1513,7 @@ void iuse::crowbar(game *g, player *p, item *it, bool t)
 	if( type == t_door_locked_alarm ) 
 	{
 		g->sound(p->posx, p->posy, 30, "An alarm sounds!");
-//CAT:
+//CAT-s:
 		playSound(58); //alarm1 sound
 
 		if(!g->event_queued(EVENT_WANTED))
@@ -1487,7 +1523,7 @@ void iuse::crowbar(game *g, player *p, item *it, bool t)
  else
    g->add_msg_if_player(p,"You pry, but cannot %s the %s.", action_name, door_name);
 
-//CAT:
+//CAT-s:
 	playSound(92); //noiseSwoosh sound
 }
 
@@ -1504,11 +1540,12 @@ void iuse::makemound(game *g, player *p, item *it, bool t)
 
 void iuse::dig(game *g, player *p, item *it, bool t)
 {
-//CAT: hmmm... let's put 'noiseDig'sound here anyway
+//CAT-s: hmmm... let's put 'noiseDig'sound here anyway
 
 	playSound(79);
 
  g->add_msg_if_player(p,"You can dig a pit via the construction menu--hit *");
+
 /*
  int dirx, diry;
  g->draw();
@@ -1556,7 +1593,7 @@ void iuse::chainsaw_on(game *g, player *p, item *it, bool t)
 
 void iuse::jackhammer(game *g, player *p, item *it, bool t)
 {
-//CAT:
+//CAT-g:
 //g->draw();
 // mvprintw(0, 0, "Drill where?");
 
@@ -1595,11 +1632,11 @@ void iuse::jackhammer(game *g, player *p, item *it, bool t)
 
 void iuse::jacqueshammer(game *g, player *p, item *it, bool t)
 {
-//CAT:
+//CAT-g:
 // g->draw();
 // mvprintw(0, 0, "Percer dans quelle direction?");
 
- mvwprintw(g->w_terrain, 0, 0, "Drill where?");
+ mvwprintw(g->w_terrain, 0, 0, "Percer ou?");
  wrefresh(g->w_terrain);
  playSound(1);
 
@@ -1634,8 +1671,7 @@ void iuse::jacqueshammer(game *g, player *p, item *it, bool t)
 
 void iuse::pickaxe(game *g, player *p, item *it, bool t)
 {
-//CAT: hmmm...
-
+//CAT-g: check this
   g->add_msg_if_player(p,"Whoa buddy! You can't go cheating in items and");
   g->add_msg_if_player(p,"just expect them to work! Now put the pickaxe");
   g->add_msg_if_player(p,"down and go play the game.");
@@ -1663,14 +1699,10 @@ void iuse::pickaxe(game *g, player *p, item *it, bool t)
  } else {
   g->add_msg_if_player(p,"You can't mine there.");
 */
-  g->add_msg_if_player(p,"Whoa buddy! You can't go cheating in items and");
-  g->add_msg_if_player(p,"just expect them to work! Now put the pickaxe");
-  g->add_msg_if_player(p,"down and go play the game.");
 }
-
 void iuse::set_trap(game *g, player *p, item *it, bool t)
 {
-//CAT:
+//CAT-g:
 // g->draw();
 // mvprintw(0, 0, "Place where?");
 
@@ -1689,7 +1721,6 @@ void iuse::set_trap(game *g, player *p, item *it, bool t)
   g->add_msg_if_player(p,"Real damn smart move.");
   return;
  }
-
  int posx = dirx + p->posx;
  int posy = diry + p->posy;
  if (g->m.move_cost(posx, posy) != 2) {
@@ -1699,7 +1730,9 @@ void iuse::set_trap(game *g, player *p, item *it, bool t)
 
 
  trap_id type = tr_null;
+ ter_id ter;
  bool buried = false;
+ bool set = false;
  std::stringstream message;
  int practice;
 
@@ -1786,6 +1819,40 @@ That trap needs a 3x3 space to be clear, centered two tiles from you.");
   message << "You set the blade trap two squares away.";
   type = tr_engine;
   practice = 12;
+  break;
+ case itm_light_snare_kit:
+  for(int i = -1; i <= 1; i++) {
+    for(int j = -1; j <= 1; j++){
+      ter = g->m.ter(posx+j, posy+i);
+      if(ter == t_tree_young && !set) {
+        message << "You set the snare trap.";
+        type = tr_light_snare;
+        practice = 2;
+        set = true;
+      }
+    }
+  }
+  if(!set) {
+    g->add_msg_if_player(p, "Invalid Placement.");
+    return;
+  }
+  break;
+ case itm_heavy_snare_kit:
+  for(int i = -1; i <= 1; i++) {
+    for(int j = -1; j <= 1; j++){
+      ter = g->m.ter(posx+j, posy+i);
+      if(ter == t_tree && !set) {
+        message << "You set the snare trap.";
+        type = tr_heavy_snare;
+        practice = 4;
+        set = true;
+      }
+    }
+  }
+  if(!set) {
+    g->add_msg_if_player(p, "Invalid Placement.");
+    return;
+  }
   break;
  case itm_landmine:
   buried = (p->has_amount(itm_shovel, 1) &&
@@ -2210,6 +2277,130 @@ void iuse::dynamite_act(game *g, player *p, item *it, bool t)
   g->explosion(pos.x, pos.y, 60, 0, false);
 }
 
+void iuse::firecracker_pack(game *g, player *p, item *it, bool t)
+{
+ if (!p->has_charges(itm_lighter, 1)) {
+  g->add_msg_if_player(p,"You need a lighter!");
+  return;
+ }
+ WINDOW* w = newwin(5, 41, (TERMY-5)/2, (TERMX-41)/2);
+ wborder(w, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
+              LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
+ int mid_x = getmaxx(w) / 2;
+ mvwprintz(w, 1, 2, c_white,  "How many do you want to light? (1-%d)", it->charges);
+ mvwprintz(w, 2, mid_x, c_white, "1");
+ mvwprintz(w, 3, 5, c_ltred, "I");
+ mvwprintz(w, 3, 6, c_white, "ncrease");
+ mvwprintz(w, 3, 14, c_ltred, "D");
+ mvwprintz(w, 3, 15, c_white, "ecrease");
+ mvwprintz(w, 3, 23, c_ltred, "A");
+ mvwprintz(w, 3, 24, c_white, "ccept");
+ mvwprintz(w, 3, 30, c_ltred, "C");
+ mvwprintz(w, 3, 31, c_white, "ancel");
+ wrefresh(w);
+ bool close = false;
+ int charges = 1;
+ char ch = getch();
+ while(!close) {
+  if(ch == 'I') {
+   charges++;
+   if(charges > it->charges) {
+    charges = it->charges;
+   }
+   mvwprintz(w, 2, mid_x, c_white, "%d", charges);
+   wrefresh(w);
+  } else if(ch == 'D') {
+   charges--;
+   if(charges < 1) {
+    charges = 1;
+   }
+   mvwprintz(w, 2, mid_x, c_white, "%d ", charges); //Trailing space clears the second digit when decreasing from 10 to 9
+   wrefresh(w);
+  } else if(ch == 'A') {
+   p->use_charges(itm_lighter, 1);
+   if(charges == it->charges) {
+    g->add_msg_if_player(p,"You light the pack of firecrackers.");
+    it->make(g->itypes[itm_firecracker_pack_act]);
+    it->charges = charges;
+    it->bday = g->turn;
+    it->active = true;
+   } else {
+    if(charges == 1) {
+     g->add_msg_if_player(p,"You light one firecracker.");
+     item new_it = item(g->itypes[itm_firecracker_act], int(g->turn));
+     new_it.charges = 2;
+     new_it.active = true;
+     p->i_add(new_it, g);
+     it->charges -= 1;
+    } else {
+     g->add_msg_if_player(p,"You light a string of %d firecrackers.", charges);
+     item new_it = item(g->itypes[itm_firecracker_pack_act], int(g->turn));
+     new_it.charges = charges;
+     new_it.bday = g->turn;
+     new_it.active = true;
+     p->i_add(new_it, g);
+     it->charges -= charges;
+    }
+    if(it->charges == 1) {
+     it->make(g->itypes[itm_firecracker]);
+    }
+   }
+   close = true;
+  } else if(ch == 'C') {
+   close = true;
+  }
+  if(!close) {
+   ch = getch();
+  }
+ }
+}
+
+void iuse::firecracker_pack_act(game *g, player *p, item *it, bool t)
+{
+ point pos = g->find_item(it);
+ int current_turn = g->turn;
+ int timer = current_turn - it->bday;
+ if(timer < 2) {
+  g->sound(pos.x, pos.y, 0, "ssss...");
+  it->damage += 1;
+ } else if(it->charges > 0) {
+  int ex = rng(3,5);
+  int i = 0;
+  if(ex > it->charges) {
+    ex = it->charges;
+  }
+  for(i = 0; i < ex; i++) {
+   g->sound(pos.x, pos.y, 20, "Bang!");
+  }
+  it->charges -= ex;
+ }
+}
+
+void iuse::firecracker(game *g, player *p, item *it, bool t)
+{
+ if (!p->has_charges(itm_lighter, 1)) {
+  g->add_msg_if_player(p,"You need a lighter!");
+  return;
+ }
+ p->use_charges(itm_lighter, 1);
+ g->add_msg_if_player(p,"You light the firecracker.");
+ it->make(g->itypes[itm_firecracker_act]);
+ it->charges = 2;
+ it->active = true;
+}
+
+void iuse::firecracker_act(game *g, player *p, item *it, bool t)
+{
+ point pos = g->find_item(it);
+ if (pos.x == -999 || pos.y == -999)
+  return;
+ if (t) {// Simple timer effects
+  g->sound(pos.x, pos.y, 0, "ssss...");
+ } else {  // When that timer runs down...
+  g->sound(pos.x, pos.y, 20, "Bang!");
+ }
+}
+
 void iuse::mininuke(game *g, player *p, item *it, bool t)
 {
  g->add_msg_if_player(p,"You activate the mininuke.");
@@ -2308,7 +2499,7 @@ void iuse::manhack(game *g, player *p, item *it, bool t)
 
 void iuse::turret(game *g, player *p, item *it, bool t)
 {
-//CAT:
+//CAT-g:
 // g->draw();
 // mvprintw(0, 0, "Place where?");
 
@@ -2365,7 +2556,7 @@ void iuse::UPS_on(game *g, player *p, item *it, bool t)
 
 void iuse::tazer(game *g, player *p, item *it, bool t)
 {
-//CAT:
+//CAT-g:
 // g->draw();
 // mvprintw(0, 0, "Shock in which direction?");
 
@@ -2374,6 +2565,7 @@ void iuse::tazer(game *g, player *p, item *it, bool t)
  playSound(1);
 
  int dirx, diry;
+ mvprintw(0, 0, "Shock in which direction?");
  get_direction(g, dirx, diry, input());
  if (dirx == -2) {
   g->add_msg_if_player(p,"Invalid direction.");
@@ -2441,6 +2633,7 @@ void iuse::tazer(game *g, player *p, item *it, bool t)
 
 }
 
+//CAT-s: *** whole lot ***
 void iuse::mp3(game *g, player *p, item *it, bool t)
 {
 	if(it->charges == 0)
@@ -2448,18 +2641,18 @@ void iuse::mp3(game *g, player *p, item *it, bool t)
 	else
 	if (p->has_active_item(itm_mp3_on))
 	{
-//CAT: this is not ever even executed
+//CAT-s: this is not ever even executed
 		mp3Next();
 		playSound(0);
 
-//CAT:
+//CAT-s:
 //		g->add_msg_if_player(p,"You are already listening to an mp3 player!");
 		g->add_msg_if_player(p,"You skip to the next song.");
 
 	}
 	else
 	{
-//CAT:
+//CAT-s:
 		mp3Next();
 		playSound(0);
 
@@ -2469,6 +2662,7 @@ void iuse::mp3(game *g, player *p, item *it, bool t)
 	}
 }
 
+//CAT-s: *** whole lot ***
 void iuse::mp3_on(game *g, player *p, item *it, bool t)
 {
 	if(t)
@@ -2480,7 +2674,7 @@ void iuse::mp3_on(game *g, player *p, item *it, bool t)
 
 		if(int(g->turn) % 100 == 0)
 		{
-//CAT: 100 turns now... change this, or throw away
+//CAT-s: 100 turns now... change this, or throw away
 		   // Every 10 turns, describe the music
 		   std::string sound = "";
 		   switch (rng(1, 10))
@@ -2515,7 +2709,7 @@ void iuse::mp3_on(game *g, player *p, item *it, bool t)
 	}
 	else
 	{	
-//CAT:
+//CAT-s:
 		mp3Stop();
 		playSound(0);
 
@@ -2619,6 +2813,10 @@ void iuse::vacutainer(game *g, player *p, item *it, bool t)
  if (cut->type->id == 0) {
   g->add_msg("You do not have that item!");
   return;
+ }
+ if (cut->type->id == itm_string_6 || cut->type->id == itm_string_36 || cut->type->id == itm_rope_30 || cut->type->id == itm_rope_6) {
+    g->add_msg("You cannot cut that, you must disassemble it using the disassemble key");
+    return;
  }
  if (cut->type->id == itm_rag) {
   g->add_msg("There's no point in cutting a rag.");
@@ -2797,7 +2995,7 @@ void iuse::lumber(game *g, player *p, item *it, bool t)
 
 void iuse::hacksaw(game *g, player *p, item *it, bool t)
 {
-//CAT:
+//CAT-g:
 // g->draw();
 // mvprintw(0, 0, "Cut up metal where?");
 
@@ -2848,14 +3046,13 @@ if (dirx == 0 && diry == 0) {
 
 void iuse::tent(game *g, player *p, item *it, bool t)
 {
-//CAT:
+//CAT-g:
 // g->draw();
 // mvprintw(0, 0, "Put up tent where?");
 
  mvwprintw(g->w_terrain, 0, 0, "Pitch where?");
  wrefresh(g->w_terrain);
  playSound(1);
-
 
  int dirx, diry;
  get_direction(g, dirx, diry, input());
@@ -2881,6 +3078,34 @@ void iuse::tent(game *g, player *p, item *it, bool t)
  it->invlet = 0;
 }
 
+void iuse::shelter(game *g, player *p, item *it, bool t)
+{
+ int dirx, diry;
+ g->draw();
+ mvprintw(0, 0, "Put up shelter where?");
+ get_direction(g, dirx, diry, input());
+ if (dirx == -2 || (dirx == 0 && diry == 0)) {
+  g->add_msg_if_player(p,"Invalid direction.");
+  return;
+ }
+ int posx = dirx + p->posx;
+ int posy = diry + p->posy;
+ posx += dirx;
+ posy += diry;
+ for (int i = -1; i <= 1; i++)
+  for (int j = -1; j <= 1; j++)
+   if (!g->m.has_flag(tentable, posx + i, posy + j)) {
+    g->add_msg("You need a 3x3 diggable space to place a shelter");
+    return;
+   }
+ for (int i = -1; i <= 1; i++)
+  for (int j = -1; j <= 1; j++)
+    g->m.ter(posx + i, posy + j) = t_skin_wall;
+ g->m.ter(posx, posy) = t_skin_groundsheet;
+ g->m.ter(posx - dirx, posy - diry) = t_skin_door;
+ it->invlet = 0;
+}
+
 void iuse::torch(game *g, player *p, item *it, bool t)
 {
   if (!p->has_charges(itm_lighter, 1))
@@ -2892,6 +3117,7 @@ else {
   it->active = true;
  }
 }
+
 
 void iuse::torch_lit(game *g, player *p, item *it, bool t)
 {
@@ -3186,7 +3412,7 @@ void iuse::bullet_puller(game *g, player *p, item *it, bool t)
 
 void iuse::boltcutters(game *g, player *p, item *it, bool t)
 {
-//CAT:
+//CAT-g:
 // g->draw();
 // mvprintw(0, 0, "Cut up metal where?");
 
@@ -3226,7 +3452,7 @@ if (dirx == 0 && diry == 0) {
 
 void iuse::mop(game *g, player *p, item *it, bool t)
 {
-//CAT:
+//CAT-g:
 // g->draw();
 // mvprintw(0, 0, "Mop where?");
 
@@ -3413,9 +3639,9 @@ void iuse::artifact(game *g, player *p, item *it, bool t)
    bool new_map = false;
    for (int x = int(g->levx / 2) - 20; x <= int(g->levx / 2) + 20; x++) {
     for (int y = int(g->levy / 2) - 20; y <= int(g->levy / 2) + 20; y++) {
-     if (!g->cur_om.seen(x, y)) {
+     if (!g->cur_om.seen(x, y, g->levz)) {
       new_map = true;
-      g->cur_om.seen(x, y) = true;
+      g->cur_om.seen(x, y, g->levz) = true;
      }
     }
    }

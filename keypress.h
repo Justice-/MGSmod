@@ -6,9 +6,11 @@
 
 class game;
 
-// Simple text input--translates numpad to vikeys
-long input();
-bool input_wait(char & ret_ch, int timeout);
+//CAT-g:
+int input();
+
+//CAT-g:
+//bool input_wait(char & ret_ch, int timeout);
 
 // Uses the keymap to figure out direction properly
 void get_direction(game *g, int &x, int &y, char ch);

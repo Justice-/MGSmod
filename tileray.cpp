@@ -189,19 +189,21 @@ char tileray::dir_symbol (char sym)
     case '=':
         switch (dir4())
         {
+//CAT-mgs:
         default:
-        case 0: return 'H';
+        case 0: return '=';
         case 1: return '=';
-        case 2: return 'H';
+        case 2: return '=';
         case 3: return '=';
         }
     case 'H':
         switch (dir4())
         {
+//CAT-mgs:
         default:
-        case 0: return '=';
+        case 0: return 'H';
         case 1: return 'H';
-        case 2: return '=';
+        case 2: return 'H';
         case 3: return 'H';
         }
     case '\\':

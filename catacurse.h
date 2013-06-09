@@ -31,7 +31,6 @@ typedef struct
     int BG;//foreground index in colors[]
 } pairs;
 
-
 //The curse character struct, just a char, attribute, and color pair
 //typedef struct
 //{
@@ -142,12 +141,15 @@ int waddch(WINDOW *win, const chtype ch);
 int printw(const char *fmt,...);
 int getmaxx(WINDOW *win);
 int getmaxy(WINDOW *win);
+int getbegx(WINDOW *win);
+int getbegy(WINDOW *win);
 int move(int y, int x);
 void timeout(int delay);//PORTABILITY, DUMMY FUNCTION
 void set_escdelay(int delay);//PORTABILITY, DUMMY FUNCTION
 
 
-//CAT:
+
+//CAT-s:
 void playMusic(int ID); 
 void stopMusic(int delay); 
 void fadeMusic(int dVolume);

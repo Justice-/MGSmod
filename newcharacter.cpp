@@ -36,10 +36,10 @@
 
 void draw_tabs(WINDOW* w, std::string sTab);
 
-int set_stats(WINDOW* w, player *u, int &points);
-int set_traits(WINDOW* w, player *u, int &points);
-int set_skills(WINDOW* w, player *u, int &points);
-int set_description(WINDOW* w, player *u, int &points);
+int set_stats(WINDOW* w, game* g, player *u, int &points);
+int set_traits(WINDOW* w, game* g, player *u, int &points);
+int set_skills(WINDOW* w, game* g, player *u, int &points);
+int set_description(WINDOW* w, game* g, player *u, int &points);
 
 int random_skill();
 
@@ -50,7 +50,9 @@ void save_template(player *u);
 bool player::create(game *g, character_type type, std::string tempname)
 {
  weapon = item(g->itypes[0], 0);
- WINDOW* w = newwin((g->VIEWY*2)+1, 80, 0, 0);
+
+ WINDOW* w = newwin(25, 80, (TERMY > 25) ? (TERMY-25)/2 : 0, (TERMX > 80) ? (TERMX-80)/2 : 0);
+
  int tab = 0, points = 38;
  if (type != PLTYPE_CUSTOM) {
   switch (type) {
@@ -134,7 +136,7 @@ bool player::create(game *g, character_type type, std::string tempname)
    case PLTYPE_TEMPLATE: {
     std::ifstream fin;
     std::stringstream filename;
-    filename << "save/" << tempname << ".template";
+    filename << "data/" << tempname << ".template";
     fin.open(filename.str().c_str());
     if (!fin.is_open()) {
      debugmsg("Couldn't open %s!", filename.str().c_str());
@@ -151,20 +153,25 @@ bool player::create(game *g, character_type type, std::string tempname)
   points = OPTIONS[OPT_INITIAL_POINTS];
 
  do {
+//CAT-g:
   werase(w);
-  wrefresh(w);
-
-//CAT: tab/menuOpen
+//CAT-s: tab/menuOpen
   playSound(1);
 
   switch (tab) {
-   case 0: tab += set_stats      (w, this, points); break;
-   case 1: tab += set_traits     (w, this, points); break;
-   case 2: tab += set_skills     (w, this, points); break;
-   case 3: tab += set_description(w, this, points); break;
+   case 0: tab += set_stats      (w, g, this, points); break;
+   case 1: tab += set_traits     (w, g, this, points); break;
+   case 2: tab += set_skills     (w, g, this, points); break;
+   case 3: tab += set_description(w, g, this, points); break;
   }
+
+//CAT-g:
+  wrefresh(w);
+
  } while (tab >= 0 && tab < 4);
- delwin(w);
+
+//CAT-g:
+  delwin(w);
 
  if (tab < 0)
   return false;
@@ -211,7 +218,7 @@ End of cheatery */
   itype_id ma_type;
   do {
    int choice = menu("Pick your style:",
-                     "Karate", "Judo", "Aikido", "Tai Chi", "Taekwando", NULL);
+                     "Karate", "Judo", "Aikido", "Tai Chi", "Taekwondo", NULL);
    if (choice == 1)
     ma_type = itm_style_karate;
    if (choice == 2)
@@ -221,7 +228,7 @@ End of cheatery */
    if (choice == 4)
     ma_type = itm_style_tai_chi;
    if (choice == 5)
-    ma_type = itm_style_taekwando;
+    ma_type = itm_style_taekwondo;
    item tmpitem = item(g->itypes[ma_type], 0);
    full_screen_popup(tmpitem.info(true).c_str());
   } while (!query_yn("Use this style?"));
@@ -288,9 +295,7 @@ void draw_tabs(WINDOW* w, std::string sTab)
  mvwputch(w, 24, 79, c_ltgray, LINE_XOOX); // _|
 }
 
-
-
-int set_stats(WINDOW* w, player *u, int &points)
+int set_stats(WINDOW* w, game* g, player *u, int &points)
 {
  unsigned char sel = 1;
  char ch;
@@ -307,7 +312,6 @@ int set_stats(WINDOW* w, player *u, int &points)
  mvwprintz(w, 19, 2, c_ltgray, "< Returns you to the main menu.");
 
  do {
-
   mvwprintz(w,  3, 2, c_ltgray, "Points left: %d  ", points);
   switch (sel) {
   case 1:
@@ -351,6 +355,7 @@ int set_stats(WINDOW* w, player *u, int &points)
              (u->throw_dex_mod(false) <= 0 ? "bonus" : "penalty"),
              (u->throw_dex_mod(false) <= 0 ? "+" : "-"),
              abs(u->throw_dex_mod(false)));
+   mvwprintz(w, 9, 33, COL_STAT_ACT, "                                            ");
    mvwprintz(w,10, 33, COL_STAT_ACT, "Dexterity also enhances many actions which  ");
    mvwprintz(w,11, 33, COL_STAT_ACT, "require finesse.                            ");
    mvwprintz(w,12, 33, COL_STAT_ACT, "                                            ");
@@ -365,10 +370,12 @@ int set_stats(WINDOW* w, player *u, int &points)
    mvwprintz(w, 7,  2, c_ltgray,     "Dexterity:    %d  ", u->dex_max);
    mvwprintz(w, 8,  2, COL_STAT_ACT, "Intelligence: %d  ", u->int_max);
    mvwprintz(w, 9,  2, c_ltgray,     "Perception:   %d  ", u->per_max);
+
    mvwprintz(w, 6, 33, COL_STAT_ACT, "Skill comprehension: %d%%%%                     ",
              u->skillLevel("melee").comprehension(u->int_max));
    mvwprintz(w, 7, 33, COL_STAT_ACT, "Read times: %d%%%%                              ",
              u->read_speed(false));
+   mvwprintz(w, 8, 33, COL_STAT_ACT, "                                            ");
    mvwprintz(w, 9, 33, COL_STAT_ACT, "Intelligence is also used when crafting,    ");
    mvwprintz(w,10, 33, COL_STAT_ACT, "installing bionics, and interacting with    ");
    mvwprintz(w,11, 33, COL_STAT_ACT, "NPCs.                                       ");
@@ -389,6 +396,7 @@ int set_stats(WINDOW* w, player *u, int &points)
              (u->ranged_per_mod(false) <= 0 ? "bonus" : "penalty"),
              (u->ranged_per_mod(false) <= 0 ? "+" : "-"),
              abs(u->ranged_per_mod(false)));
+   mvwprintz(w, 7, 33, COL_STAT_ACT, "                                            ");
    mvwprintz(w, 8, 33, COL_STAT_ACT, "Perception is also used for detecting       ");
    mvwprintz(w, 9, 33, COL_STAT_ACT, "traps and other things of interest.         ");
    mvwprintz(w,10, 33, COL_STAT_ACT, "                                            ");
@@ -457,18 +465,16 @@ int set_stats(WINDOW* w, player *u, int &points)
   if (ch == '>')
    return 1;
 
-//CAT:
+//CAT-s:
 	playSound(0);
  } while (true);
 }
 
-
-int set_traits(WINDOW* w, player *u, int &points)
+int set_traits(WINDOW* w, game* g, player *u, int &points)
 {
  draw_tabs(w, "TRAITS");
 
- WINDOW* w_description = newwin(3, 78, 21, 1);
-
+ WINDOW* w_description = newwin(3, 78, 21 + getbegy(w), 1 + getbegx(w));
 // Track how many good / bad POINTS we have; cap both at MAX_TRAIT_POINTS
  int num_good = 0, num_bad = 0;
  for (int i = 0; i < PF_SPLIT; i++) {
@@ -497,7 +503,6 @@ int set_traits(WINDOW* w, player *u, int &points)
 			// selecting disadvantages
 
  do {
-
   mvwprintz(w,  3, 2, c_ltgray, "Points left: %d  ", points);
   mvwprintz(w,  3,20, c_ltgreen, "%s%d/%d", (num_good < 10 ? " " : ""),
                                  num_good, MAX_TRAIT_POINTS);
@@ -588,7 +593,6 @@ int set_traits(WINDOW* w, player *u, int &points)
   wrefresh(w);
   wrefresh(w_description);
   switch (input()) {
-
    case 'h':
    case 'l':
    case '\t':
@@ -661,18 +665,17 @@ int set_traits(WINDOW* w, player *u, int &points)
     return 1;
   }
 
-//CAT:
+//CAT-s:
 	playSound(0);
 
  } while (true);
 }
 
-
-int set_skills(WINDOW* w, player *u, int &points)
+int set_skills(WINDOW* w, game* g, player *u, int &points)
 {
  draw_tabs(w, "SKILLS");
 
- WINDOW* w_description = newwin(3, 78, 21, 1);
+ WINDOW* w_description = newwin(3, 78, 21 + getbegy(w), 1 + getbegx(w));
 
  int cur_sk = 1;
  Skill *currentSkill = Skill::skill(cur_sk);
@@ -777,20 +780,17 @@ int set_skills(WINDOW* w, player *u, int &points)
     return 1;
   }
 
-
-//CAT:
+//CAT-s:
 	playSound(0);
 
  } while (true);
 }
 
-
-
-int set_description(WINDOW* w, player *u, int &points)
+//CAT-g: *****
+void drawDescription(WINDOW* w)
 {
  draw_tabs(w, "DESCRIPTION");
 
- mvwprintz(w,  3, 2, c_ltgray, "Points left: %d  ", points);
 
  mvwprintz(w, 6, 2, c_ltgray, "\
 Name: ______________________________     (Press TAB to move off this line)");
@@ -805,13 +805,23 @@ To pick a random name for your character, press ?.");
  mvwprintz(w, 16, 2, c_green, "\
 To save this character as a template, press !.");
 
+}
+
+int set_description(WINDOW* w, game* g, player *u, int &points)
+{
+
+ drawDescription(w);
+
+ mvwprintz(w,  3, 2, c_ltgray, "Points left: %d  ", points);
+
  int line = 1;
  bool noname = false;
  long ch;
-u->name= "Old Snake";
+
+//CAT-mgs:
+ u->name= "Old Snake";
 
  do {
-
   if (u->male) {
    mvwprintz(w, 8, 10, c_ltred, "Male");
    mvwprintz(w, 8, 15, c_ltgray, "Female");
@@ -839,39 +849,34 @@ u->name= "Old Snake";
 
 
   if (ch == '>') {
-   if (points > 0)
-    mvwprintz(w,  3, 2, c_red, "\
-Points left: %d    You must use the rest of your points!", points);
-   else if (u->name.size() == 0) {
+   if (points > 0 && query_yn("Remaining points will be discarded, are you sure you want to proceed?")) {
+    if (u->name.size() == 0) {
     mvwprintz(w, 6, 8, h_ltgray, "______NO NAME ENTERED!!!!_____");
     noname = true;
     wrefresh(w);
-    if (query_yn("Are you SURE? Your name will be randomly generated."))
-    {
-	u->pick_name();
-
-//CAT: not refreshing properly
-	wrefresh(w);
-	playSound(2);
-
-//CAT: drawing needs to move out of this function so it can be refreshed here
-
-	return 1;
+//CAT-mgs:
+    if (query_yn("Your name will be randomly generated."))
+     u->pick_name();
+     return 1;
+     } else
+    return 1;
+  } else if (u->name.size() == 0) {
+    mvwprintz(w, 6, 8, h_ltgray, "______NO NAME ENTERED!!!!_____");
+    noname = true;
+    wrefresh(w);
+//CAT-mgs:
+    if (query_yn("Your name will be randomly generated.")){
+     u->pick_name();
+     return 1;
     }
-   } 
-   else 
-   if (query_yn("Are you SURE you're finished?"))
-   {
+    else
+	drawDescription(w);
 
-//CAT: not refreshing properly
-	wrefresh(w);
-	playSound(2);
 
-//CAT: drawing needs to move out of this function so it can be refreshed here
-	return 1;
-   }
+   } else if (query_yn("Are you SURE you're finished?"))
+    return 1;
    else
-    refresh();
+	drawDescription(w);
 
   } else if (ch == '<') {
    return -1;
@@ -912,10 +917,10 @@ Points left: %d    You must use the rest of your points!", points);
    }
   }
 
-//CAT:
+//CAT-s:
 	playSound(0);
 
-//CAT: need proper refresh
+//CAT-g: need proper refresh?
 
  } while (true);
 }
@@ -946,7 +951,7 @@ void save_template(player *u)
  if (name.length() == 0)
   return;
  std::stringstream playerfile;
- playerfile << "save/" << name << ".template";
+ playerfile << "data/" << name << ".template";
  std::ofstream fout;
  fout.open(playerfile.str().c_str());
  fout << u->save_info();

@@ -33,9 +33,9 @@ void light_map::generate(game* g, int x, int y, float natural_light, float lumin
     // In bright light indoor light exists to some degree
     if (!is_outside(sx - x, sy - y))
      lm[sx - x + SEEX][sy - y + SEEY] = LIGHT_AMBIENT_LOW;
-//CAT: let sun or moonlight shine
+//CAT-l: let sun or moonlight shine
     else
-     lm[sx - x + SEEX][sy - y + SEEY]= g->turn.sunlight();	
+     lm[sx - x + SEEX][sy - y + SEEY]= g->turn.sunlight();
    }
   }
  }
@@ -80,14 +80,14 @@ void light_map::generate(game* g, int x, int y, float natural_light, float lumin
        items[0].type->id == itm_candle_lit)
     apply_light_source(sx, sy, x, y, 4);
 
-//CAT:
+   if(terrain == t_emergency_light)
+    apply_light_source(sx, sy, x, y, 3);
+
+//CAT-g:
    if(items.size() == 1 &&
        items[0].type->id == itm_torch_lit)
     apply_light_source(sx, sy, x, y, 10);
 
-
-   if(terrain == t_emergency_light)
-    apply_light_source(sx, sy, x, y, 3);
 
    // TODO: [lightmap] Attach light brightness to fields
    switch(current_field.type) {
@@ -119,12 +119,11 @@ void light_map::generate(game* g, int x, int y, float natural_light, float lumin
     if (c[sx - x + LIGHTMAP_RANGE_X][sy - y + LIGHTMAP_RANGE_Y].veh_light > LL_LIT) {
      int dir = c[sx - x + LIGHTMAP_RANGE_X][sy - y + LIGHTMAP_RANGE_Y].veh->face.dir();
 
-//CAT: longer range headlights
+//CAT-g: longer range headlights
 //     float luminance = c[sx - x + LIGHTMAP_RANGE_X][sy - y + LIGHTMAP_RANGE_Y].veh_light;
 	 float luminance = 4000 + c[sx - x + LIGHTMAP_RANGE_X][sy - y + LIGHTMAP_RANGE_Y].veh_light;    
 
 	apply_light_arc(sx, sy, dir, x, y, luminance);
-
     }
    }
 
@@ -154,16 +153,15 @@ void light_map::generate(game* g, int x, int y, float natural_light, float lumin
  }
 }
 
-
-
 lit_level light_map::at(int dx, int dy)
 {
-//CAT: why does it not work upside down?
+//CAT-l: why does it not work upside down?
 
- if(!INBOUNDS(dx, dy))
+ if (!INBOUNDS(dx, dy))
   return LL_DARK; // Out of bounds
 
-//CAT: if (sm[dx+SEEX]...  shadowmap?
+//CAT: what's this, let's try lm[] instead of sm[]
+// if (sm[dx + SEEX][dy + SEEY] >= LIGHT_SOURCE_BRIGHT)
  if (lm[dx + SEEX][dy + SEEY] >= LIGHT_SOURCE_BRIGHT)
   return LL_BRIGHT;
 
@@ -179,7 +177,7 @@ lit_level light_map::at(int dx, int dy)
 float light_map::ambient_at(int dx, int dy)
 {
  if (!INBOUNDS(dx, dy))
-   return 0.0f;
+  return 0.0f;
 
  return lm[dx + SEEX][dy + SEEY];
 }
@@ -328,6 +326,8 @@ void light_map::apply_light_arc(int x, int y, int angle, int cx, int cy, float l
  }
 }
 
+
+//CAT-l: *** c/p whole lot ***
 void light_map::apply_light_ray(bool lit[LIGHTMAP_X][LIGHTMAP_Y], int sx, int sy,
                                 int ex, int ey, int cx, int cy, float luminance)
 {
@@ -408,18 +408,35 @@ void light_map::apply_light_ray(bool lit[LIGHTMAP_X][LIGHTMAP_Y], int sx, int sy
 }
 
 
+void light_map::build_outside_cache(map *m, const int x, const int y, const int sx, const int sy)
+{
+ const ter_id terrain = m->ter(sx, sy);
+
+ if( terrain == t_floor || terrain == t_rock_floor || terrain == t_floor_wax ||
+     terrain == t_fema_groundsheet || terrain == t_dirtfloor) {
+  for( int dx = -1; dx <= 1; dx++ ) {
+   for( int dy = -1; dy <= 1; dy++ ) {
+    outside_cache[x + dx][y + dy] = false;
+   }
+  }
+ } else if(terrain == t_bed || terrain == t_groundsheet || terrain == t_makeshift_bed) {
+  outside_cache[x][y] = false;
+ }
+}
 
 // We only do this once now so we don't make 100k calls to is_outside for each
 // generation. As well as close to that for the veh_at function.
 void light_map::build_light_cache(game* g, int cx, int cy)
 {
  // Clear cache
+ memset(outside_cache, true, sizeof(outside_cache));
+
  for(int x = 0; x < LIGHTMAP_CACHE_X; x++) {
   for(int y = 0; y < LIGHTMAP_CACHE_Y; y++) {
    int sx = x + g->u.posx - LIGHTMAP_RANGE_X;
    int sy = y + g->u.posy - LIGHTMAP_RANGE_Y;
 
-   outside_cache[x][y] = g->m.is_outside(sx, sy);
+   build_outside_cache(&g->m, x, y, sx, sy);
    c[x][y].transparency = LIGHT_TRANSPARENCY_CLEAR;
    c[x][y].veh = NULL;
    c[x][y].veh_part = 0;
@@ -433,39 +450,35 @@ void light_map::build_light_cache(game* g, int cx, int cy)
   if (INBOUNDS(g->z[i].posx - cx, g->z[i].posy - cy))
    c[g->z[i].posx - cx + LIGHTMAP_RANGE_X][g->z[i].posy - cy + LIGHTMAP_RANGE_Y].mon = i;
 
-
  // Check for vehicles and cache
  VehicleList vehs = g->m.get_vehicles(cx - LIGHTMAP_RANGE_X, cy - LIGHTMAP_RANGE_Y, cx + LIGHTMAP_RANGE_X, cy + LIGHTMAP_RANGE_Y);
  for(int v = 0; v < vehs.size(); ++v) {
   for(int p = 0; p < vehs[v].v->parts.size(); ++p) {
+   int px = vehs[v].x + vehs[v].v->parts[p].precalc_dx[0] - cx;
+   int py = vehs[v].y + vehs[v].v->parts[p].precalc_dy[0] - cy;
 
-    int px = vehs[v].x + vehs[v].v->parts[p].precalc_dx[0] - cx;
-    int py = vehs[v].y + vehs[v].v->parts[p].precalc_dy[0] - cy;
-
-
-//CAT: fix bug with dissapearing headlight when looking/peeking and shifting terrain view
+//CAT-l: fix bug with dissapearing headlight
 //    if(INBOUNDS(px, py)) 
-    if(INBOUNDS_LARGE(px, py)) 
-    {
-      px += LIGHTMAP_RANGE_X;
-      py += LIGHTMAP_RANGE_Y;
+   if(INBOUNDS_LARGE(px, py))
+   {
+    px += LIGHTMAP_RANGE_X;
+    py += LIGHTMAP_RANGE_Y;
 
-      if (vehs[v].v->is_inside(p))
-       outside_cache[px][py] = true;
-
-      // External part appears to always be the first?
-      if(!c[px][py].veh) {
-        c[px][py].veh = vehs[v].v;
-        c[px][py].veh_part = p;
-      }
-      if(vehs[v].v->part_flag(p, vpf_light) 
-		&& vehs[v].v->lights_on && vehs[v].v->parts[p].hp > 0)
-	  c[px][py].veh_light = vehs[v].v->part_info(p).power;
+    if (vehs[v].v->is_inside(p))
+     outside_cache[px][py] = true;
+    // External part appears to always be the first?
+    if (!c[px][py].veh) {
+     c[px][py].veh = vehs[v].v;
+     c[px][py].veh_part = p;
     }
 
+    if (vehs[v].v->lights_on &&
+        vehs[v].v->part_flag(p, vpf_light) &&
+        vehs[v].v->parts[p].hp > 0)
+     c[px][py].veh_light = vehs[v].v->part_info(p).power;
+   }
   }
  }
-
 
  for(int x = 0; x < LIGHTMAP_CACHE_X; x++) {
   for(int y = 0; y < LIGHTMAP_CACHE_Y; y++) {

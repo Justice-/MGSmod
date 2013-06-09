@@ -1,3 +1,4 @@
+#include "game.h"
 #include "options.h"
 #include "output.h"
 #include "keypress.h"
@@ -13,22 +14,31 @@ bool option_is_bool(option_key id);
 void create_default_options();
 std::string options_header();
 
-void show_options()
+void game::show_options()
 {
- erase();
+ WINDOW* w_options_border = newwin(25, 80, (TERMY > 25) ? (TERMY-25)/2 : 0, (TERMX > 80) ? (TERMX-80)/2 : 0);
+ WINDOW* w_options = newwin(23, 78, 1 + ((TERMY > 25) ? (TERMY-25)/2 : 0), 1 + ((TERMX > 80) ? (TERMX-80)/2 : 0));
+
+
  int offset = 1;
  int line = 0;
  char ch = ' ';
  bool changed_options = false;
  bool needs_refresh = true;
+
+//CAT-g:
+ wborder(w_options_border, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
+                            LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX);
+ mvwprintz(w_options_border, 0, 36, c_ltred, " OPTIONS ");
+
  do {
 // TODO: change instructions
   if (needs_refresh) {
-    erase();
-    mvprintz(0, 40, c_white, "Use up/down keys to scroll through");
-    mvprintz(1, 40, c_white, "available options.");
-    mvprintz(2, 40, c_white, "Use left/right keys to toggle.");
-    mvprintz(3, 40, c_white, "Press ESC or q to return.             ");
+    werase(w_options);
+    mvwprintz(w_options, 0, 40, c_white, "Use up/down keys to scroll through");
+    mvwprintz(w_options, 1, 40, c_white, "available options.");
+    mvwprintz(w_options, 2, 40, c_white, "Use left/right keys to toggle.");
+    mvwprintz(w_options, 3, 40, c_white, "Press ESC or q to return.             ");
 // highlight options for option descriptions
     std::string tmp = option_desc(option_key(offset + line));
     std::string out;
@@ -37,7 +47,7 @@ void show_options()
     do {
       pos = tmp.find_first_of('\n');
       out = tmp.substr(0, pos);
-      mvprintz(displayline, 40, c_white, out.c_str());
+      mvwprintz(w_options, displayline, 40, c_white, out.c_str());
       tmp = tmp.substr(pos + 1);
       displayline++;
     } while (pos != std::string::npos && displayline < 12);
@@ -46,36 +56,39 @@ void show_options()
 
 // Clear the lines
   for (int i = 0; i < 25; i++)
-   mvprintz(i, 0, c_black, "                                        ");
+   mvwprintz(w_options, i, 0, c_black, "                                        ");
   int valid_option_count = 0;
 
 // display options
   for (int i = 0; i < 25 && offset + i < NUM_OPTION_KEYS; i++)
   {
        valid_option_count++;
-       mvprintz(i, 0, c_white, "%s: ",
+       mvwprintz(w_options, i, 0, c_white, "%s: ",
                 option_name( option_key(offset + i) ).c_str());
 
       if (option_is_bool(option_key(offset + i)))
       {
         bool on = OPTIONS[ option_key(offset + i) ];
         if (i == line)
-          mvprintz(i, 30, hilite(c_ltcyan), (on ? "True" : "False"));
+          mvwprintz(w_options, i, 30, hilite(c_ltcyan), (on ? "True" : "False"));
         else
-          mvprintz(i, 30, (on ? c_ltgreen : c_ltred), (on ? "True" : "False"));
-      } else
-      {
+          mvwprintz(w_options, i, 30, (on ? c_ltgreen : c_ltred), (on ? "True" : "False"));
+      } else {
         char option_val = OPTIONS[ option_key(offset + i) ];
         if (i == line)
-          mvprintz(i, 30, hilite(c_ltcyan), "%d", option_val );
+          mvwprintz(w_options, i, 30, hilite(c_ltcyan), "%d", option_val );
         else
-          mvprintz(i, 30, c_ltgreen, "%d", option_val );
+          mvwprintz(w_options, i, 30, c_ltgreen, "%d", option_val );
       }
   }
-  refresh();
+
+//CAT-g:
+  wrefresh(w_options_border);
+  wrefresh(w_options);
   ch = input();
   needs_refresh = true;
-  refresh();
+  wrefresh(w_options);
+
 
  switch (ch) {
 // move up and down
@@ -117,7 +130,7 @@ void show_options()
 
  if (changed_options && query_yn("Save changes?"))
   save_options();
- erase();
+ werase(w_options);
 }
 
 void load_options()
@@ -216,6 +229,8 @@ option_key lookup_option_key(std::string id)
   return OPT_VIEWPORT_Y;
  if (id == "static_spawn")
   return OPT_STATIC_SPAWN;
+ if (id == "classic_zombies")
+  return OPT_CLASSIC_ZOMBIES;
  return OPT_NULL;
 }
 
@@ -243,6 +258,7 @@ std::string option_string(option_key key)
   case OPT_VIEWPORT_X: return "viewport_x";
   case OPT_VIEWPORT_Y: return "viewport_y";
   case OPT_STATIC_SPAWN: return "static_spawn";
+  case OPT_CLASSIC_ZOMBIES: return "classic_zombies";
   default:			return "unknown_option";
  }
  return "unknown_option";
@@ -269,9 +285,10 @@ std::string option_desc(option_key key)
   case OPT_DELETE_WORLD: return "Delete saves upon player death\n0 - no\n1 - yes\n2 - query";
   case OPT_INITIAL_POINTS: return "Initial points available on character\ngeneration.  Default is 6";
   case OPT_INITIAL_TIME: return "Initial starting time of day on character\ngeneration.  Default is 8:00";
-  case OPT_VIEWPORT_X: return "Set the expansion of the viewport along\nthe X axis.  Must restart for changes\nto take effect.  Default is 12";
-  case OPT_VIEWPORT_Y: return "Set the expansion of the viewport along\nthe Y axis.  Must restart for changes\nto take effect.  Default is 12";
+  case OPT_VIEWPORT_X: return "WINDOWS ONLY: Set the expansion of the viewport along\nthe X axis.  Must restart for changes\nto take effect.  Default is 12. POSIX\nsystems will use terminal size at startup.";
+  case OPT_VIEWPORT_Y: return "WINDOWS ONLY: Set the expansion of the viewport along\nthe Y axis.  Must restart for changes\nto take effect.  Default is 12. POSIX\nsystems will use terminal size at startup.";
   case OPT_STATIC_SPAWN: return "Spawn zombies at game start instead of\nduring game. Must delete save directory\nafter changing for it to take effect.\nDefault is F";
+  case OPT_CLASSIC_ZOMBIES: return "Only spawn classic zombies and natural\nwildlife. Probably requires a reset of\nsave folder to take effect. Default is F";
   default:			return " ";
  }
  return "Big ol Bug";
@@ -301,6 +318,7 @@ std::string option_name(option_key key)
   case OPT_VIEWPORT_X: return "Viewport width";
   case OPT_VIEWPORT_Y: return "Viewport height";
   case OPT_STATIC_SPAWN: return "Static spawn";
+  case OPT_CLASSIC_ZOMBIES: return "Classic zombies";
   default:			return "Unknown Option (BUG)";
  }
  return "Big ol Bug";
@@ -357,7 +375,7 @@ char option_max_options(option_key id)
         break;
       case OPT_VIEWPORT_X:
       case OPT_VIEWPORT_Y:
-        ret = 61; // TODO Set up min/max values so weird numbers don't have to be used.
+        ret = 93; // TODO Set up min/max values so weird numbers don't have to be used.
         break;
       default:
         ret = 2;
@@ -419,6 +437,8 @@ viewport_x 12\n\
 viewport_y 12\n\
 # Spawn zombies at game start instead of during the game.  You must create a new world after changing\n\
 static_spawn T\n\
+# Only spawn classic zombies and natural wildlife.  You must create a new world after changing\n\
+classic_zombies F\n\
 ";
  fout.close();
 }
