@@ -1,0 +1,17 @@
+data/audio/*
+save/*
+*.wav
+*.mp3
+*.slo
+*.lo
+*.o
+*.out
+*.so
+*.dylib
+*.dll
+*.lai
+*.la
+*.a
+cataclysm-launcher
+*.exe
+CataclysmWin.*
