@@ -124,7 +124,7 @@ void game::init_construction()
    COMP(itm_log, 3, NULL);
    COMP(itm_rope_30, 1, itm_rope_6, 5, NULL);
 
- CONSTRUCT("Build Rope and Pulley System", 2, &construct::able_empty, &construct::done_nothing);
+ CONSTRUCT("Build Rope and Pulley", 2, &construct::able_empty, &construct::done_nothing);
   STAGE(t_palisade_pulley, 0);
   COMP(itm_rope_30, 1, NULL);
   COMP(itm_stick, 8, itm_2x4, 8, NULL);
@@ -827,7 +827,7 @@ void construct::done_furniture(game *g, point p)
    return;
   x += p.x;
   y += p.y;
-  if(!g->m.ter(x, y) == t_floor || !g->is_empty(x, y)) {
+  if(g->m.ter(x, y) != t_floor || !g->is_empty(x, y)) {
 
 //CAT-g:
 //   mvprintz(0, 0, c_red, "Can't move furniture there! Choose a direction with open floor.");

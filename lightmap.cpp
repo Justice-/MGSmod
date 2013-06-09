@@ -30,45 +30,52 @@ void light_map::generate(game* g, int x, int y, float natural_light, float lumin
   // Apply sunlight, first light source so just assign
   for(int sx = x - SEEX; sx <= x + SEEX; ++sx) {
    for(int sy = y - SEEY; sy <= y + SEEY; ++sy) {
-    // In bright light indoor light exists to some degree
-    if (!is_outside(sx - x, sy - y))
-     lm[sx - x + SEEX][sy - y + SEEY] = LIGHT_AMBIENT_LOW;
-
-//CAT-g: let sun or moonlight shine
-    else
-     lm[sx - x + SEEX][sy - y + SEEY]= g->turn.sunlight();
+	// In bright light indoor light exists to some degree
+	if(!is_outside(sx - x + g->u.view_offset_x, sy - y + g->u.view_offset_y))
+		lm[sx - x + SEEX][sy - y + SEEY] = LIGHT_AMBIENT_LOW;	
+//CAT-g: let sun or moonlight shine outside, or not?
+	 else
+		lm[sx - x + SEEX][sy - y + SEEY]= natural_light;
    }
   }
  }
 
 
-//CAT-g: matters only during the day and on ground level, 
-//...during the day or underground can do without this, hm?
-// Apply player light sources
- if (luminance > LIGHT_AMBIENT_LOW)
+ if(luminance > LIGHT_AMBIENT_LOW)
   apply_light_source(g->u.posx, g->u.posy, x, y, luminance);
+
 
  for(int sx = x - LIGHTMAP_RANGE_X; sx <= x + LIGHTMAP_RANGE_X; ++sx) {
   for(int sy = y - LIGHTMAP_RANGE_Y; sy <= y + LIGHTMAP_RANGE_Y; ++sy) {
    const ter_id terrain = g->m.ter(sx, sy);
    const std::vector<item> items = g->m.i_at(sx, sy);
    const field current_field = g->m.field_at(sx, sy);
+
    // When underground natural_light is 0, if this changes we need to revisit
    if (natural_light > LIGHT_AMBIENT_LOW) {
-    if (!is_outside(sx - x, sy - y)) {
+
+    int lx= sx - x  + g->u.view_offset_x;
+    int ly= sy - y + g->u.view_offset_y;
+
+    if(!is_outside(lx, ly)) {
      // Apply light sources for external/internal divide
      for(int i = 0; i < 4; ++i) {
-      if (INBOUNDS_LARGE(sx - x + dir_x[i], sy - y + dir_y[i]) &&
-          is_outside(sx - x + dir_x[i], sy - y + dir_y[i])) {
-        if (INBOUNDS(sx - x, sy - y) && is_outside(0, 0))
-        lm[sx - x + SEEX][sy - y + SEEY] = natural_light;
+      if(INBOUNDS_LARGE(lx + dir_x[i], ly + dir_y[i])
+			&& is_outside(lx + dir_x[i], ly + dir_y[i]))
+	{
 
-       if (c[sx - x + LIGHTMAP_RANGE_X][sy - y + LIGHTMAP_RANGE_Y].transparency > LIGHT_TRANSPARENCY_SOLID)
-       	apply_light_arc(sx, sy, dir_d[i], x, y, natural_light);
+//CAT-mgs: I did that above, didn't I?
+//... no, yes, what's this for anyway?
+		if(INBOUNDS(sx - x, sy - y) && is_outside(0, 0))
+			lm[sx - x + SEEX][sy - y + SEEY]= natural_light;
+
+		if(c[sx - x + LIGHTMAP_RANGE_X][sy - y + LIGHTMAP_RANGE_Y].transparency > LIGHT_TRANSPARENCY_SOLID)
+			apply_light_arc(sx, sy, dir_d[i], x, y, natural_light);
       }
      }
     }
    }
+
 
    if (items.size() == 1 &&
        items[0].type->id == itm_flashlight_on)
@@ -157,7 +164,10 @@ void light_map::generate(game* g, int x, int y, float natural_light, float lumin
    }
   }
  }
+
 }
+
+
 
 lit_level light_map::at(int dx, int dy)
 {

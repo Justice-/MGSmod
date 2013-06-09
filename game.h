@@ -193,6 +193,8 @@ class game
   bool u_see (int x, int y, int &t);
   bool u_see (monster *mon, int &t);
   bool pl_sees(player *p, monster *mon, int &t);
+
+//CAT-mgs:
   void refresh_all();
   void update_map(int &x, int &y);  // Called by plmove when the map updates
   void update_overmap_seen(); // Update which overmap tiles we can see
@@ -264,7 +266,10 @@ class game
   bool no_npc;
 
 //CAT-mgs:
+  bool SNIPER;
+  bool CARJUMPED;	
   bool cat_lightning;
+  int ltar_x, ltar_y;
 
 //CAT-g:
 //  std::map<int, std::map<int, bool> > mapRain;
@@ -381,6 +386,7 @@ class game
 
 // Map updating and monster spawning
   void replace_stair_monsters();
+
   void update_stair_monsters();
   void despawn_monsters(const bool stairs = false, const int shiftx = 0, const int shifty = 0);
   void spawn_mon(int shift, int shifty); // Called by update_map, sometimes
@@ -400,7 +406,6 @@ class game
   void update_scent();     // Updates the scent map
   bool is_game_over();     // Returns true if the player quit or died
   void death_screen();     // Display our stats, "GAME OVER BOO HOO"
-  void gameover();         // Ends the game
   void write_msg();        // Prints the messages in the messages list
   void msg_buffer();       // Opens a window with old messages in it
   void draw_minimap();     // Draw the 5x5 minimap
@@ -425,6 +430,8 @@ class game
 // ########################## DATA ################################
 
   signed char last_target;// The last monster targeted
+
+
   char run_mode; // 0 - Normal run always; 1 - Running allowed, but if a new
 		 //  monsters spawns, go to 2 - No movement allowed
   int mostseen;	 // # of mons seen last turn; if this increases, run_mode++

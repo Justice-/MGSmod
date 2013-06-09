@@ -488,10 +488,11 @@ void dis_effect(game *g, player &p, disease &dis)
   }
   if (dis.duration == 1 && !p.has_disease(DI_SLEEP))
    if (!p.is_npc())
-    g->add_msg("You try to sleep, but can't...");
+    g->add_msg("You try to sleep, but you can't...");
   break;
 
  case DI_SLEEP:
+
   p.moves = 0;
   if (int(g->turn) % 25 == 0) {
    if (p.fatigue > 0)
@@ -506,6 +507,7 @@ void dis_effect(game *g, player &p, disease &dis)
     dis.duration = dice(3, 100);
    }
   }
+
   if (int(g->turn) % 100 == 0 && !p.has_bionic(bio_recycler)) {
 // Hunger and thirst advance more slowly while we sleep.
    p.hunger--;
@@ -524,6 +526,11 @@ void dis_effect(game *g, player &p, disease &dis)
    g->add_msg("The cold wakes you up.");
    dis.duration = 1;
   }
+	if(dis.duration <= 1)
+	{
+		g->add_msg("You are awake.");
+		playSound(2);
+	}
 
   break;
 

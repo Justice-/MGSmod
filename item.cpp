@@ -380,13 +380,6 @@ std::string item::info(bool showtext, std::vector<iteminfo> *dump)
   dump->push_back(iteminfo("AMMO", " Recoil: ", "", int(ammo->recoil), "", true, true));
   dump->push_back(iteminfo("AMMO", " Count: ", "", int(ammo->count)));
 
-  /*
-  dump << " Type: " << ammo_name(ammo->type) << "\n Damage: " <<
-           int(ammo->damage) << "\n Armor-pierce: " << int(ammo->pierce) <<
-           "\n Range: " << int(ammo->range) << "\n Accuracy: " <<
-           int(100 - ammo->accuracy) << "\n Recoil: " << int(ammo->recoil)
-           << "\n Count: " << int(ammo->count);
-  */
 
  } else if (is_ammo_container()) {
   it_ammo* ammo = dynamic_cast<it_ammo*>(contents[0].type);
@@ -399,13 +392,6 @@ std::string item::info(bool showtext, std::vector<iteminfo> *dump)
   dump->push_back(iteminfo("AMMO", " Recoil: ", "", int(ammo->recoil), "", true, true));
   dump->push_back(iteminfo("AMMO", " Count: ", "", int(contents[0].charges)));
 
-  /*
-  dump << " Type: " << ammo_name(ammo->type) << "\n Damage: " <<
-           int(ammo->damage) << "\n Armor-pierce: " << int(ammo->pierce) <<
-           "\n Range: " << int(ammo->range) << "\n Accuracy: " <<
-           int(100 - ammo->accuracy) << "\n Recoil: " << int(ammo->recoil)
-           << "\n Count: " << int(contents[0].charges);
-  */
 
  } else if (is_gun()) {
   it_gun* gun = dynamic_cast<it_gun*>(type);
@@ -419,19 +405,12 @@ std::string item::info(bool showtext, std::vector<iteminfo> *dump)
   dump->push_back(iteminfo("GUN", " Skill used: ", gun->skill_used->name()));
   dump->push_back(iteminfo("GUN", " Ammunition: ", "", int(clip_size()), " rounds of " + ammo_name(ammo_type())));
 
-  /*
-  dump << " Skill used: " << gun->skill_used->name() << "\n Ammunition: " <<
-          clip_size() << " rounds of " << ammo_name(ammo_type());
-
-  dump << "\n Damage: ";
-  */
 
   temp1.str("");
   if (has_ammo)
    temp1 << ammo_dam; //dump << ammo_dam;
 
   temp1 << (gun_damage(false) >= 0 ? "+" : "" );
-  //dump << (gun_damage(false) >= 0 ? "+" : "" ) << gun_damage(false);
 
   temp2.str("");
   if (has_ammo)
@@ -439,44 +418,41 @@ std::string item::info(bool showtext, std::vector<iteminfo> *dump)
 
   dump->push_back(iteminfo("GUN", " Damage: ", temp1.str(), int(gun_damage(false)), temp2.str()));
   dump->push_back(iteminfo("GUN", " Accuracy: ", "", int(100 - accuracy())));
-  //dump << "\n Accuracy: " << int(100 - accuracy());
-
-  //dump << "\n Recoil: ";
   temp1.str("");
   if (has_ammo)
-   temp1 << ammo_recoil; //dump << ammo_recoil;
+   temp1 << ammo_recoil; 
 
   temp1 << (recoil(false) >= 0 ? "+" : "" );
-  //dump << (recoil(false) >= 0 ? "+" : "" ) << recoil(false);
 
   temp2.str("");
   if (has_ammo)
-   temp2 << " = " << recoil(); //dump << " = " << recoil();
+   temp2 << " = " << recoil();
 
   dump->push_back(iteminfo("GUN"," Recoil: ", temp1.str(), int(recoil(false)), temp2.str(), true, true));
 
-  //dump << "\n Reload time: " << int(gun->reload_time);
-  //if (has_flag(IF_RELOAD_ONE))
-   //dump << " per round";
-
-  dump->push_back(iteminfo("GUN", " Reload time: ", "", int(gun->reload_time), ((has_flag(IF_RELOAD_ONE)) ? " per round" : ""), true, true));
+  dump->push_back(iteminfo("GUN", " Reload time: ", "", 
+		int(gun->reload_time), ((has_flag(IF_RELOAD_ONE)) ? " per round" : ""), true, true));
 
   if (burst_size() == 0) {
    if (gun->skill_used == Skill::skill("pistol") && has_flag(IF_RELOAD_ONE))
-    dump->push_back(iteminfo("GUN", " Revolver.")); //dump << "\n Revolver.";
+    dump->push_back(iteminfo("GUN", " Revolver.")); 
    else
-    dump->push_back(iteminfo("GUN", " Semi-automatic.")); //dump << "\n Semi-automatic.";
+    dump->push_back(iteminfo("GUN", " Semi-automatic.")); 
   } else
-   dump->push_back(iteminfo("GUN", " Burst size: ", "", int(burst_size()))); //dump << "\n Burst size: " << burst_size();
+   dump->push_back(iteminfo("GUN", " Burst size: ", "", int(burst_size())));
 
-  if (contents.size() > 0)
-   dump->push_back(iteminfo("GUN", "\n")); //dump << "\n";
 
-  temp1.str("");
-  for (int i = 0; i < contents.size(); i++)
-   temp1 << "\n+" << contents[i].tname();
+//CAT-mgs: print gunmods in a line 
+  if(contents.size() > 0)
+  {
+	dump->push_back(iteminfo("GUN", "\n")); 
 
-  dump->push_back(iteminfo("GUN", temp1.str())); //
+	temp1.str("");
+	for (int i = 0; i < contents.size(); i++)
+		temp1 << " +" << contents[i].tname();
+
+	dump->push_back(iteminfo("GUN", temp1.str())); 
+  }
 
  } else if (is_gunmod()) {
   it_gunmod* mod = dynamic_cast<it_gunmod*>(type);
@@ -602,19 +578,13 @@ std::string item::info(bool showtext, std::vector<iteminfo> *dump)
   dump->push_back(iteminfo("TECHNIQUE", temp1.str()));
  }
 
- if ( showtext && !is_null() ) {
-  //dump << "\n\n" << type->description << "\n";
-  dump->push_back(iteminfo("DESCRIPTION", type->description));
-  if (contents.size() > 0) {
-   if (is_gun()) {
-    for (int i = 0; i < contents.size(); i++)
-     dump->push_back(iteminfo("DESCRIPTION", contents[i].type->description));
-     //dump << "\n " << contents[i].type->description;
-   } else
-    dump->push_back(iteminfo("DESCRIPTION", contents[0].type->description));
-    //dump << "\n " << contents[0].type->description;
-   //dump << "\n";
-  }
+
+//CAT-mgs: no additional gunmod info, often doesn't fit
+ if( showtext && !is_null() ) 
+ {
+	dump->push_back(iteminfo("DESCRIPTION", type->description));
+	if(!is_gun() && contents.size() > 0)
+		dump->push_back(iteminfo("DESCRIPTION", contents[0].type->description));
  }
 
  temp1.str("");
@@ -1124,8 +1094,10 @@ style_move item::style_data(technique_id tech)
 
 bool item::is_two_handed(player *u)
 {
-  if (is_gun() && (dynamic_cast<it_gun*>(type))->skill_used != Skill::skill("pistol"))
+  if(is_gun() && ( (dynamic_cast<it_gun*>(type))->skill_used != Skill::skill("pistol")
+			  && (dynamic_cast<it_gun*>(type))->skill_used != Skill::skill("smg") ) )
     return true;
+
   return (weight() > u->str_cur * 4);
 }
 

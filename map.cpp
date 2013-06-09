@@ -18,6 +18,7 @@
 
 //CAT-mgs:
 int cat_px, cat_py;
+//bool nightime= false;
 
 enum astar_list {
  ASL_NONE,
@@ -272,6 +273,7 @@ void map::unboard_vehicle(game *g, const int x, const int y)
  veh->skidding = true;
 
 //CAT-mgs:
+ g->CARJUMPED= false;
  g->u.view_offset_y= 0;
  g->u.view_offset_x= 0;
  veh->cruise_velocity= 0;
@@ -1689,7 +1691,7 @@ case t_wall_log:
  case t_wall_glass_h_alarm:
  case t_wall_glass_v_alarm:
  case t_door_glass_c:
-  result = rng(0, 20);
+  result = rng(0, 30);
   if (res) *res = result;
   if (str >= result) {
    sound += "glass breaking!";
@@ -2410,6 +2412,32 @@ void map::translate(const ter_id from, const ter_id to)
  }
 }
 
+
+//CAT-mgs: from DDA.05
+//This function performs the translate function within a given radius of the player.
+void map::translate_radius(const ter_id from, const ter_id to, float radi, int uX, int uY)
+{
+ if (from == to)
+	return;
+
+ for (int x = 0; x < SEEX * my_MAPSIZE; x++)
+ {
+  for (int y = 0; y < SEEY * my_MAPSIZE; y++)
+  {
+	if (ter(x, y) == from)
+	{
+	    //float radiX = 0.0;
+	    float radiX = sqrt(float((uX-x)*(uX-x) + (uY-y)*(uY-y)));
+	    if(radiX <= radi)
+      	ter(x, y)= to;
+
+	}
+  }
+ }
+
+}
+
+
 bool map::close_door(const int x, const int y, const bool inside)
 {
  if (ter(x, y) == t_door_o) {
@@ -2922,36 +2950,35 @@ void map::debug()
  getch();
 }
 
+
+
 //CAT-l: *** whole lot ***
 void map::draw(game *g, WINDOW* w, const point center)
 {
+
+//CAT-s: used for sound distance
+// ... needs better placement
+  cat_px= g->u.posx;
+  cat_py= g->u.posy;
+//  nightime= g->turn.is_night();
+//--- ^^^
+
+
   g->reset_light_level();
 
   int max_sight_range = g->u.unimpaired_range();
   int natural_sight_range = g->u.sight_range(1); 
-  int light_sight_range = g->u.sight_range(g->light_level());
-
+  int light_sight_range = g->u.sight_range(g->light_level()) ;
   int lowlight_sight_range = std::max((int)g->light_level()-1, natural_sight_range);
 
-//CAT-s: used for sound distance
-// ...needs better placement
-  cat_px= g->u.posx;
-  cat_py= g->u.posy;
+//CAT-mgs: weather, lightning strike
+  if(g->cat_lightning)
+	light_sight_range= DAYLIGHT_LEVEL;
 
   int  u_clairvoyance = g->u.clairvoyance();
   bool u_is_boomered = g->u.has_disease(DI_BOOMERED);
   bool u_sight_impaired = g->u.sight_impaired();
 
-
-//CAT: what's this doing here?
-/*
-  char trans_buf[my_MAPSIZE*SEEX][my_MAPSIZE*SEEY];
-  memset(trans_buf, -1, sizeof(trans_buf));
-*/
-
-//CAT-mgs: weather, lightning strike
-  if(g->cat_lightning)
-	light_sight_range= DAYLIGHT_LEVEL;
 
   for(int realx= center.x-getmaxx(w)/2; realx <= center.x+getmaxx(w)/2; realx++) 
   {
@@ -2962,7 +2989,13 @@ void map::draw(game *g, WINDOW* w, const point center)
 	int catX= realx+getmaxx(w)/2 - center.x;
 
 	int cat_x= realx - g->u.posx;
-	int cat_y= realy- g->u.posy;
+	int cat_y= realy - g->u.posy;
+
+	if(g->SNIPER)
+	{
+		cat_x= realx - g->ltar_x;
+		cat_y= realy - g->ltar_y;
+	}
 
 	int dist= (int)sqrt(cat_x*cat_x + cat_y*cat_y);
 
@@ -2974,14 +3007,29 @@ void map::draw(game *g, WINDOW* w, const point center)
 
 	lit_level lit = g->lm.at(realx - center.x, realy - center.y);
 	int diffx = (g->u.posx - center.x), diffy = (g->u.posy - center.y);
-	bool can_see = g->lm.sees(diffx, diffy, realx - center.x, realy - center.y, DAYLIGHT_LEVEL);
 
 
+//CAT-mgs: DAYLIGHT_LEVEL -> distance_to_look / no, cuts the headlights off
+	bool can_see = g->lm.sees(diffx, diffy, realx - center.x, realy - center.y, DAYLIGHT_LEVEL); 
 
-//lit= LL_BRIGHT;
-//can_see= true;
+	nc_color scope_c= c_ltgray;
+	int snipe_dist= DAYLIGHT_LEVEL;
 
-	if(!can_see || dist > DAYLIGHT_LEVEL || ( dist > light_sight_range 
+	if(g->SNIPER)
+	{
+		snipe_dist= 4;
+
+		if(g->u.weapon.typeId() == itm_remington_700)
+			scope_c= c_ltgreen;
+		else
+		if(g->u.weapon.typeId() == itm_browning_blr)
+			scope_c= c_cyan;
+	}
+
+      if(g->SNIPER && dist == 4)
+		mvwputch(w, catY, catX, scope_c, '.');
+	else
+	if(!can_see || dist > snipe_dist || ( dist > light_sight_range 
 		&& (lit == LL_DARK || (u_sight_impaired && lit != LL_BRIGHT)) )) 
 	{
 	  if (u_is_boomered)
@@ -2989,15 +3037,11 @@ void map::draw(game *g, WINDOW* w, const point center)
 	  else
 	  {
 
-//CAT-mgs: roof
+//CAT-mgs: for indoors show "roof"
 		if( is_outside(realx, realy) || g->levz < 0 )
 			mvwputch(w, catY, catX, c_black, ' ');
 		else
-		{
-
-//			if(g->turn.is_night())
-				mvwputch(w, catY, catX, c_dkgray, '#');
-		}
+			mvwputch(w, catY, catX, c_dkgray, '#');
 	  }
 	}
 	else
@@ -3017,33 +3061,14 @@ void map::draw(game *g, WINDOW* w, const point center)
 
 		drawsq(w, g->u, realx, realy, false, true, 
 			center.x, center.y, cat_lowlight, lit, g->cat_lightning); 
-
 	}
-/*
-	else
-	{
-//		mvwputch(w, catY, catX, c_black, ' ');
-
-//CAT: work in progress
-	  if(!is_outside(realx, realy) )
-	    mvwputch(w, catY, catX, c_dkgray,'#');	
-	  else
-	  {
-//	     if(lit != LL_DARK || DAYLIGHT_LEVEL > 10 )	
-//		drawsq(w, g->u, realx, realy, false, true, center.x, center.y, true, false);
-//	     else
-
-	   	mvwputch(w, catY, catX, c_red, '1');	
-	  }
-	}
-
-*/
 
     }//end for realx
   }//end for realy
 
 
   g->cat_lightning= false;
+
 
   int atx = getmaxx(w)/2 + g->u.posx - center.x;
   int aty = getmaxy(w)/2 + g->u.posy - center.y;
@@ -3056,6 +3081,11 @@ void map::draw(game *g, WINDOW* w, const point center)
 	else
 	   mvwputch(w, aty, atx, g->u.color(), '@');
   }
+
+
+//CAT-mgs: add some color to sewer and water surface to have
+//...some feeling of motion, don't change the pattern too often
+// fluid_surface++;
 }
 
 
@@ -3082,6 +3112,7 @@ void map::drawsq(WINDOW* w, player &u, const int x, const int y, const bool inve
  bool hi = false;
  bool graf = false;
  bool normal_tercol = false, drew_field = false;
+
 
 //CAT:
  bool nv= false;
@@ -3129,9 +3160,17 @@ void map::drawsq(WINDOW* w, player &u, const int x, const int y, const bool inve
  {
 	normal_tercol = true;
 	tercol = terlist[ter(x, y)].color;
+
+//CAT-mgs:
+	if(ter(x,y) == t_sewage && one_in(20))
+		tercol= c_green;
+	else
+	if(ter(x,y) == t_water_dp && one_in(50))
+		tercol= c_ltblue;
  }
 
- if (move_cost(x, y) == 0 && has_flag(swimmable, x, y) && !u.underwater)
+
+ if(move_cost(x, y) == 0 && has_flag(swimmable, x, y) && !u.underwater)
   show_items = false;	// Can only see underwater items if WE are underwater
 
 // If there's a trap here, and we have sufficient perception, draw that instead
@@ -3149,6 +3188,17 @@ void map::drawsq(WINDOW* w, player &u, const int x, const int y, const bool inve
    }
   } else
    sym = (*traps)[tr_at(x, y)]->sym;
+
+/*
+  if(tercol == c_ltcyan && sym == '.' && nightime)
+  {
+	if(low_light)
+		tercol= c_blue;
+	else
+		tercol= c_ltblue;
+  }
+  else
+*/
 
 //CAT: with night vision everything is green
   if(lightning)
@@ -3220,12 +3270,14 @@ void map::drawsq(WINDOW* w, player &u, const int x, const int y, const bool inve
  // If there's graffiti here, change background color
  if(graffiti_at(x,y).contents)
    graf = true;
- else
+
+
 //CAT: yellow pavement (and railings?) have high visibility
-//|| terlist[ter(x, y)].name == "railing")
-// if(terlist[ter(x, y)].name == "yellow pavement" && sym == '.')
  if(sym == '.' && ter(x, y) == t_pavement_y)
 	tercol = c_yellow;
+ else
+ if(low_light)
+	tercol= c_dkgray;
 
 
  if (invert)
@@ -3524,6 +3576,7 @@ void map::load(game *g, const int wx, const int wy, const int wz, const bool upd
 
 void map::shift(game *g, const int wx, const int wy, const int wz, const int sx, const int sy)
 {
+
 // Special case of 0-shift; refresh the map
  if (sx == 0 && sy == 0) {
   return; // Skip this?
@@ -3545,6 +3598,8 @@ void map::shift(game *g, const int wx, const int wy, const int wz, const int sx,
  // Clear vehicle list and rebuild after shift
  clear_vehicle_cache();
  vehicle_list.clear();
+
+
 // Shift the map sx submaps to the right and sy submaps down.
 // sx and sy should never be bigger than +/-1.
 // wx and wy are our position in the world, for saving/loading purposes.

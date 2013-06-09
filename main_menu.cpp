@@ -17,7 +17,7 @@ void game::print_menu(WINDOW* w_open, int iSel, const int iMenuOffsetX, int iMen
 //    for (int i = 1; i < 79; i++)
 //        mvwputch(w_open, 23, i, c_white, LINE_OXOX);
 
-    mvwprintz(w_open, 23, 4, c_ltblue, "Cataclysm: Metal Gear Solid (rev.23) *** Forum: www.cataclysmdda.com/smf");
+    mvwprintz(w_open, 23, 4, c_ltblue, "Cataclysm: Metal Gear Solid (rev.30) *** Forum: www.cataclysmdda.com/smf");
 
     int iLine = 0;
     const int iOffsetX1 = 3;
@@ -91,8 +91,9 @@ bool game::opening_screen()
  int iMenuOffsetY = 12;
 
 //CAT-s:
-    playMusic(0); 
+    stopMusic(-1); 
     playSound(17); 
+    playMusic(0); 
 
 // print_menu(w_open, 0, iMenuOffsetX, iMenuOffsetY);
  std::vector<std::string> savegames, templates;

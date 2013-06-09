@@ -204,12 +204,16 @@ void mattack::boomer(game *g, monster *z)
    return;
   }
  }
- if (rng(0, 10) > g->u.dodge(g) || one_in(g->u.dodge(g)))
-  g->u.infect(DI_BOOMERED, bp_eyes, 3, 12, g);
- else if (u_see)
-  g->add_msg("You dodge it!");
+
+//CAT-mgs:
+ if( !g->SNIPER && !g->u.has_disease(DI_SLEEP) && !one_in(g->u.dodge(g)*2) 
+		&& u_see && !g->u.has_disease(DI_BOOMERED) && !g->u.has_disease(DI_BLIND) )
+    g->add_msg("You dodge it!");
+ else
+    g->u.infect(DI_BOOMERED, bp_eyes, 3, 12, g);
 
 }
+
 
 void mattack::resurrect(game *g, monster *z)
 {
@@ -307,9 +311,12 @@ void mattack::science(game *g, monster *z)	// I said SCIENCE again!
   g->add_msg("The %s opens it's mouth and a beam shoots towards you!",
              z->name().c_str());
   z->moves -= 400;
-  if (g->u.dodge(g) > rng(1, 16))
+
+//CAT-mgs:
+ if( !g->SNIPER && !g->u.has_disease(DI_SLEEP) && !one_in(g->u.dodge(g)) 
+		&& !g->u.has_disease(DI_BOOMERED) && !g->u.has_disease(DI_BLIND) )
    g->add_msg("You dodge the beam!");
-  else if (one_in(6))
+  else if (one_in(5))
    g->u.mutate(g);
   else {
    g->add_msg("You get pins and needles all over.");
@@ -746,13 +753,12 @@ void mattack::dermatik(game *g, monster *z)
 
  z->sp_timeout = z->type->sp_freq;	// Reset timer
 
-// Can we dodge the attack?
- int attack_roll = dice(z->type->melee_skill, 10);
- int player_dodge = g->u.dodge_roll(g);
- if (player_dodge > attack_roll) {
-  g->add_msg("The %s tries to land on you, but you dodge.", z->name().c_str());
-  z->stumble(g, false);
-  return;
+//CAT-mgs:
+  if( !g->SNIPER && !g->u.has_disease(DI_SLEEP) && !one_in(g->u.dodge(g)*4) )
+  {
+	  g->add_msg("The %s tries to land on you, but you dodge.", z->name().c_str());
+	  z->stumble(g, false);
+	  return;
  }
 
 // Can we swat the bug away?
@@ -897,10 +903,14 @@ void mattack::tentacle(game *g, monster *z)
   g->m.shoot(g, line[i].x, line[i].y, tmpdam, true, 0);
  }
 
- if (rng(0, 20) > g->u.dodge(g) || one_in(g->u.dodge(g))) {
-  g->add_msg("You dodge it!");
-  return;
+//CAT-mgs:
+ if( !g->SNIPER && !g->u.has_disease(DI_SLEEP) && !one_in(g->u.dodge(g)*3) 
+		&& !g->u.has_disease(DI_BOOMERED) && !g->u.has_disease(DI_BLIND) )
+ {
+	g->add_msg("You dodge it!");
+	return;
  }
+
  body_part hit = random_body_part();
  int dam = rng(10, 20), side = rng(0, 1);
  g->add_msg("Your %s is hit for %d damage!", body_part_name(hit, side).c_str(),
@@ -1420,10 +1430,10 @@ void mattack::bite(game *g, monster *z)
  g->add_msg("The %s lunges forward attempting to bite you!", z->name().c_str());
  z->moves -= 100;
 
-//CAT: more chance for bite, especially if boomered or blind
- if( ( rng(0, 15) > g->u.dodge(g) || one_in(g->u.dodge(g)) )
-	&& !( (g->u.has_disease(DI_BOOMERED) || g->u.has_disease(DI_BLIND)) && one_in(3) ) )
-{
+//CAT: more chance for bite, especially if boomered or blind, or sleeping
+ if( !g->SNIPER && !g->u.has_disease(DI_SLEEP) && !one_in(g->u.dodge(g)*5) 
+		&& !g->u.has_disease(DI_BOOMERED) && !g->u.has_disease(DI_BLIND) )
+ {
 //CAT:
 	playSound(47);
 	g->add_msg("You dodge it!");

@@ -104,7 +104,8 @@ oter_id shop(int dir)
 
 oter_id house(int dir)
 {
- bool base = one_in(30);
+//CAT-mgs: more basements 30 -> 10
+ bool base = one_in(10);
  if (dir < 0) dir += 4;
  switch (dir) {
   case 0:  return base ? ot_house_base_north : ot_house_north;
@@ -140,13 +141,6 @@ overmap::overmap(game *g, int x, int y)
  , nullbool(false)
  , nullstr("")
 {
- if (name.empty()) {
-  debugmsg("Attempting to load overmap for unknown player!  Saving won't work!");
- }
-
- if (num_ter_types > 256 - 32) {
-  debugmsg("More than 256 - 32 oterid!  Saving won't work!");
- }
 
  if (g->has_gametype()) {
   prefix = special_game_name(g->gametype());
@@ -176,7 +170,12 @@ overmap& overmap::operator=(overmap const& o)
 	radios = o.radios;
 	npcs = o.npcs;
 
- layer = new map_layer[OVERMAP_LAYERS];
+	if (layer) {
+		delete [] layer;
+		layer = NULL;
+	}
+
+	layer = new map_layer[OVERMAP_LAYERS];
 	for(int z = 0; z < OVERMAP_LAYERS; ++z) {
 		for(int i = 0; i < OMAPX; ++i) {
 			for(int j = 0; j < OMAPY; ++j) {
@@ -596,15 +595,13 @@ void overmap::generate(game *g, overmap* north, overmap* east, overmap* south,
  // Always need at least one sublevel, but how many more
 
 
-//CAT: Aboveground ??
+//CAT: Aboveground, handled below
  int z = -1;
  bool requires_sub = false;
  do {
 
   	requires_sub = generate_sub(z);
  } while(requires_sub && (--z >= -OVERMAP_DEPTH));
-
-//generate_sub(1);
 
 // Place the monsters, now that the terrain is laid out
  place_mongroups();
@@ -754,12 +751,16 @@ bool overmap::generate_sub(int const z)
  place_rifts(z);
  for (int i = 0; i < mine_points.size(); i++)
   build_mine(mine_points[i].x, mine_points[i].y, z, mine_points[i].s);
+
+
 // Basements done last so sewers, etc. don't overwrite them
+//CAT-mgs:
  for (int i = 0; i < OMAPX; i++) {
   for (int j = 0; j < OMAPY; j++) {
-   if (ter(i, j, z + 1) >= ot_house_base_north &&
-       ter(i, j, z + 1) <= ot_house_base_west)
-    ter(i, j, z) = ot_basement;
+
+   if(ter(i, j, z + 1) >= ot_house_base_north 
+		&&ter(i, j, z + 1) <= ot_house_base_west)
+	ter(i, j, z) = ot_basement;
   }
  }
 
@@ -965,8 +966,13 @@ void overmap::draw(WINDOW *w, game *g, int z, int &cursx, int &cursy,
   oter_id cur_ter;
   nc_color ter_color;
   long ter_sym;
-/* First, determine if we're close enough to the edge to need to load an
- * adjacent overmap, and load it/them. */
+
+
+// First, determine if we're close enough to the edge 
+// to need to load an adjacent overmap, and load it/them. 
+
+//CAT-mgs: stop the glitching, need not to load 
+/*
   if (cursx < om_map_width / 2) {
    hori = overmap(g, loc.x - 1, loc.y);
    if (cursy < om_map_height / 2)
@@ -985,6 +991,8 @@ void overmap::draw(WINDOW *w, game *g, int z, int &cursx, int &cursy,
    vert = overmap(g, loc.x, loc.y - 1);
   if (cursy > OMAPY - 2 - (om_map_height / 2))
    vert = overmap(g, loc.x, loc.y + 1);
+*/
+
 
 // Now actually draw the map
   bool csee = false;
@@ -1004,8 +1012,11 @@ void overmap::draw(WINDOW *w, game *g, int z, int &cursx, int &cursy,
      note_here = has_note(omx, omy, z);
      if (note_here)
       note_text = note(omx, omy, z);
+
+//CAT-mgs: no NPCs on the map, why would they be?
+/*
      for (int n = 0; n < npcs.size(); n++) {
-      if ((npcs[n].mapx + 1) / 2 == omx && (npcs[n].mapy + 1) / 2 == omy) {
+      if ((npcs[n].mapx) / 2 == omx && (npcs[n].mapy) / 2 == omy) {
        npc_here = true;
        npc_name = npcs[n].name;
        n = npcs.size();
@@ -1014,11 +1025,12 @@ void overmap::draw(WINDOW *w, game *g, int z, int &cursx, int &cursy,
        npc_name = "";
       }
      }
-// <Out of bounds placement>
+*/
+
     } 
-
-
 //CAT-mgs: this doesn't get triggered vvv ?
+// <Out of bounds placement>
+/*
     else if (omx < 0) {
      omx += OMAPX;
      if (omy < 0 || omy >= OMAPY) {
@@ -1073,24 +1085,38 @@ void overmap::draw(WINDOW *w, game *g, int z, int &cursx, int &cursy,
 
     } else
      debugmsg("No data loaded! omx: %d omy: %d", omx, omy);
-
+*/
+// </Out of bounds replacement>
 //CAT-mgs: this doesn't get triggered ^^^ ?
 
-// </Out of bounds replacement>
     if (see) {
-     if (note_here && blink) {
+     if (note_here) {
       ter_color = c_yellow;
       if (note_text[1] == ':')
        ter_sym = note_text[0];
       else
        ter_sym = 'N';
-     } else if (omx == origx && omy == origy && blink) {
+     } else if (omx == origx && omy == origy) {
       ter_color = g->u.color();
       ter_sym = '@';
-     } else if (npc_here && blink) {
+     } else if (npc_here) {
+
       ter_color = c_pink;
       ter_sym = '@';
-     } else if (omx == target.x && omy == target.y && blink) {
+
+//CAT-mgs: moved here from below, needs to be here
+//...but we don't show NPC on the map
+/*
+	   for (int i = 0; i < npc_name.length(); i++)
+	    mvwputch(w, 1, i, c_white, LINE_OXOX);
+
+	   mvwputch(w, 1, npc_name.length(), c_white, LINE_XOOX);
+	   mvwputch(w, 0, npc_name.length(), c_white, LINE_XOXO);
+	   mvwprintz(w, 0, 0, c_yellow, npc_name.c_str());
+*/
+
+
+     } else if (omx == target.x && omy == target.y) {
       ter_color = c_red;
       ter_sym = '*';
      } else {
@@ -1100,9 +1126,10 @@ void overmap::draw(WINDOW *w, game *g, int z, int &cursx, int &cursy,
       ter_sym = oterlist[cur_ter].sym;
      }
     } else { // We haven't explored this tile yet
-     ter_color = c_dkgray;
+     ter_color = i_dkgray;
      ter_sym = '#';
     }
+
     if (j == 0 && i == 0) {
      mvwputch_hi (w, om_map_height / 2, om_map_width / 2,
                   ter_color, ter_sym);
@@ -1115,7 +1142,7 @@ void overmap::draw(WINDOW *w, game *g, int z, int &cursx, int &cursy,
    }
   }
 
-  if (target.x != -1 && target.y != -1 && blink &&
+  if (target.x != -1 && target.y != -1 &&
       (target.x < cursx - om_map_height / 2 ||
         target.x > cursx + om_map_height / 2  ||
        target.y < cursy - om_map_width / 2 ||
@@ -1143,16 +1170,8 @@ void overmap::draw(WINDOW *w, game *g, int z, int &cursx, int &cursy,
    mvwputch(w, 1, note_text.length(), c_white, LINE_XOOX);
    mvwputch(w, 0, note_text.length(), c_white, LINE_XOXO);
    mvwprintz(w, 0, 0, c_yellow, note_text.c_str());
-  } else if (npc_here) {
-   for (int i = 0; i < npc_name.length(); i++)
-    mvwputch(w, 1, i, c_white, LINE_OXOX);
-   mvwputch(w, 1, npc_name.length(), c_white, LINE_XOOX);
-   mvwputch(w, 0, npc_name.length(), c_white, LINE_XOXO);
-   mvwprintz(w, 0, 0, c_yellow, npc_name.c_str());
-  }
+  } 
 
-
-//CAT-mgs: legend
 
    cur_ter = ter(cursx, cursy, z);
 // Clear the legend
@@ -1170,15 +1189,24 @@ void overmap::draw(WINDOW *w, game *g, int z, int &cursx, int &cursy,
     mvwprintz(w, 1, om_map_width + 3, oterlist[ccur_ter].color, "%s",
               oterlist[ccur_ter].name.c_str());
    } else
-    mvwprintz(w, 1, om_map_width + 1, c_dkgray, "# Unexplored");
+    mvwprintz(w, 1, om_map_width + 1, i_dkgray, "# Unexplored");
 
    if (target.x != -1 && target.y != -1) {
     int distance = rl_dist(origx, origy, target.x, target.y);
     mvwprintz(w, 3, om_map_width + 1, c_white, "Distance to target: %d", distance);
    }
-   mvwprintz(w, 17, om_map_width + 1, c_magenta, "Use movement keys to pan.  ");
-   mvwprintz(w, 18, om_map_width + 1, c_magenta, "0 - Center map on character");
-   mvwprintz(w, 19, om_map_width + 1, c_magenta, "t - Toggle legend          ");
+   else
+   {
+    int distance = rl_dist(origx, origy, cursx, cursy);
+
+//CAT-mgs:
+    mvwprintz(w, 3, om_map_width + 1, c_white, "Distance: %d", distance);
+    mvwprintz(w, 4, om_map_width + 1, c_white, "Cursor at: %d,%d", cursx, cursy);
+
+   }
+
+   mvwprintz(w, 18, om_map_width + 1, c_magenta, "Use movement keys to pan.  ");
+   mvwprintz(w, 19, om_map_width + 1, c_magenta, "0 - Center map on character");
    mvwprintz(w, 20, om_map_width + 1, c_magenta, "/ - Search                 ");
    mvwprintz(w, 21, om_map_width + 1, c_magenta, "N - Add/Edit a note        ");
    mvwprintz(w, 22, om_map_width + 1, c_magenta, "D - Delete a note          ");
@@ -1192,7 +1220,6 @@ point overmap::choose_point(game *g, int const zlevel)
 {
  WINDOW* w_map = newwin(TERMY, TERMX, 0, 0);
  WINDOW* w_search = newwin(13, 27, 3, TERMX-27);
- timeout(BLINK_SPEED);	// Enable blinking!
  bool blink = true;
  int cursx = (g->levx + int(MAPSIZE / 2)) / 2,
      cursy = (g->levy + int(MAPSIZE / 2)) / 2;
@@ -1205,8 +1232,6 @@ point overmap::choose_point(game *g, int const zlevel)
   ch = input();
   int dirx, diry;
 
-  if (ch != ERR)
-   blink = true;
 
   get_direction(g, dirx, diry, ch);
   if (dirx != -2 && diry != -2) {
@@ -1222,32 +1247,26 @@ point overmap::choose_point(game *g, int const zlevel)
   else if (ch == KEY_ESCAPE || ch == 'q' || ch == 'Q')
    ret = point(-1, -1);
   else if (ch == 'N') {
-   timeout(-1);
    add_note(cursx, cursy, zlevel, string_input_popup("Note (X:TEXT for custom symbol):", 49, note(cursx, cursy, zlevel))); // 49 char max
-   timeout(BLINK_SPEED);
   } else if(ch == 'D'){
-   timeout(-1);
    if (has_note(cursx, cursy, zlevel)){
     bool res = query_yn("Really delete note?");
     if (res == true)
      delete_note(cursx, cursy, zlevel);
    }
-   timeout(BLINK_SPEED);
   } else if (ch == 'L'){
-   timeout(-1);
    point p = display_notes(g, zlevel);
    if (p.x != -1){
     cursx = p.x;
     cursy = p.y;
    }
-   timeout(BLINK_SPEED);
    wrefresh(w_map);
   } else if (ch == '/') {
    int tmpx = cursx, tmpy = cursy;
-   timeout(-1);
    std::string term = string_input_popup("Search term:");
-   timeout(BLINK_SPEED);
+
    draw(w_map, g, zlevel, cursx, cursy, origx, origy, ch, blink);
+
    point found = find_note(cursx, cursy, zlevel, term);
    if (found.x == -1) {	// Didn't find a note
     std::vector<point> terlist;
@@ -1256,6 +1275,12 @@ point overmap::choose_point(game *g, int const zlevel)
      int i = 0;
      //Navigate through results
      do {
+
+      cursx = terlist[i].x;
+      cursy = terlist[i].y;
+      draw(w_map, g, zlevel, cursx, cursy, origx, origy, ch, blink);
+      wrefresh(w_map);
+
       //Draw search box
       wborder(w_search, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
               LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
@@ -1264,12 +1289,12 @@ point overmap::choose_point(game *g, int const zlevel)
       mvwprintz(w_search, 2, 1, c_ltblue, "%s", term.c_str());
       mvwprintz(w_search, 4, 1, c_white,
        "'<' '>' Cycle targets.");
-      mvwprintz(w_search, 10, 1, c_white, "Enter/Spacebar to select.");
-      mvwprintz(w_search, 11, 1, c_white, "q to return.");
+      mvwprintz(w_search, 10, 1, c_white, "ENTER or SPACE to select.");
+      mvwprintz(w_search, 11, 1, c_white, "ESC or 'q' to return.");
+      wrefresh(w_search);
+
       ch = input();
-      if (ch == ERR)
-       blink = !blink;
-      else if (ch == '<') {
+	if (ch == '<') {
        i++;
        if(i > terlist.size() - 1)
         i = 0;
@@ -1278,14 +1303,10 @@ point overmap::choose_point(game *g, int const zlevel)
        if(i < 0)
         i = terlist.size() - 1;
       }
-      cursx = terlist[i].x;
-      cursy = terlist[i].y;
-      draw(w_map, g, zlevel, cursx, cursy, origx, origy, ch, blink);
-      wrefresh(w_search);
-      timeout(BLINK_SPEED);
-     } while(ch != '\n' && ch != ' ' && ch != 'q');
+
+     } while(ch != KEY_ESCAPE && ch != '\n' && ch != ' ' && ch != 'q');
      //If q is hit, return to the last position
-     if(ch == 'q'){
+     if(ch == 'q' || ch == KEY_ESCAPE ){
       cursx = tmpx;
       cursy = tmpy;
      }
@@ -1303,7 +1324,6 @@ point overmap::choose_point(game *g, int const zlevel)
  } while (ch != KEY_ESCAPE && ch != 'q' && ch != 'Q' 
 					&& ch != ' ' && ch != '\n');
 
- timeout(-1);
  werase(w_map);
  wrefresh(w_map);
  delwin(w_map);
@@ -2288,13 +2308,14 @@ void overmap::place_specials()
      valid.push_back( omspec_id(i) );
    }
    tries++;
-  } while (valid.empty() && tries < 15); // Done looking for valid spot
+  } while (valid.empty() && tries < 25); // Done looking for valid spot
 
-  if (tries < 15) { // We found a valid spot!
+//CAT-mgs: 25
+  if (tries < 25) { // We found a valid spot!
 // Place the MUST HAVE ones first, to try and guarantee that they appear
    std::vector<omspec_id> must_place;
    for (int i = 0; i < valid.size(); i++) {
-    if (placed[i] < overmap_specials[ valid[i] ].min_appearances)
+    if (placed[ valid[i] ] < overmap_specials[ valid[i] ].min_appearances) 
      must_place.push_back(valid[i]);
    }
    if (must_place.empty()) {
@@ -2623,6 +2644,7 @@ void overmap::open(game *g)
  if (fin.is_open()) {
   int z = 0; // assumption
   while (fin >> datatype) {
+
    if (datatype == 'L') { 	// Load layer data, and switch to layer
     fin >> z;
 
@@ -2640,7 +2662,9 @@ void overmap::open(game *g)
       }
      }
     }
-   } else if (datatype == 'Z') {	// Monster group
+   }
+   else
+   if (datatype == 'Z') {	// Monster group
     fin >> cstr >> cx >> cy >> cz >> cs >> cp >> cd;
     zg.push_back(mongroup(cstr, cx, cy, cz, cs, cp));
     zg.back().diffuse = cd;
@@ -2813,11 +2837,16 @@ bool omspec_place::wilderness(overmap *om, tripoint p)
 
 bool omspec_place::by_highway(overmap *om, tripoint p)
 {
+ oter_id ter = om->ter(p.x, p.y, p.z);
  oter_id north = om->ter(p.x, p.y - 1, p.z), east = om->ter(p.x + 1, p.y, p.z),
          south = om->ter(p.x, p.y + 1, p.z), west = om->ter(p.x - 1, p.y, p.z);
 
- return ((north == ot_hiway_ew || north == ot_road_ew) ||
-         (east  == ot_hiway_ns || east  == ot_road_ns) ||
-         (south == ot_hiway_ew || south == ot_road_ew) ||
-         (west  == ot_hiway_ns || west  == ot_road_ns)   );
+   return (((north>=ot_hiway_ew && north<=ot_road_nesw_manhole)||
+           (east>=ot_hiway_ew && north<=ot_road_nesw_manhole) ||
+           (west>=ot_hiway_ew && west<=ot_road_nesw_manhole) ||
+           (south>=ot_hiway_ew && south<=ot_road_nesw_manhole) )
+           &&
+           (ter == ot_forest || ter == ot_forest_thick || ter == ot_forest_water ||
+         ter == ot_field));
 }
+

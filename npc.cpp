@@ -20,8 +20,11 @@ npc::npc()
  omy = 0;
  mapx = 0;
  mapy = 0;
+
  posx = -1;
  posy = -1;
+ posz = 0;
+
  wandx = 0;
  wandy = 0;
  wandf = 0;
@@ -105,6 +108,7 @@ npc& npc::operator= (const npc & rhs)
 
  posx = rhs.posx;
  posy = rhs.posy;
+ posz = rhs.posz;
 
  weapon = rhs.weapon;
  ret_null = rhs.ret_null;

@@ -96,6 +96,8 @@ player& player::operator= (const player & rhs)
  id = rhs.id;
  posx = rhs.posx;
  posy = rhs.posy;
+ posz = rhs.posz;
+
  view_offset_x = rhs.view_offset_x;
  view_offset_y = rhs.view_offset_y;
 
@@ -926,6 +928,7 @@ std::string player::save_info()
  return dump.str();
 }
 
+
 void player::disp_info(game *g)
 {
  int line;
@@ -1033,15 +1036,16 @@ Strength - 4;    Dexterity - 4;    Intelligence - 4;    Dexterity - 4");
  int infooffsetybottom = 15;
  std::vector<pl_flag> traitslist;
 
- effect_win_size_y = effect_name.size()+1;
 
+//CAT-mgs: *** vvv
+ effect_win_size_y = 10; //effect_name.size()+1;
  for(int i = 0; i < PF_MAX2; i++) {
   if(my_traits[i]) {
    traitslist.push_back(pl_flag(i));
   }
  }
 
- trait_win_size_y = traitslist.size()+1;
+ trait_win_size_y = 10; //traitslist.size()+1;
  if (trait_win_size_y + infooffsetybottom > maxy ) {
   trait_win_size_y = maxy - infooffsetybottom;
  }
@@ -1050,11 +1054,8 @@ Strength - 4;    Dexterity - 4;    Intelligence - 4;    Dexterity - 4");
  if (skill_win_size_y + infooffsetybottom > maxy ) {
   skill_win_size_y = maxy - infooffsetybottom;
  }
-/*
- std::stringstream ssTemp;
- ssTemp  << skill_win_size_y << " - " << trait_win_size_y << " - " << effect_win_size_y;
- debugmsg((ssTemp.str()).c_str());
-*/
+//*** ^^^
+
  WINDOW* w_grid_top    = newwin(infooffsetybottom, 81,  VIEW_OFFSET_Y,  VIEW_OFFSET_X);
  WINDOW* w_grid_skill  = newwin(skill_win_size_y + 1, 27, infooffsetybottom + VIEW_OFFSET_Y, 0 + VIEW_OFFSET_X);
  WINDOW* w_grid_trait  = newwin(trait_win_size_y + 1, 27, infooffsetybottom + VIEW_OFFSET_Y, 27 + VIEW_OFFSET_X);
@@ -1154,7 +1155,7 @@ Strength - 4;    Dexterity - 4;    Intelligence - 4;    Dexterity - 4");
 
 // Print name and header
  mvwprintw(w_tip, 0, 0, "%s - %s", name.c_str(), (male ? "Male" : "Female"));
- mvwprintz(w_tip, 0, 39, c_ltred, "| Press TAB to cycle, ESC or q to return.");
+ mvwprintz(w_tip, 0, 39, c_ltcyan, "  Press TAB to cycle, ESC or q to return.");
  wrefresh(w_tip);
 
 // First!  Default STATS screen.
@@ -1233,7 +1234,8 @@ Strength - 4;    Dexterity - 4;    Intelligence - 4;    Dexterity - 4");
  body_part aBodyPart[] = {bp_head, bp_eyes, bp_mouth, bp_torso, bp_arms, bp_hands, bp_legs, bp_feet};
  int iEnc, iLayers, iArmorEnc, iWarmth;
 
- mvwprintz(w_encumb, 0, 7, c_ltgray, "ENCUMBERANCE");
+ mvwprintz(w_encumb, 0, 8, c_ltgray, "LYR  ENCUMB  WRM");
+						
  for (int i=0; i < 8; i++) {
   iEnc = iLayers = iArmorEnc = iWarmth = 0;
   iEnc = encumb(aBodyPart[i], iLayers, iArmorEnc, iWarmth);
@@ -1466,7 +1468,11 @@ detecting traps and other things of interest.");
    wrefresh(w_stats);
    break;
   case 2:	// Encumberment tab
-   mvwprintz(w_encumb, 0, 0, h_ltgray, "       ENCUMBERANCE       ");
+
+//CAT-mgs:
+//   mvwprintz(w_encumb, 0, 0, h_ltgray, "       ENCUMBERANCE       ");
+     mvwprintz(w_encumb, 0, 0, h_ltgray, "        LYR  ENCUMB  WRM  ");
+
    if (line == 0) {
     mvwprintz(w_encumb, 1, 1, h_ltgray, "Head");
     mvwprintz(w_info, 0, 0, c_magenta, "\
@@ -1532,7 +1538,10 @@ encumb(bp_feet) * 5);
 //CAT-s:
 	playSound(1);
 
-     mvwprintz(w_encumb, 0, 0, c_ltgray, "       ENCUMBERANCE       ");
+//CAT-mgs:
+//     mvwprintz(w_encumb, 0, 0, c_ltgray, "       ENCUMBERANCE       ");
+       mvwprintz(w_encumb, 0, 0, c_ltgray, "        LYR  ENCUMB  WRM  ");
+
      wrefresh(w_encumb);
      line = 0;
      curtab++;
@@ -1848,7 +1857,6 @@ void player::disp_morale(game* g)
 
 void player::disp_status(WINDOW *w, game *g)
 {
-//CAT-mgs:
  mvwprintz(w, 0, 0, c_white, "Weapon: %s", weapname().c_str());
  if (weapon.is_gun()) {
    int adj_recoil = recoil + driving_recoil;
@@ -1860,6 +1868,8 @@ void player::disp_status(WINDOW *w, game *g)
    mvwprintz(w, 0, 34, c_yellow, "Recoil");
   else if (adj_recoil > 0)
    mvwprintz(w, 0, 34, c_ltgray, "Recoil");
+  else
+   mvwprintz(w, 0, 34, c_ltgreen, "BULLS ");
  }
 
 //CAT-mgs:
@@ -2223,14 +2233,17 @@ bool player::avoid_trap(trap* tr)
 void player::pause(game *g)
 {
  moves = 0;
- if (recoil > 0) {
-   if (str_cur + 2 * skillLevel("gun") >= recoil)
-   recoil = 0;
-  else {
-    recoil -= str_cur + 2 * skillLevel("gun");
-   recoil = int(recoil / 2);
-  }
+ if(recoil > 0)
+ {
+	if(str_cur + skillLevel("gun") >= recoil)
+	   recoil = 0;
+	else
+	{
+	   recoil -= str_cur + skillLevel("gun");
+	   recoil = int(recoil / 1.5);
+	}
  }
+
 
 // Meditation boost for Toad Style
  if (weapon.type->id == itm_style_toad && activity.type == ACT_NULL) {
@@ -2406,6 +2419,11 @@ void player::hit(game *g, body_part bphurt, int side, int dam, int cut)
  hit_animation(g->w_terrain, this->posx - g->u.posx + VIEWX - g->u.view_offset_x,
                this->posy - g->u.posy + VIEWY - g->u.view_offset_y,
                red_background(this->color()), '@');
+
+
+//CAT-s: pain1 sound
+ if(!is_npc())
+	 playSound(8);
 
  rem_disease(DI_SPEED_BOOST);
  if (dam >= 6)
@@ -4739,7 +4757,7 @@ press 'U' while wielding the unloaded gun.", gun->tname(g).c_str());
     if (replace_item)
      inv.add_item(copy);
     return;
-   } else if (!mod->item_flags & mfb(IF_MODE_AUX) && mod->newtype != AT_NULL &&
+   } else if (!(mod->item_flags & mfb(IF_MODE_AUX)) && mod->newtype != AT_NULL &&
 	      !gun->contents[i].has_flag(IF_MODE_AUX) &&
 	      (dynamic_cast<it_gunmod*>(gun->contents[i].type))->newtype != AT_NULL) {
     g->add_msg("Your %s's caliber has already been modified.",

@@ -60,6 +60,8 @@ nc_color hilite(nc_color c)
 
 nc_color invert_color(nc_color c)
 {
+//CAT-g: we do not have this option
+/*
  if (OPTIONS[OPT_NO_CBLINK]) {
   switch (c) {
    case c_white:
@@ -79,6 +81,8 @@ nc_color invert_color(nc_color c)
    case c_yellow:  return i_brown;
   }
  }
+*/
+
  switch (c) {
   case c_white:   return i_white;
   case c_ltgray:  return i_ltgray;
@@ -358,7 +362,7 @@ bool query_yn(const char *mes, ...)
  wrefresh(w);
 
 //CAT-s:
- playSound(3);
+ playSound(1);
 
  char ch;
  do
@@ -642,7 +646,7 @@ void popup(const char *mes, ...)
 
 //CAT-mgs:
 // WINDOW *w = newwin(height+1, width, (TERMY-(height+1))/2, (TERMX > width) ? (TERMX-width)/2 : 0);
- WINDOW *w = newwin(3, width, 17, 1);
+ WINDOW *w = newwin(height+1, width, 11, 1);
  wborder(w, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
             LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
  tmp = buff;

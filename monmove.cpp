@@ -163,10 +163,9 @@ void monster::plan(game *g)
    set_dest(g->u.posx, g->u.posy, stc);
   else if (closest <= -3)
    set_dest(g->z[-3 - closest].posx, g->z[-3 - closest].posy, stc);
-  else if (closest >= 0)
+  else if (closest >= 0 && g->active_npc[closest].posz == g->levz) 
    set_dest(g->active_npc[closest].posx, g->active_npc[closest].posy, stc);
-
-//CAT-mgs: no NPCs - above 'else if'
+//CAT-mgs: no NPCs -> && g->active_npc[closest].posz == g->levz
  }
 }
 
@@ -222,8 +221,8 @@ void monster::move(game *g)
   if (plans.back().x == g->u.posx && plans.back().y == g->u.posy)
    current_attitude = attitude(&(g->u));
   else {
-   for (int i = 0; i < g->active_npc.size(); i++) {
-    if (plans.back().x == g->active_npc[i].posx &&
+   for(int i = 0; i < g->active_npc.size(); i++) {
+    if(plans.back().x == g->active_npc[i].posx &&
         plans.back().y == g->active_npc[i].posy)
      current_attitude = attitude(&(g->active_npc[i]));
    }
@@ -475,6 +474,7 @@ point monster::sound_move(game *g)
  return next;
 }
 
+
 void monster::hit_player(game *g, player &p, bool can_grab)
 {
  if (type->melee_dice == 0) // We don't attack, so just return
@@ -484,7 +484,9 @@ void monster::hit_player(game *g, player &p, bool can_grab)
   add_effect(ME_RUN, 4);
  bool is_npc = p.is_npc();
  int  junk;
- bool u_see = (!is_npc || g->u_see(p.posx, p.posy, junk));
+ bool u_see = ( !g->SNIPER && !g->u.has_disease(DI_SLEEP)
+			&& (!is_npc || g->u_see(p.posx, p.posy, junk)) );
+
  std::string you  = (is_npc ? p.name : "you");
  std::string You  = (is_npc ? p.name : "You");
  std::string your = (is_npc ? p.name + "'s" : "your");
@@ -505,8 +507,8 @@ void monster::hit_player(game *g, player &p, bool can_grab)
               body_part_name(bphit, side).c_str());
 
 //CAT-s: pain1 sound
-	if(!is_npc)
-		playSound(8);
+//	if(!is_npc)
+//		playSound(8);
    }
 
 // Attempt defensive moves

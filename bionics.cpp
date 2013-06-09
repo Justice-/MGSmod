@@ -321,9 +321,9 @@ void player::activate_bionic(int b, game *g)
 //  g->draw();
 //  mvprintw(0, 0, "Torch in which direction?");
 
+ g->draw();
  mvwprintw(g->w_terrain, 0, 0, "Torch where?");
  wrefresh(g->w_terrain);
- playSound(1);
 
   input = get_input();
   get_direction(dirx, diry, input);
@@ -336,6 +336,10 @@ void player::activate_bionic(int b, game *g)
   diry += posy;
   if (!g->m.add_field(g, dirx, diry, fd_fire, 1))	// Unsuccessful.
    g->add_msg("You can't light a fire there.");
+  else
+//CAT-s:
+   playSound(74);
+
   break;
 
  case bio_claws:

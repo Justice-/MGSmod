@@ -706,7 +706,7 @@ bool npc::alt_attack_available(game *g)
 {
  for (int i = 0; i < NUM_ALT_ATTACK_ITEMS; i++) {
   if ((!is_following() || combat_rules.use_grenades ||
-       !g->itypes[ALT_ATTACK_ITEMS[i]]->item_flags & mfb(IF_GRENADE)) &&
+       !(g->itypes[ALT_ATTACK_ITEMS[i]]->item_flags & mfb(IF_GRENADE))) &&
       has_amount(ALT_ATTACK_ITEMS[i], 1))
    return true;
  }

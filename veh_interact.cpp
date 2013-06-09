@@ -169,9 +169,9 @@ void veh_interact::do_install(int reason)
         wrefresh (w_msg);
         return;
     case 2:
-        mvwprintz(w_msg, 0, 1, c_ltgray, "You need a wrench and a powered welder to install parts.");
+        mvwprintz(w_msg, 0, 1, c_ltgray, "You need a wrench and a welder to install parts.");
         mvwprintz(w_msg, 0, 12, has_wrench? c_ltgreen : c_red, "wrench");
-        mvwprintz(w_msg, 0, 25, has_welder? c_ltgreen : c_red, "powered welder");
+        mvwprintz(w_msg, 0, 25, has_welder? c_ltgreen : c_red, "welder");
         wrefresh (w_msg);
         return;
     default:;
@@ -255,8 +255,8 @@ void veh_interact::do_repair(int reason)
         wrefresh (w_msg);
         return;
     case 2:
-        mvwprintz(w_msg, 0, 1, c_ltgray, "You need a powered welder to repair.");
-        mvwprintz(w_msg, 0, 12, has_welder? c_ltgreen : c_red, "powered welder");
+        mvwprintz(w_msg, 0, 1, c_ltgray, "You need a welder to repair.");
+        mvwprintz(w_msg, 0, 12, has_welder? c_ltgreen : c_red, "welder");
         wrefresh (w_msg);
         return;
     default:;

@@ -194,45 +194,49 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
    return;
   }
 
+//CAT:
   make_gun_sound_effect(this, p, burst, weapon);
 
-  int trange = calculate_range(p, tarx, tary);
 
-//CAT: more precision
+  int trange = calculate_range(p, tarx, tary);
   double missed_by = calculate_missed_by(p, trange, weapon);
 
 // Calculate a penalty based on the monster's speed
-  double monster_speed_penalty = 1.;
+  double monster_speed_penalty = 1.0;
   int target_index = mon_at(tarx, tary);
   if (target_index != -1) {
-   monster_speed_penalty = double(z[target_index].speed) / 80.;
+   monster_speed_penalty = double(z[target_index].speed) / 80.0;
    if (monster_speed_penalty < 1.)
-    monster_speed_penalty = 1.;
+    monster_speed_penalty = 1.0;
   }
-
-  if (curshot > 0) {
-   if (recoil_add(p) % 2 == 1)
-    p.recoil++;
-   p.recoil += recoil_add(p) / 2;
-  } else
-   p.recoil += recoil_add(p);
 
 
 //CAT-mgs: *** vvv
 	if( curshot > 0 ) 
 	{
-		do
+		if(rl_dist(u.posx, u.posy, tarx, tary) > 1)
 		{
-			tarx+= rng(-2,2);
-			tary+= rng(-2,2);
+			do
+			{
+				tarx+= rng(-1,1);
+				tary+= rng(-1,1);
 
-		}while(tarx == p.posx && tary == p.posy);
+			}while(tarx == p.posx && tary == p.posy);
+		}
 
 		if (m.sees(p.posx, p.posy, tarx, tary, 0, tart))
 			trajectory = line_to(p.posx, p.posy, tarx, tary, tart);
 		else
 			trajectory = line_to(p.posx, p.posy, tarx, tary, 0);
+
+
+		if(recoil_add(p) % 2 == 1)
+			p.recoil++;
+
+		p.recoil += recoil_add(p) / 2;
 	}
+	else
+		p.recoil += recoil_add(p);
 
 
 //CAT-mgs: *** vvv
@@ -266,8 +270,6 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
 
 	// Drawing the bullet uses player u, and not player p, because it's drawn
 	// relative to YOUR position, which may not be the gunman's position.
-
-//CAT-mgs: every second trail
 	if(i%2 == 0 && u_see(trajectory[i].x, trajectory[i].y, junk))
 	{
 //CAT:
@@ -329,45 +331,24 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
 	}
 
 
-
-
-
 	int tx = trajectory[i].x, ty = trajectory[i].y;
 
 	// If there's a monster in the path of our bullet, and either our aim was true,
 	//  OR it's not the monster we were aiming at and we were lucky enough to hit it
 	int mondex = mon_at(tx, ty);
 
-	// If we shot us a monster...
-//CAT-mgs: I don't wanna miss, ever
-/*
-	if (mondex != -1 && (!z[mondex].has_flag(MF_DIGS) ||
-		rl_dist(p.posx, p.posy, z[mondex].posx, z[mondex].posy) <= 1) &&
-		((!missed && i == trajectory.size() - 1) ||
-		one_in((5 - int(z[mondex].type->size))))) 
-*/
 	if(mondex != -1)
 	{
-
 	    double goodhit = missed_by;
 
-//	    add_msg("target: %f", missed_by);
 
 //CAT-mgs: more precision
 	    if(z[mondex].type->size > 0 && i < trajectory.size() - 1) // Unintentional hit
 	    {
 	        goodhit = 0.5 + (int)(missed_by / z[mondex].type->size);
 
-//		add_msg("casulty: %f", goodhit);
+//add_msg("casulty: %f, i: %d, tr_size: %d", goodhit, i, trajectory.size() - 1 );
 	    }
-
-
-//CAT-mgs: already accounted for?
-/*
-	// Penalize for the monster's speed
-	    if (z[mondex].speed > 80)
-	     goodhit *= double( double(z[mondex].speed) / 80.);
-*/
 
 	    std::vector<point> blood_traj = trajectory;
 	    blood_traj.insert(blood_traj.begin(), point(p.posx, p.posy));
@@ -382,8 +363,9 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
 		&& (npc_at(tx, ty) != -1 || (u.posx == tx && u.posy == ty)) )
 	{
 	    double goodhit = missed_by;
-	    if (i < trajectory.size() - 1) // Unintentional hit
-	     goodhit = double(rand() / (RAND_MAX + 1.0)) / 2;
+	    if(i < trajectory.size() - 1) // Unintentional hit
+		goodhit = double(rand() / (RAND_MAX + 1.0)); //CAT: / 2;
+
 
 	    player *h;
 	    bool weTarget= false;
@@ -611,342 +593,328 @@ void game::throw_item(player &p, int tarx, int tary, item &thrown,
 }
 
 
+
+//CAT-mgs: BEGIN ***** whole lot ***
 std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
                                 int hiy, std::vector <monster> t, int &target,
                                 item *relevent)
 {
+
+//CAT-s:
+ playSound(0);
+
  std::vector<point> ret;
  int tarx, tary, tart, junk;
+
  // TODO: [lightmap] Enable auto targeting based on lightmap
  int sight_dist = u.sight_range(light_level());
 
-// First, decide on a target among the monsters, if there are any in range
- if (t.size() > 0) {
-
 //CAT-mgs:
-/*
-// Check for previous target
-  if (target == -1) {
-// If no previous target, target the closest there is
-   double closest = -1;
-   double dist;
-   for (int i = 0; i < t.size(); i++) {
-    dist = rl_dist(t[i].posx, t[i].posy, u.posx, u.posy);
-    if (closest < 0 || dist < closest) {
-     closest = dist;
-     target = i;
-    }
-   }
-  }
+ target = -1;
+ x= ltar_x;
+ y= ltar_y;
 
-*/
+ WINDOW* w_target = newwin(12, 48, 0, TERRAIN_WINDOW_WIDTH + 7 + VIEW_OFFSET_X);
 
-  x = t[target].posx;
-  y = t[target].posy;
- } else
-  target = -1;	// No monsters in range, don't use target, reset to -1
-
- WINDOW* w_target = newwin(13, 48, 12 + VIEW_OFFSET_Y, TERRAIN_WINDOW_WIDTH + 7 + VIEW_OFFSET_X);
- wborder(w_target, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
-                 LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
- if (!relevent) // currently targetting vehicle to refill with fuel
-  mvwprintz(w_target, 1, 1, c_red, "Select a vehicle");
+ if(!relevent) // currently targetting vehicle to refill with fuel
+	mvwprintz(w_target, 1, 1, c_red, "Select a vehicle");
  else
- if (relevent == &u.weapon && relevent->is_gun())
-  mvwprintz(w_target, 1, 1, c_red, "Firing %s (%d)", // - %s (%d)",
-            u.weapon.tname().c_str(),// u.weapon.curammo->name.c_str(),
-            u.weapon.charges);
+ if(relevent == &u.weapon && relevent->is_gun())
+	mvwprintz(w_target, 1, 1, c_red, "Firing %s (%d)", u.weapon.tname().c_str(), u.weapon.charges);
  else
-  mvwprintz(w_target, 1, 1, c_red, "Throwing %s", relevent->tname().c_str());
- mvwprintz(w_target, 2, 1, c_white,
-           "Move cursor to target with directional keys.");
- if (relevent) {
-  mvwprintz(w_target, 3, 1, c_white,
-            "'<' '>' Cycle targets; 'f' or '.' to fire.");
-  mvwprintz(w_target, 4, 1, c_white,
-            "'0' to target yourself.");
+	mvwprintz(w_target, 1, 1, c_red, "Throwing %s", relevent->tname().c_str());
+
+ if(relevent)
+ {
+	mvwprintz(w_target, 2, 1, c_white, "Press 'f' or ENTER to fire, ESC to exit.");
+	mvwprintz(w_target, 3, 1, c_white, "Press SPACE or '.' to take a kneeling shot.");
  }
+ else
+	 mvwprintz(w_target, 2, 1, c_white, "Move the aim with directional keys.");
 
-//CAT-mgs: BEGIN ***** whole lot ***
- wrefresh(w_target);
+
 
 
  bool night_vision= false;
- if( (u.is_wearing(itm_goggles_nv) 
-	&& u.has_active_item(itm_UPS_on)) 
-	|| u.has_active_bionic(bio_night_vision) )
+ if( u.has_active_bionic(bio_night_vision)
+	|| ( u.is_wearing(itm_goggles_nv) 
+	&& u.has_active_item(itm_UPS_on) ) )
     night_vision= true;
 
 
- char ch;
- bool snap_to_target = OPTIONS[OPT_SNAP_TO_TARGET];
+ int ch;
+ point center;
+ bool bull= false;
 
-//CAT:
-	point center;
-	snap_to_target= true;
+ int cat_x= x-u.posx; 
+ int cat_y= y-u.posy; 
 
-	int cat_x= x-u.posx; 
-	int cat_y= y-u.posy; 
+ int dist= (int)sqrt(cat_x*cat_x + cat_y*cat_y);
 
-	int cat_xOld= 0;
-	int cat_yOld= 0;
+ if(dist > 9)
+ {
+	cat_x= 0;
+	cat_y= 0;
+ }
 
  do
  {
-
-//CAT: this necessary?
 	// Clear the target window.
 	for(int i = 5; i < 12; i++)
 	{
 	   for (int j = 1; j < 46; j++)
 		mvwputch(w_target, i, j, c_white, ' ');
 	}
-	
-	int cat_r= 1+rl_dist(u.posx, u.posy, x, y)/SEEX;
 
-	cat_x= (int)(x-u.posx)/cat_r;
-	cat_y= (int)(y-u.posy)/cat_r;
+	center = point(x-cat_x, y-cat_y);
 
-//	do
-//	{
-/*
-		if(cat_xOld > cat_x)
-			cat_xOld--;
-	
-		if(cat_xOld < cat_x)
-			cat_xOld++;
-
-		if(cat_yOld > cat_y)
-			cat_yOld--;
-	
-		if(cat_yOld < cat_y)
-			cat_yOld++;
-*/
-		cat_xOld= cat_x;
-		cat_yOld= cat_y;
-
-		center = point(x-cat_xOld, y-cat_yOld);
-		u.view_offset_x= cat_xOld;
-		u.view_offset_y= cat_yOld;
-
-		lm.generate(this, center.x, center.y, natural_light_level(), u.active_light());
-		m.draw(this, w_terrain, center);
-
-		// Draw the Monsters
-		for(int i = 0; i < z.size(); i++)
-		{
-			if(u_see(&(z[i]), tart))
-//CAT-mgs:
-//				&& z[i].posx >= lowx && z[i].posy >= lowy 
-//				&& z[i].posx <=  hix && z[i].posy <=  hiy )
-			    z[i].draw(w_terrain, center.x, center.y, false, night_vision);
-		}
-
-		// Draw the NPCs
-		for(int i = 0; i < active_npc.size(); i++)
-		{
-			if (u_see(active_npc[i].posx, active_npc[i].posy, tart))
-			    active_npc[i].draw(w_terrain, center.x, center.y, false, night_vision);
-		}
-
-		timespec ts;
-		ts.tv_sec = 0;
-		ts.tv_nsec = 50000000;
-
-		wrefresh(w_terrain);
-		//nanosleep(&ts, NULL);
-
-//	}while( (cat_xOld != cat_x) || (cat_yOld != cat_y) );
-	
-
-//CAT: blink, maybe?
-	if(x != u.posx || y != u.posy)
-	{
-		if(m.sees(u.posx, u.posy, x, y, -1, tart))
-		{
-		    // Selects a valid line-of-sight
-		    // Sets the vector to that LOS
-		    ret= line_to(u.posx, u.posy, x, y, tart); 
-
-		    // Draw the trajectory
-		    for(int i = 0; i < ret.size(); i++) 
-		    {
-
-//CAT-mgs: make lights on ground matter
-//... if(lm.at(ret[i].x, ret[i].y) > LL_DARK 
-			if( (abs(ret[i].x - u.posx) <= sight_dist
-				&& abs(ret[i].y - u.posy) <= sight_dist) )
-			{
-
-				int mondex = mon_at(ret[i].x, ret[i].y);
-				int npcdex = npc_at(ret[i].x, ret[i].y);
-
-				// NPCs and monsters get drawn with inverted colors
-				if(mondex >=0 && u_see(&(z[mondex]), tart))
-				   z[mondex].draw(w_terrain, 
-					center.x, center.y, true, night_vision);
-				else
-				if(npcdex >= 0)
-				   active_npc[npcdex].draw(w_terrain, 
-					center.x, center.y, true, night_vision);
-				else
-				{
-					int atx = VIEWX + ret[i].x - center.x;
-					int aty = VIEWY + ret[i].y - center.y;
-
-					mvwputch(w_terrain, aty, atx, c_ltred, 'x');
-
-
-				//	mvwputch(w_terrain, 
-				//		VIEWY-ret[i].y+u.posy+cat_y, VIEWX-ret[i].x+u.posx+cat_x, c_ltred, 'x');
-
-				}
-			}
-		    }
-
-		}
-
-
-		if(!relevent)
-		{ 
-			// currently targetting vehicle to refill with fuel
-			vehicle *veh = m.veh_at(x, y);
-	
-			if (veh)
-			    mvwprintw(w_target, 5, 1, "There is a %s", veh->name.c_str());
-		}
-		else
-		   mvwprintw(w_target, 5, 1, "Range: %d", rl_dist(u.posx, u.posy, x, y));
-
-
-//CAT: 
-		if(mon_at(x, y) < 0)
-		{	
-			mvwprintw(w_status, 0, 9, "                             ");
-			mvwputch(w_terrain, VIEWY+cat_y, VIEWX+cat_x, c_red, 'X');
-		}
-		else
-		if(u_see(&(z[mon_at(x, y)]), tart))
-			z[mon_at(x, y)].print_info(this, w_target);
-
-
-	}
-
-
-//CAT: make blinking work and overlap with above?
-	// Draw the player
-	int atx = VIEWX + u.posx - center.x, aty = VIEWY + u.posy - center.y;
-	if(atx >= 0 && atx < TERRAIN_WINDOW_WIDTH 
-			&& aty >= 0 && aty < TERRAIN_WINDOW_HEIGHT)
-		mvwputch(w_terrain, aty, atx, u.color(), '@');
-
-
-	wrefresh(w_target);
-	wrefresh(w_terrain);
-
-
-//CAT-g:
-//  wrefresh(w_status);
-//  refresh();
-
-  ch = input();
-  get_direction(this, tarx, tary, ch);
-  if (tarx != -2 && tary != -2 && ch != '.') {	// Direction character pressed
-   int mondex = mon_at(x, y), npcdex = npc_at(x, y);
-   if (mondex != -1 && u_see(&(z[mondex]), tart))
-    z[mondex].draw(w_terrain, center.x, center.y, false, night_vision);
-   else if (npcdex != -1)
-    active_npc[npcdex].draw(w_terrain, center.x, center.y, false, night_vision);
-   else if (m.sees(u.posx, u.posy, x, y, -1, junk))
-    m.drawsq(w_terrain, u, x, y, false, true, center.x, center.y);
-   else
-    mvwputch(w_terrain, VIEWY, VIEWX, c_red, 'O');
-
-   x += tarx;
-   y += tary;
-
-
-   if(x < lowx)
-	x = lowx;
-   else 
-   if(x > hix)
-	x = hix;
-   if(y < lowy)
-	y = lowy;
-   else
-   if(y > hiy)
-	y = hiy;
-
-//CAT:
-	cat_xOld= (int)(x-u.posx)/cat_r;
-	cat_yOld= (int)(y-u.posy)/cat_r;
-   }
-   else
-   if((ch == '<') && (target != -1))
-   {
- 	target--;
-	if (target == -1) target = t.size() - 1;
-	x = t[target].posx;
-	y = t[target].posy;
-
-//CAT:
-	cat_xOld= x-u.posx;
-	cat_yOld= y-u.posy; 
-  }
-  else
-  if((ch == '>') && (target != -1))
-  {
- 	target++;
- 	if (target == t.size()) target = 0;
-	x = t[target].posx;
-	y = t[target].posy;
-
-//CAT:
-	cat_xOld= x-u.posx;
-	cat_yOld= y-u.posy;
-  }
-  else
-  if(ch == '.' || ch == 'f' || ch == 'F' || ch == '\n')
-  {
-	for (int i = 0; i < t.size(); i++)
-	{
-	    if (t[i].posx == x && t[i].posy == y)
-	     target = i;
-	}
-//CAT:
 	u.view_offset_x= x-u.posx-cat_x;
 	u.view_offset_y= y-u.posy-cat_y;
 
-	return ret;
-  }
-  else
-  if(ch == '0')
-  {
-	x = u.posx;
-	y = u.posy;
+	cleanup_dead();
+	m.vehmove(this);
+	m.process_fields(this);
+	m.process_active_items(this);
+	m.step_in_field(u.posx, u.posy, this);
 
-//CAT: after 0.3 release manual change
-      ret.clear();
+	u.reset(this);
+	u.process_active_items(this);
+	u.suffer(this);
+	u.pause(this);
+
+	monmove();
+	update_stair_monsters();
+
+	if(bull)
+		u.recoil= 0;
+	else
+		u.recoil+= 3;
+
+
+	draw_HP();
+	write_msg();
+	wborder(w_target, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
+                 LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );	
+	u.disp_status(w_status, this);
+
+	lm.generate(this, center.x, center.y, natural_light_level(), u.active_light());
+	m.draw(this, w_terrain, center);
+
+
+//CAT: sniper scope view
+	if(SNIPER)
+	{
+		nc_color cat_c= c_ltgray;
+		if(u.weapon.typeId() == itm_remington_700)
+		{
+		   cat_c= c_ltgreen;
+		   mvwputch(w_terrain, VIEWY+2+cat_y, VIEWX+cat_x, cat_c, '|');
+		   mvwputch(w_terrain, VIEWY+3+cat_y, VIEWX+cat_x, cat_c, '|');
+//		   mvwputch(w_terrain, VIEWY-2+cat_y, VIEWX+cat_x, cat_c, '|');
+//		   mvwputch(w_terrain, VIEWY-3+cat_y, VIEWX+cat_x, cat_c, '|');
+
+		   mvwputch(w_terrain, VIEWY+cat_y, VIEWX+2+cat_x, cat_c, '-');
+		   mvwputch(w_terrain, VIEWY+cat_y, VIEWX+3+cat_x, cat_c, '-');
+		   mvwputch(w_terrain, VIEWY+cat_y, VIEWX-2+cat_x, cat_c, '-');
+		   mvwputch(w_terrain, VIEWY+cat_y, VIEWX-3+cat_x, cat_c, '-');
+		}
+		else
+		if(u.weapon.typeId() == itm_browning_blr)
+		{
+		   cat_c= c_cyan;
+		   mvwputch(w_terrain, VIEWY+2+cat_y, VIEWX+cat_x, cat_c, '|');
+		   mvwputch(w_terrain, VIEWY+3+cat_y, VIEWX+cat_x, cat_c, '|');
+		   mvwputch(w_terrain, VIEWY-2+cat_y, VIEWX+cat_x, cat_c, '|');
+		   mvwputch(w_terrain, VIEWY-3+cat_y, VIEWX+cat_x, cat_c, '|');
+
+		   mvwputch(w_terrain, VIEWY+cat_y, VIEWX+2+cat_x, cat_c, '-');
+		   mvwputch(w_terrain, VIEWY+cat_y, VIEWX+3+cat_x, cat_c, '-');
+		   mvwputch(w_terrain, VIEWY+cat_y, VIEWX-2+cat_x, cat_c, '-');
+		   mvwputch(w_terrain, VIEWY+cat_y, VIEWX-3+cat_x, cat_c, '-');
+		}
+		else
+		{
+		   mvwputch(w_terrain, VIEWY+4+cat_y, VIEWX+cat_x, cat_c, '|');
+		   mvwputch(w_terrain, VIEWY+3+cat_y, VIEWX+cat_x, cat_c, '|');
+		   mvwputch(w_terrain, VIEWY-4+cat_y, VIEWX+cat_x, cat_c, '|');
+		   mvwputch(w_terrain, VIEWY-3+cat_y, VIEWX+cat_x, cat_c, '|');
+
+		   mvwputch(w_terrain, VIEWY+cat_y, VIEWX+4+cat_x, cat_c, '-');
+		   mvwputch(w_terrain, VIEWY+cat_y, VIEWX+3+cat_x, cat_c, '-');
+		   mvwputch(w_terrain, VIEWY+cat_y, VIEWX-4+cat_x, cat_c, '-');
+		   mvwputch(w_terrain, VIEWY+cat_y, VIEWX-3+cat_x, cat_c, '-');
+		}
+	}
+
+
+
+	int snip_x= u.posx - x;
+	int snip_y= u.posy - y;
+	dist= (int)sqrt(snip_x*snip_x + snip_y*snip_y);
+
+	// Draw the Monsters
+	for(int i = 0; i < z.size(); i++)
+	{
+		int s_x= z[i].posx - x;
+		int s_y= z[i].posy - y;
+		int s_d= (int)sqrt(s_x*s_x + s_y*s_y);
+
+		if(!SNIPER || (SNIPER && s_d < 4))
+		{
+			if(u_see(&(z[i]), tart))
+			    z[i].draw(w_terrain, center.x, center.y, false, night_vision);
+		}
+	}
+
+	// Draw the NPCs
+	for(int i = 0; i < active_npc.size(); i++)
+	{
+		int s_x= active_npc[i].posx - x;
+		int s_y= active_npc[i].posy - y;
+		int s_d= (int)sqrt(s_x*s_x + s_y*s_y);
+
+		if(!SNIPER || (SNIPER && s_d < 4))
+		{
+			if(u_see(active_npc[i].posx, active_npc[i].posy, tart))
+			    active_npc[i].draw(w_terrain, center.x, center.y, false, night_vision);
+		}
+	}
+
+
+	if(m.sees(u.posx, u.posy, x, y, -1, tart))
+	{
+	   ret= line_to(u.posx, u.posy, x, y, tart); 
+
+
+	   // Draw the trajectory
+	   for(int i= 0; i < ret.size(); i++) 
+	   {
+
+		if(SNIPER)
+			i= ret.size()-1;
+
+		int mondex = mon_at(ret[i].x, ret[i].y);
+		int npcdex = npc_at(ret[i].x, ret[i].y);
+
+		// NPCs and monsters get drawn with inverted colors
+		if(mondex >=0 && u_see(&(z[mondex]), tart))
+		   z[mondex].draw(w_terrain, 
+			center.x, center.y, true, night_vision);
+		else
+		if(npcdex >= 0)
+		   active_npc[npcdex].draw(w_terrain, 
+			center.x, center.y, true, night_vision);
+		else
+		if(!SNIPER)
+		{
+			int atx = VIEWX + ret[i].x - center.x;
+			int aty = VIEWY + ret[i].y - center.y;
+
+			mvwputch(w_terrain, aty, atx, c_ltred, 'x');
+		}
+	   }
+	}
+
+
+	if(!relevent)
+	{ 
+		// currently targetting vehicle to refill with fuel
+		vehicle *veh = m.veh_at(x, y);
+
+		if (veh)
+		    mvwprintw(w_target, 5, 1, "There is a %s", veh->name.c_str());
+	}
+	else
+	   mvwprintw(w_target, 4, 1, "Range: %d   ", dist);
+
+
+//CAT: 
+	if(!SNIPER && mon_at(x, y) < 0)
+		mvwputch(w_terrain, VIEWY+cat_y, VIEWX+cat_x, c_red, 'X');
+	else
+	if(mon_at(x, y) >= 0 && u_see(&(z[mon_at(x, y)]), tart))
+		z[mon_at(x, y)].print_info(this, w_target);
+
+
+
+	wrefresh(w_status);
+	wrefresh(w_target);
+	wrefresh(w_terrain);
+
+	if(is_game_over())
+	{
+		ret.clear();
+		return ret;
+	}
+
+	ch = input();
+	get_direction(this, tarx, tary, ch);
+	if (tarx != -2 && tary != -2 && ch != '.' && ch != ' ' && ch != '5') 
+	{
+		// Direction character pressed
+		x += tarx;
+		y += tary;
+
+		if(x < lowx)
+			x = lowx;
+		else 
+		if(x > hix)
+			x = hix;
+		if(y < lowy)
+			y = lowy;
+		else
+		if(y > hiy)
+			y = hiy;
+
 //CAT:
-	cat_xOld= (int)(x-u.posx)/cat_r;
-	cat_yOld= (int)(y-u.posy)/cat_r;
+//		int cat_r= 1+rl_dist(u.posx, u.posy, x, y)/SEEX;
 
-  }
-  else
-  if(ch == '*')
- 	 snap_to_target = !snap_to_target;
-  else
-  if(ch == KEY_ESCAPE || ch == 'q')
-  {
+		int cat_r= 1;
+		if(dist > 9)
+			cat_r= 0;
 
-//CAT-g:
-	u.view_offset_x= 0;
-	u.view_offset_y= 0;
+		cat_x= (int)(x-u.posx) * cat_r;
+		cat_y= (int)(y-u.posy) * cat_r;
 
-	// return empty vector (cancel)
-	ret.clear();
-	return ret;
-  }
+		ltar_x= x;
+		ltar_y= y;
+		bull= false;
+
+	}
+	else
+	if(ch == KEY_ESCAPE || ch == 'q')
+	{
+
+		ltar_x= u.posx;
+		ltar_y= u.posy;
+		SNIPER= false;
+
+		ret.clear();
+		return ret;
+	}
+	else
+	if(ch == 'f' || ch == 'F' || ch == '\n')
+	{
+		if(x != u.posx || y != u.posy)
+			return ret;
+		else
+		{
+//CAT-s: menuWrong
+			playSound(3);
+
+			add_msg("Too easy...");			
+
+			ret.clear();
+			return ret;
+		}
+	}
+	else 
+	if(ch == '.' || ch == '5' || ch == ' ')
+	{
+//CAT-s:
+		playSound(6);
+		bull= true;
+	}
 
  } while (true);
 
@@ -1123,22 +1091,17 @@ int calculate_range(player &p, int tarx, int tary)
  return trange;
 }
 
+//CAT-mgs: *** vvv
 double calculate_missed_by(player &p, int trange, item* weapon)
 {
- // No type for gunmods,so use player weapon.
- it_gun* firing = dynamic_cast<it_gun*>(p.weapon.type);
-// Calculate deviation from intended target (assuming we shoot for the head)
-  double deviation = 0.; // Measured in quarter-degrees
-// Up to 1.5 degrees for each skill point < 4; up to 1.25 for each point > 4
-  if (p.skillLevel(firing->skill_used) < 4)
-    deviation += rng(0, 6 * (4 - p.skillLevel(firing->skill_used)));
-  else if (p.skillLevel(firing->skill_used) > 4)
-    deviation -= rng(0, 5 * (p.skillLevel(firing->skill_used) - 4));
+  it_gun* firing = dynamic_cast<it_gun*>(p.weapon.type);
+  double deviation = 0.0; 
 
-  if (p.skillLevel("gun") < 3)
-    deviation += rng(0, 3 * (3 - p.skillLevel("gun")));
-  else
-    deviation -= rng(0, 2 * (p.skillLevel("gun") - 3));
+  if (p.skillLevel(firing->skill_used) < 9)
+    deviation += rng( 0, 3 * (9 - p.skillLevel(firing->skill_used)) );
+
+  if (p.skillLevel("gun") < 9)
+    deviation += rng( 0, (9 - p.skillLevel("gun"))/2 );
 
   deviation += p.ranged_dex_mod();
   deviation += p.ranged_per_mod();
@@ -1146,16 +1109,22 @@ double calculate_missed_by(player &p, int trange, item* weapon)
   deviation += rng(0, 2 * p.encumb(bp_arms)) + rng(0, 4 * p.encumb(bp_eyes));
 
   deviation += rng(0, weapon->curammo->accuracy);
+
   // item::accuracy() doesn't support gunmods.
   deviation += rng(0, p.weapon.accuracy());
   int adj_recoil = p.recoil + p.driving_recoil;
+
+//CAT-mgs: bonus precision for kneeling shoot (recoil == 0)
   deviation += rng(int(adj_recoil / 4), adj_recoil);
+  double ret= 0.00325 * deviation * trange;
+  if(p.recoil <= 0)
+	ret/= 2;
 
 // .013 * trange is a computationally cheap version of finding the tangent.
 // (note that .00325 * 4 = .013; .00325 is used because deviation is a number
 //  of quarter-degrees)
 // It's also generous; missed_by will be rather short.
-  return (.00325 * deviation * trange);
+  return ret;
 }
 
 int recoil_add(player &p)
@@ -1179,7 +1148,7 @@ void shoot_monster(game *g, player &p, monster &mon, int &dam, double goodhit, i
  int junk;
  bool u_see_mon = g->u_see(&(mon), junk);
  if (mon.has_flag(MF_HARDTOSHOOT) && !one_in(4) &&
-     !weapon->curammo->m1 == LIQUID &&
+     !(weapon->curammo->m1 == LIQUID) &&
      weapon->curammo->accuracy >= 4) { // Buckshot hits anyway
   if (u_see_mon)
    g->add_msg("The shot passes through the %s without hitting.",
@@ -1354,19 +1323,16 @@ void ammo_effects(game *g, int x, int y, long effects)
 //CAT: C4 not accounted for, it's TOOL, no AMMO
  if (effects & mfb(AMMO_EXPLOSIVE))
  {
-	g->explosion(x, y, 24, 0, false);
+	g->explosion(x, y, 15, 0, false);
 
-	for(int i=0; i < 7;i++)
+	for(int i=0; i < 3;i++)
 	{
-		int px= x + rng(-2, 2);
-		int py= y + rng(-2, 2);
+		int px= x + rng(-1, 1);
+		int py= y + rng(-1, 1);
 
 		ter_id &pter = g->m.ter(px, py);
 		if(pter == t_dirt || pter == t_grass || pter == t_sand)
             	pter = t_dirtmound;
-		else
-		if(pter == t_pavement || pter == t_pavement_y || pter == t_sidewalk)
-            	pter = t_rubble;
 	}
  }
 
@@ -1374,7 +1340,7 @@ void ammo_effects(game *g, int x, int y, long effects)
  {
 	g->explosion(x, y, 40, 0, false);
 
-	for(int i=0; i < 9;i++)
+	for(int i=0; i < 5;i++)
 	{
 		int px= x + rng(-2, 2);
 		int py= y + rng(-2, 2);

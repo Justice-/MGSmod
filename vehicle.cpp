@@ -1133,7 +1133,7 @@ void vehicle::thrust (int thd)
         skidding = false;
     }
 
-    if (!thd)
+    if(!thd)
         return;
 
     bool pl_ctrl = player_in_control(&g->u);
@@ -1151,20 +1151,23 @@ void vehicle::thrust (int thd)
        thrusting= (sgn == thd);
     }
 
-    if (thrusting)
+    if(thrusting)
     {
-        if (total_power () < 1)
+        if(total_power () < 1)
         {
-            if (pl_ctrl)
+            if(pl_ctrl)
             {
-                if (total_power (false) < 1)
-                    g->add_msg ("The %s doesn't have an engine!", name.c_str());
-                else
-                    g->add_msg ("The %s's engine emits a sneezing sound.", name.c_str());
+		   if (total_power (false) < 1)
+                    g->add_msg ("The %s doesn't have an engine.", name.c_str());
+               else
+                    g->add_msg ("The %s's fuel tank is empty.", name.c_str());
             }
-            cruise_velocity = 0;
-            return;
+
+		playSound(3);
+		g->CARJUMPED= false;
+		return;		
         }
+
 
         consume_fuel ();
 
@@ -1225,6 +1228,7 @@ void vehicle::thrust (int thd)
             velocity = -max_vel / 4;
     }
 }
+
 
 void vehicle::cruise_thrust (int amount)
 {

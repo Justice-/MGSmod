@@ -994,7 +994,10 @@ void player::perform_defensive_technique(
  std::string You = (is_npc() ? name : "You");
  std::string your = (is_npc() ? (male ? "his" : "her") : "your");
  std::string target = (mon ? "the " + z->name() : p->name);
- bool u_see = (!is_npc() || g->u_see(posx, posy, junk));
+
+//CAT-mgs: no blocking while sleeping
+ bool u_see= ( !g->SNIPER && !g->u.has_disease(DI_SLEEP) 
+			&& (!is_npc() || g->u_see(posx, posy, junk)) );
 
  switch (technique) {
   case TEC_BLOCK:
@@ -1012,7 +1015,8 @@ void player::perform_defensive_technique(
     else
      side = 1;
    }
-   if (u_see)
+
+   if(u_see)
     g->add_msg("%s block%s with %s %s.", You.c_str(), (is_npc() ? "s" : ""),
                your.c_str(), body_part_name(bp_hit, side).c_str());
    bash_dam *= .5;

@@ -234,11 +234,14 @@ int calendar::minutes_past_midnight()
 moon_phase calendar::moon()
 {
  int phase = day / (DAYS_IN_SEASON / 4);
- //phase %= 4;   Redundant?
- if (phase == 3)
-  return MOON_HALF;
+
+//CAT-mgs: not redundant, necessaty
+ phase %= 4;   
+
+ if(phase == 3)
+   return MOON_HALF;
  else
-  return moon_phase(phase);
+   return moon_phase(phase);
 }
 
 calendar calendar::sunrise()

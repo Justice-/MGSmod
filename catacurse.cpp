@@ -84,7 +84,7 @@ void initAudio()
 	sound[5] = Mix_LoadWAV("./data/audio/actionDrop.wav");
 	sound[6] = Mix_LoadWAV("./data/audio/actionUse.wav");
 
-//	sound[7] = Mix_LoadWAV("./data/audio/hearBeat1.wav");
+	sound[7] = Mix_LoadWAV("./data/audio/drowned.wav");
 
 	sound[8] = Mix_LoadWAV("./data/audio/pain1.wav");
 	sound[9] = Mix_LoadWAV("./data/audio/pain2.wav");
@@ -140,8 +140,9 @@ void initAudio()
 	sound[50] = Mix_LoadWAV("./data/audio/bigCrash.wav");
 
 	sound[51] = Mix_LoadWAV("./data/audio/loopEngine1.wav");
-//
-//
+	sound[52] = Mix_LoadWAV("./data/audio/carIgnition.wav");
+	sound[53] = Mix_LoadWAV("./data/audio/carStart.wav");
+
 
 	sound[54] = Mix_LoadWAV("./data/audio/cut.wav");
 	sound[55] = Mix_LoadWAV("./data/audio/step.wav");
@@ -176,7 +177,7 @@ void initAudio()
 	sound[75] = Mix_LoadWAV("./data/audio/thunder1.wav");
 	sound[76] = Mix_LoadWAV("./data/audio/thunder2.wav");
 	sound[77] = Mix_LoadWAV("./data/audio/thunder3.wav");
-//CAT: too short
+//CAT: too short?
 	sound[78] = Mix_LoadWAV("./data/audio/thunder4.wav"); 
 	
 
@@ -289,7 +290,7 @@ void playSound(int ID)
 //CAT:   || ID== 27 || ID== 40
 //...stack in a single channel?
    if(ID == 0) 
-	currentChannel= 7;	
+	currentChannel= 6;	
    else
 	currentChannel= -1;
 
@@ -546,9 +547,12 @@ void DrawWindow(WINDOW *win)
     };// for (j=0;j<_windows[w].height;j++)
     win->draw=false;                //We drew the window, mark it as so
 
+
 //CAT-g:
-  InvalidateRect(WindowHandle,NULL,true);
-  UpdateWindow(WindowHandle);
+//  InvalidateRect(WindowHandle, NULL, true);
+//  UpdateWindow(WindowHandle);
+
+    RedrawWindow(WindowHandle, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
 
 };
 
@@ -874,6 +878,7 @@ int werase(WINDOW *win)
 
 //CAT-g:
 //    win->draw=true;
+
 //    wmove(win,0,0);
 //    wrefresh(win);
 
@@ -1125,11 +1130,5 @@ int move(int y, int x)
     return wmove(mainwin,y,x);
 };
 
-//Set the amount of time getch waits for input
-void timeout(int delay)
-{
-    inputdelay=delay;
-};
-void set_escdelay(int delay) { } //PORTABILITY, DUMMY FUNCTION
 
 #endif

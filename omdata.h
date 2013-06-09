@@ -17,7 +17,7 @@ class overmap;
 
 struct oter_t {
  std::string name;
- long sym;	// This is a long, so we can support curses linedrawing
+ int sym;	// This is a long, so we can support curses linedrawing
  nc_color color;
  unsigned char see_cost; // Affects how far the player can see in the overmap
  const map_extras& embellishments;
@@ -119,12 +119,12 @@ enum oter_id {
  ot_ants_food, ot_ants_larvae, ot_ants_queen,
  ot_cavern,
 
- ot_tutorial,
-
 
 //CAT-mgs: aboveground
  ot_sky, ot_shelter_over, ot_shelter_over2,
 
+
+ ot_tutorial,
  num_ter_types
 };
 
@@ -177,6 +177,8 @@ const oter_t oterlist[num_ter_types] = {
 {"river bank",		'R',	c_ltblue,	1, no_extras, false, false},
 {"river bank",		'R',	c_ltblue,	1, no_extras, false, false},
 {"river bank",		'R',	c_ltblue,	1, no_extras, false, false},
+
+//CAT-mgs: false -> true?
 {"house",		'^',	c_ltgreen,	5, build_extras, false, false},
 {"house",		'>',	c_ltgreen,	5, build_extras, false, false},
 {"house",		'v',	c_ltgreen,	5, build_extras, false, false},
@@ -185,6 +187,7 @@ const oter_t oterlist[num_ter_types] = {
 {"house",		'>',	c_ltgreen,	5, build_extras, false, false},
 {"house",		'v',	c_ltgreen,	5, build_extras, false, false},
 {"house",		'<',	c_ltgreen,	5, build_extras, false, false},
+
 {"parking lot",		'O',	c_dkgray,	1, build_extras, false, false},
 {"park",		'O',	c_green,	2, build_extras, false, false},
 {"gas station",		'^',	c_ltblue,	5, build_extras, false, false},
@@ -271,7 +274,7 @@ const oter_t oterlist[num_ter_types] = {
 {"fema camp",		'+',	c_blue,	5, build_extras, false, false},
 {"fema camp",		'F',	i_blue,	5, build_extras, false, false},
 //CAR-mgs: true, false
-{"evac shelter",	'+',	c_white,	2, no_extras, true, false},
+{"evac shelter",	'+',	c_white,	2, no_extras, true, true},
 {"evac shelter",	'+',	c_white,	2, no_extras, false, true},
 {"LMOE shelter",	'+',	c_red,	2, no_extras, true, false},
 {"LMOE shelter",	'+',	c_red,	2, no_extras, false, true},
@@ -352,12 +355,14 @@ const oter_t oterlist[num_ter_types] = {
 {"ant larva chamber",	'O',	c_white,	5, no_extras, false, false},
 {"ant queen chamber",	'O',	c_red,		5, no_extras, false, false},
 {"cavern",		'0',	c_ltgray,	5, no_extras, false, false},
-{"tutorial room",	'O',	c_cyan,		5, no_extras, false, false},
 
 //CAT-mgs:
 {"sky",	'8',	c_ltcyan,	2, no_extras, false, false},
-{"evac shelter",	'+',	c_white,	2, no_extras, false, true},
-{"evac shelter",	'+',	c_white,	2, no_extras, false, true}
+{"evac shelter",	'+',	c_white,	2, no_extras, true, true},
+{"evac shelter",	'+',	c_white,	2, no_extras, true, false},
+
+
+{"tutorial room",	'O',	c_cyan,		5, no_extras, false, false}
 };
 
 // Overmap specials--these are "special encounters," dungeons, nests, etc.
@@ -448,8 +453,8 @@ enum omspec_id
  NUM_OMSPECS
 };
 
-// Set min or max to -1 to ignore them
 
+// Set min or max to -1 to ignore them
 const overmap_special overmap_specials[NUM_OMSPECS] = {
 
 // Terrain	 MIN MAX DISTANCE
@@ -459,53 +464,59 @@ const overmap_special overmap_specials[NUM_OMSPECS] = {
 {ot_hive, 	   0, 50, 10, -1, "GROUP_BEE", 20, 60, 2, 4,
  &omspec_place::forest, mfb(OMS_FLAG_3X3)},
 
-{ot_house_north,   0,100,  0, -1, "GROUP_NULL", 0, 0, 0, 0,
+
+//CAT-mgs: these two are not spawnign at all?
+{ot_house_north,   3, 5,  10, -1, "GROUP_NULL", 0, 0, 0, 0,
  &omspec_place::by_highway, mfb(OMS_FLAG_ROTATE_ROAD) | mfb(OMS_FLAG_CLASSIC)},
 
-{ot_s_gas_north,   0,100,  0, -1, "GROUP_NULL", 0, 0, 0, 0,
+{ot_s_gas_north,   4, 9,  10, -1, "GROUP_NULL", 0, 0, 0, 0,
  &omspec_place::by_highway, mfb(OMS_FLAG_ROTATE_ROAD) | mfb(OMS_FLAG_CLASSIC)},
+//CAT-mgs: *** ^^^
+
 
 {ot_cabin,   0, 30, 20, -1, "GROUP_NULL", 0, 0, 0, 0,  // Woods cabin
- &omspec_place::forest, mfb(OMS_FLAG_CLASSIC)},
+&omspec_place::forest, mfb(OMS_FLAG_CLASSIC)},
 
- {ot_lmoe,   0, 3, 20, -1, "GROUP_NULL", 0, 0, 0, 0,
- &omspec_place::land, mfb(OMS_FLAG_CLASSIC)},
+{ot_lmoe,   0, 3, 20, -1, "GROUP_NULL", 0, 0, 0, 0,
+&omspec_place::land, mfb(OMS_FLAG_CLASSIC)},
 
- {ot_farm,   0, 20, 20, -1, "GROUP_NULL", 0, 0, 0, 0,
- &omspec_place::wilderness, mfb(OMS_FLAG_3X3_SECOND) |mfb(OMS_FLAG_DIRT_LOT) | mfb(OMS_FLAG_CLASSIC)},
+{ot_farm,   0, 20, 20, -1, "GROUP_NULL", 0, 0, 0, 0,
+&omspec_place::wilderness, mfb(OMS_FLAG_3X3_SECOND) |mfb(OMS_FLAG_DIRT_LOT) | mfb(OMS_FLAG_CLASSIC)},
 
 {ot_temple_stairs, 0,  3, 20, -1, "GROUP_NULL", 0, 0, 0, 0,
  &omspec_place::forest, 0},
 
 {ot_lab_stairs,	   0, 30,  8, -1, "GROUP_NULL", 0, 0, 0, 0,
- &omspec_place::land, mfb(OMS_FLAG_ROAD)},
+&omspec_place::land, mfb(OMS_FLAG_ROAD)},
 
 {ot_fema_entrance,	   0, 5,  8, -1, "GROUP_NULL", 0, 0, 0, 0,
- &omspec_place::land, mfb(OMS_FLAG_3X3_SECOND) | mfb(OMS_FLAG_CLASSIC)},
+&omspec_place::land, mfb(OMS_FLAG_3X3_SECOND) | mfb(OMS_FLAG_CLASSIC)},
 
 // Terrain	 MIN MAX DISTANCE
 {ot_bunker,	   2, 10,  4, -1, "GROUP_NULL", 0, 0, 0, 0,
- &omspec_place::land, mfb(OMS_FLAG_ROAD)},
+&omspec_place::land, mfb(OMS_FLAG_ROAD)},
 
 {ot_outpost,	   0, 10,  4, -1, "GROUP_NULL", 0, 0, 0, 0,
- &omspec_place::wilderness, 0},
+&omspec_place::wilderness, 0},
 
 {ot_silo,	   0,  1, 30, -1, "GROUP_NULL", 0, 0, 0, 0,
- &omspec_place::wilderness, mfb(OMS_FLAG_ROAD)},
+&omspec_place::wilderness, mfb(OMS_FLAG_ROAD)},
 
 {ot_radio_tower,   1,  5,  0, 20, "GROUP_NULL", 0, 0, 0, 0,
- &omspec_place::by_highway, mfb(OMS_FLAG_CLASSIC)},
+&omspec_place::by_highway, mfb(OMS_FLAG_CLASSIC)},
 
-{ot_mansion_entrance, 0, 8, 0, -1, "GROUP_NULL", 0, 0, 0, 0,
+{ot_mansion_entrance, 0, 8, -1, -1, "GROUP_NULL", 0, 0, 0, 0,
  &omspec_place::by_highway, mfb(OMS_FLAG_3X3_SECOND) | mfb(OMS_FLAG_CLASSIC)},
 
 {ot_mansion_entrance, 0, 4, 10, -1, "GROUP_NULL", 0, 0, 0, 0,
- &omspec_place::wilderness, mfb(OMS_FLAG_3X3_SECOND) | mfb(OMS_FLAG_CLASSIC)},
+&omspec_place::wilderness, mfb(OMS_FLAG_3X3_SECOND) | mfb(OMS_FLAG_CLASSIC)},
 
-{ot_megastore_entrance, 0, 5, 0, 10, "GROUP_NULL", 0, 0, 0, 0,
+//CAT-mgs: malls & hospitals were not spawning enough
+//...possible problem in ditance_to_city()
+{ot_megastore_entrance, 1, 2, 2, 7, "GROUP_NULL", 0, 0, 0, 0,
  &omspec_place::by_highway, mfb(OMS_FLAG_3X3_SECOND) | mfb(OMS_FLAG_CLASSIC)},
 
-{ot_hospital_entrance, 1, 5, 3, 15, "GROUP_NULL", 0, 0, 0, 0,
+{ot_hospital_entrance, 0, 2, 1, 9, "GROUP_NULL", 0, 0, 0, 0,
  &omspec_place::by_highway, mfb(OMS_FLAG_3X3_SECOND) | mfb(OMS_FLAG_CLASSIC)},
 
 {ot_sewage_treatment, 1,  5, 10, 20, "GROUP_NULL", 0, 0, 0, 0,
@@ -518,26 +529,26 @@ const overmap_special overmap_specials[NUM_OMSPECS] = {
 {ot_anthill,	   0, 30,  10, -1, "GROUP_ANT", 10, 30, 1000, 2000,
  &omspec_place::wilderness, 0},
 
-{ot_spider_pit,	   0,500,  0, -1, "GROUP_NULL", 0, 0, 0, 0,
+{ot_spider_pit,	   1, 90,  0, -1, "GROUP_NULL", 0, 0, 0, 0,
  &omspec_place::forest, 0},
 
 {ot_slimepit,	   0,  4,  0, -1, "GROUP_GOO", 2, 10, 100, 200,
  &omspec_place::land, 0},
 
-{ot_fungal_bloom,  0,  3,  5, -1, "GROUP_FUNGI", 600, 1200, 30, 50,
+{ot_fungal_bloom,  0,  2,  5, -1, "GROUP_FUNGI", 600, 1200, 30, 50,
  &omspec_place::wilderness, 0},
 
-{ot_triffid_grove, 0,  4,  0, -1, "GROUP_TRIFFID", 800, 1300, 12, 20,
+{ot_triffid_grove, 0,  3,  0, -1, "GROUP_TRIFFID", 800, 1300, 12, 20,
  &omspec_place::forest, 0},
 
 {ot_river_center,  0, 10, 10, -1, "GROUP_NULL", 0, 0, 0, 0,
  &omspec_place::always, mfb(OMS_FLAG_BLOB) | mfb(OMS_FLAG_CLASSIC)},
 
 // Terrain	 MIN MAX DISTANCE
-{ot_shelter,       5, 10,  5, 10, "GROUP_NULL", 0, 0, 0, 0,
+{ot_shelter,       3, 5,  5, 10, "GROUP_NULL", 0, 0, 0, 0,
  &omspec_place::wilderness, mfb(OMS_FLAG_ROAD) | mfb(OMS_FLAG_CLASSIC)},
 
-{ot_cave,	   0, 30,  0, -1, "GROUP_NULL", 0, 0, 0, 0,
+{ot_cave,	   0, 10,  0, -1, "GROUP_NULL", 0, 0, 0, 0,
  &omspec_place::wilderness, 0},
 
 {ot_toxic_dump,	   0,  5, 15, -1, "GROUP_NULL", 0, 0, 0, 0,

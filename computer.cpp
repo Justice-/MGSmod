@@ -120,7 +120,7 @@ void computer::use(game *g)
 // Main computer loop
  bool done = false; // Are we done using the computer?
  do {
-  //reset_terminal();
+//CAT-s:
   print_line("");
   print_line("%s - Root Menu", name.c_str());
   for (int i = 0; i < options.size(); i++)
@@ -132,6 +132,11 @@ void computer::use(game *g)
   do
    ch = getch();
   while (ch != 'q' && ch != 'Q' && (ch < '1' || ch - '1' >= options.size()));
+
+//CAT-s:
+  playSound(1);
+  reset_terminal();
+
   if (ch == 'q' || ch == 'Q')
    done = true;
   else { // We selected an option other than quit.
@@ -146,16 +151,19 @@ void computer::use(game *g)
       return;
      } else {
 	activate_function(g, current.action);
-	shutdown_terminal();
-	return;
+	reset_terminal();
      }
     }
    } else // No need to hack, just activate
     activate_function(g, current.action);
+
   } // Done processing a selected option.
  } while (!done); // Done with main terminal loop
 
-// shutdown_terminal(); // This should have been done by now, but just in case.
+//CAT-s:
+// playSound(2);
+ shutdown_terminal(); // This should have been done by now, but just in case.
+
 }
 
 bool computer::hack_attempt(player *p, int Security)
@@ -250,6 +258,24 @@ void computer::activate_function(game *g, computer_action action)
    print_line("Doors opened.");
    break;
 
+  //LOCK AND UNLOCK are used to build more complex buildings that can have multiple doors that can be locked and 
+  //unlocked by different computers.  Simply uses translate_radius which take a given radius and player position
+  //to determine which terrain tiles to edit.
+  case COMPACT_LOCK:
+   g->m.translate_radius(t_door_metal_c, t_door_metal_locked, 8.0, g->u.posx, g->u.posy);
+   print_line("Lock enabled.");
+   break;
+
+  case COMPACT_UNLOCK:
+   g->m.translate_radius(t_door_metal_locked, t_door_metal_c, 8.0, g->u.posx, g->u.posy);
+   print_line("Lock disabled.");
+   break;
+
+  //Toll is required for the church computer/mechanism to function
+  case COMPACT_TOLL:
+   g->sound(g->u.posx, g->u.posy, 120, "Bohm... Bohm... Bohm...");
+   break;   
+
   case COMPACT_SAMPLE:
    for (int x = 0; x < SEEX * MAPSIZE; x++) {
     for (int y = 0; y < SEEY * MAPSIZE; y++) {
@@ -341,23 +367,24 @@ void computer::activate_function(game *g, computer_action action)
    }
   } break;
 
-  case COMPACT_RESEARCH: {
+case COMPACT_RESEARCH: {
    int lines = 0, notes = 0;
    std::string log, tmp;
    int ch;
    std::ifstream fin;
    fin.open("data/LAB_NOTES");
+
    if (!fin.is_open()) {
     debugmsg("Couldn't open ./data/LAB_NOTES for reading");
     return;
    }
-   while (fin.good()) {
-    ch = fin.get();
-    if (ch == '%')
+
+   while(fin.good()) {
+    ch= fin.get();
+    if(ch == '%')
      notes++;
    }
 
-   while (lines < 10) {
     fin.clear();
     fin.seekg(0, std::ios::beg);
     fin.clear();
@@ -367,6 +394,7 @@ void computer::activate_function(game *g, computer_action action)
      if (tmp.find_first_of('%') == 0)
       choice--;
     }
+
     getline(fin, tmp);
     do {
      lines++;
@@ -375,11 +403,22 @@ void computer::activate_function(game *g, computer_action action)
       log.append("\n");
      }
     } while(tmp.find_first_of('%') != 0 && getline(fin, tmp));
-   }
+
+
    print_line(" %s", log.c_str());
    print_line("Press any key...");
    getch();
+
+   if(one_in(10))
+   {	
+	options.clear();
+	activate_failure(g, COMPFAIL_SHUTDOWN);
+   }
+
+//CAT-s:
+	playSound(0);
   } break;
+
 
   case COMPACT_MAPS: {
    int minx = int((g->levx + int(MAPSIZE / 2)) / 2) - 40;
@@ -432,11 +471,12 @@ void computer::activate_function(game *g, computer_action action)
    {
 //CAT-s: rocket
 	playSound(61);
-	g->add_msg("Nuclear missile launched!");	
+	g->add_msg("Nuclear missile launched!");
+	options.clear();//Remove the option to fire another missle.	
    }
    else	
    {
-      g->add_msg("Nuclear missile launched aborted.");
+      g->add_msg("Nuclear missile launch aborted.");
 	return;
    }
 
@@ -450,7 +490,7 @@ void computer::activate_function(game *g, computer_action action)
     {
 
 	if(one_in(4))
-		g->explosion(i+rng(-1,1), j+rng(-1,1), rng(4,10), 0, true);
+		g->explosion(i+rng(-1,1), j+rng(-1,1), rng(4,15), 0, true);
 	else
 	      g->m.add_field(NULL, i+rng(-2,2), j+rng(-2,2), fd_nuke_gas, rng(1,9));
 
@@ -502,7 +542,8 @@ void computer::activate_function(game *g, computer_action action)
 	g->m.add_item(g->u.posx+12+rng(-2,2), g->u.posy+9+rng(-2,2), g->itypes[itm_plasma_engine], 0);
 	g->m.add_item(g->u.posx+12+rng(-2,2), g->u.posy+9+rng(-2,2), g->itypes[itm_minireactor], 0);
 
-    activate_failure(g, COMPFAIL_SHUTDOWN);
+	options.clear();//Remove the option to fire another missle.	
+	activate_failure(g, COMPFAIL_SHUTDOWN);
    break;
 
   case COMPACT_LIST_BIONICS: {
@@ -708,6 +749,17 @@ of pureed bone & LSD.");
   \n\
   Press any key to continue...");
   break;
+
+  case COMPACT_TOWER_UNRESPONSIVE:
+  print_line("\
+  WARNING, RADIO TOWER IS UNRESPONSIVE. \n\
+  \n\
+  BACKUP POWER INSUFFICIENT TO MEET BROADCASTING REQUIREMENTS. \n\
+  IN THE EVENT OF AN EMERGENCY, CONTACT LOCAL NATIONAL GUARD \n\
+  UNITS TO RECEIVE PRIORITY WHEN GENERATORS ARE BEING DEPLOYED. \n\
+  \n\
+  Press any key to continue...");
+  break; 
 
  } // switch (action)
 }

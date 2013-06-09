@@ -2862,7 +2862,7 @@ as a gun for children.",
 GUN("Browning BLR",	 8,3500,c_brown,IRON,	WOOD,
 	"rifle",	AT_3006,12, 28, 12,  3, -3,  6, -4,  7,  0,  4, 100, "\
 A very popular rifle for hunting and sniping. Its low ammo capacity is\n\
-offset by the very powerful .30-06 round it fires.",
+offset by the very powerful .30-06 round it fires. Scope attached.",
 mfb(IF_RELOAD_ONE));
 
 //  NAME		RAR PRC COLOR	MAT1	MAT2
@@ -2871,7 +2871,7 @@ GUN("Remington 700",	14,3200,c_brown,IRON,	WOOD,
 	"rifle",	AT_3006,12, 34, 13,  3,  7,  9, -3,  8,  0,  4, 75, "\
 A very popular and durable hunting or sniping rifle. Popular among SWAT\n\
 and US Marine snipers. Highly damaging, but perhaps not as accurate as the\n\
-competing Browning BLR.",
+competing Browning BLR. Scope attached.",
 mfb(IF_RELOAD_ONE));
 
 GUN("SKS",		12,3000,c_brown,IRON,	WOOD,
@@ -3143,7 +3143,7 @@ firing slugs. The rifling makes the gun less suitable for shot, however.",
 GUNMOD("extended magazine",	  8,  560, c_ltgray, STEEL, PLASTIC,  1,  1, -2,  0, -1,
 	-1,  0,  0, 50,  0,  0, AT_NULL,	true,	true,	true,	true,
 	0, "\
-Increases the ammunition capacity of your firearm by 50%, but the added bulk\n\
+Increases the ammunition capacity of your firearm by 50%%, but the added bulk\n\
 reduces accuracy slightly.",
 0);
 
@@ -3565,7 +3565,7 @@ color,mat1,mat2,volume,wgt,melee_dam,melee_cut,to_hit,flags,max_charge,\
 def_charge,charge_per_use,charge_per_sec,fuel,revert,func))
 
 //	NAME		RAR PRC	SYM  COLOR	MAT1	MAT
-TOOL("cheap lighter",		60,  35,',', c_blue,	PLASTIC,IRON,
+TOOL("lighter",		60,  35,',', c_blue,	PLASTIC,IRON,
 // VOL WGT DAM CUT HIT MAX DEF USE SEC FUEL	REVERT	  FUNCTION
     0,  0,  0,  0,  0, 100,100, 1,  0, AT_NULL,	itm_null, &iuse::lighter, 0, "\
 A lighter must be carried to use various drugs, like cigarettes, or to light\n\

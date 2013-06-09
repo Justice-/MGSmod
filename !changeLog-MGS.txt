@@ -1,38 +1,81 @@
-+ problems with indoor (own) illumination when looking around?
-+ sunny at 11pm?
++ did I fix enemies showing in unseen tiles, plfire had redundand drawing?
++ pet food, animal training and adopting beside whistle?
++ fuel tank empty show x2, why?
++ bicicles don't need hotwiring?
++ make jumpstart requirement sometimes, beside hot-wiring?
++ show NPC, health, thirst, hunger... call them with talky-walky?
++ less radios, more cell phones... find some use for two way radio and radios?
++ good mechanics (2+) or high electronics (3+) to jump-start the vehicle?
++ move_furnoture() doesn't account for viewoffset?
++ RPG7+scope, exploding barrels!?
++ burst bullet sounds doesn't trigger all?
++ proper distance calculation in [Map] - overmap?
++ replace refresh_all() with draw()?
++ targeting takes time, remember last target?
++ lonely road houses and gas stations not spawning?
++ cell treatment in labs remove bionics if you have arm, leg, fetus
++ NPC training cut two menues - "we'll be ok here"?
++ half/full moon too bright?
++ show "#" for numbered multidrop (in trunk)?
++ less beer to get drunk?
++ failed mission tab screwed up? sound effects?
++ beds don't invert color when items on them?
++ shof burst number under "Weapon:"?
++ revisit body temperature when close to fire?
++ healing popup window missing bottom line?
++ trading menu tab window change color?
++ sunny wather info, gray daylight tiles at 11pm?
++ healing NPCs, does that work?
 + push furniture around, and jump key, throw ghjkl, 1234...?
 + remove glitchy movment close to map borders?
++ add H&K G80 railgun to mountable turrets?
++ zombiew drawn on unseen areas?
++ clear options extra option menu and disable SAFE mode operations?
 + automated sliding doors, opened with science ID card?
 + cargo elevator for underground Metal Gear storage?
++ Amigara horor text box drawing, in mine (fault line, t_fault)?
++ "shock where?" (tazer) message pops-up out of it self, when reloading fast - keypress gobled?
 
 
-
-- above ground z-levels!
-- NEW ACTION: jumping!!
-- glass takes damage or blocks fired shots
-- dangerous field no question if already in one
+- NEW FEATURE: "moving targerts" and sniping
+- fix NPC spawning on z-levels change
+- vehicle jumpstart, requires mech. & elec. skills
+- car ignition and start enginge sound effects
+- monsters properly use the stairs
+- basement bugfix and new orientations
+- proper display of lab notes
+- smooth sleeping/waiting fast forward 
+- stem cell treatment consoles in lab finale
+- resized inventory windows to cover screen
+- inventory properly show all gumods
+- SMGs can be used with only one hand
+- balanced hit rate and wapons skills
+- show overmap coordinates and distance
+- road map: hospitals, malls, shelters, silos
+- spawn more megastores and hospitals
+- NEW ACTION: jumping
+- above ground z-levels
+- NPC commands: "wait here" and "follow me"
+- zombies in labs and silo launch room
+- glass walls and more excitement in labs 
+- sound/noise when shooting stuff
 - firearms are more effective
 - proper monsters reaction to noise
-- NPC commands: "wait here" and "follow me"
-- burst fire mechanics changed, balanced
-- zombies in labs and silo launch room
-- glass wals and more excitment in labs 
-- addde roof tiles for inside areas 
-- sound/noise when shooting stuff
 - fixed missile silo crash bug
 - remove missile and open hatch after launch
 - missile launch gas and fire animations
 - missile launch sound effects and messages
 - pavement ring around missile hatch
-- only one missile in a nuclear sillo
+- only one missile in a nuclear silo
 - spawn items if missile disarmed
-- underground level number indicator
-- make pool tables shorter
-- flashlight on/off sound effect
-- balancad vehicle braking and handbrake
-- fixed lighmaps during the day
-
-
+- underground/overground level indicator
+- indoor daylight shift-view lighting fix
+- fixed outdoor dawn/sunset lighting 
+- fixed ofset for moonlight phases brightness
+- fixe flashlight click turns off rain loop
+- fixed glitching overmap near border
+- improved, simplified NPC training dialog
+- crashing bugs fixed: NPC dialog & stairs up
 
 Cataclysm-MGS_rev19
 - Metal Gear ZK-Mk.3

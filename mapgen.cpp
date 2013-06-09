@@ -1144,6 +1144,7 @@ void map::draw_map(const oter_id terrain_type, const oter_id t_north, const oter
    ter(rn, bw) = t_window_domestic;
    break;
 
+
   case 3:	// Long center hallway
    mw = int((lw + rw) / 2);
    cw = bw - rng(5, 7);
@@ -1218,6 +1219,7 @@ void map::draw_map(const oter_id terrain_type, const oter_id t_north, const oter
    break;
   }	// Done with the various house structures
 
+
   if (rng(2, 7) < tw) {	// Big front yard has a chance for a fence
    for (int i = lw; i <= rw; i++)
     ter(i, 0) = t_fence_h;
@@ -1234,13 +1236,17 @@ void map::draw_map(const oter_id terrain_type, const oter_id t_north, const oter
    }
   }
 
-  if (terrain_type >= ot_house_base_north &&
-      terrain_type <= ot_house_base_west) {
-   do
-    rn = rng(lw + 1, rw - 1);
-   while (ter(rn, bw - 1) != t_floor);
-   ter(rn, bw - 1) = t_stairs_down;
+  if(terrain_type >= ot_house_base_north
+	&& terrain_type <= ot_house_base_west)
+  {
+
+	do
+	   rn = rng(lw + 1, rw - 1);
+	while (ter(rn, bw - 1) != t_floor);
+
+	ter(rn, bw - 1) = t_stairs_down;
   }
+
   if (one_in(100)) { // Houses have a 1 in 100 chance of wasps!
    for (int i = 0; i < SEEX * 2; i++) {
     for (int j = 0; j < SEEY * 2; j++) {
@@ -1299,6 +1305,8 @@ void map::draw_map(const oter_id terrain_type, const oter_id t_north, const oter
   if (terrain_type == ot_house_west  || terrain_type == ot_house_base_west)
    rotate(3);
   break;
+
+
 
  case ot_s_lot:
   for (int i = 0; i < SEEX * 2; i++) {
@@ -2349,7 +2357,7 @@ case ot_shelter_over:
   }
 
   square(this, t_floor_red, 0, 0, 5, 2);
-  line(this, t_wall_h, 1, 0, 4, 0);
+  line(this, t_wall_h, 1, 0, 2, 0);
   line(this, t_wall_h, 1, 2, 2, 2);
   line(this, t_wall_v, 0, 0, 0, 2);
   line(this, t_wall_v, 2, 2, 2, 0);
@@ -2370,8 +2378,8 @@ case ot_shelter_over:
   line(this, t_pavement, SEEX * 2 - 5, SEEY * 2 - 4, SEEX+1, SEEY * 2 - 4);
   line(this, t_pavement, SEEX-3, SEEY * 2 - 4, 3, 20);
 
-  line(this, t_pavement, 3, 19, 3, 15);
-  line(this, t_sidewalk, 3, 11, 3, 5);
+  line(this, t_sidewalk, 3, 19, 3, 15);
+  line(this, t_sidewalk, 3, 10, 3, 5);
 
   line(this, t_wall_v, 4, 5, 4, SEEY * 2 - 6);
   line(this, t_wall_v, 7, 5, 7, SEEY * 2 - 6);
@@ -2386,10 +2394,10 @@ case ot_shelter_over:
   ter(15, 9) = t_table;
   ter(15, 5) = t_dresser;
 
-  ter(8, 7) = t_rack;
+  ter(8, 7) = t_dresser;
   ter(7, 11) = t_door_c;
   ter(8, 10) = t_locker;
-  ter(8, 11) = t_locker;
+  ter(8, 11) = t_bookcase;
   ter(8, 12) = t_bookcase;
   ter(8, 18) = t_chair;
   ter(9, 12) = t_crate_c;
@@ -2406,7 +2414,12 @@ case ot_shelter_over:
   ter(5, 17) = t_stairs_up;
   ter(15, 18) = t_stairs_down;
 
-  add_item(5, 5, g->itypes[itm_flashlight], 0);
+	add_graffiti(g, 14, 15, "I write this message...\n\
+                  with my own blood...\n\
+         if you want to jump...\n\
+             ...try pressing SHIFT+X.");
+
+  add_item(5, 5, g->itypes[itm_mp3], 0);
   add_item(17, 18, g->itypes[itm_crowbar], 0);
 }
  break;
@@ -2420,7 +2433,7 @@ case ot_shelter_over2:
     ter(i, j) = t_air;
   }
 
-  square(this, t_floor_blue, 0, 0, 2, 2);
+  square(this, t_pavement, 0, 0, 2, 2);
   ter(0, 1) = t_stairs_down;
 
   square(this, t_pavement, 4, 4, SEEX * 2 - 5, SEEY * 2 - 5);
@@ -2916,6 +2929,7 @@ case ot_lmoe: {
   rw = (t_east  >= ot_lab && t_east  <= ot_lab_finale) ? 1 : 2;
   bw = (t_south >= ot_lab && t_south <= ot_lab_finale) ? 1 : 2;
   lw = (t_west  >= ot_lab && t_west  <= ot_lab_finale) ? 0 : 2;
+
 // Start by setting up a large, empty room.
   for (int i = 0; i < SEEX * 2; i++) {
    for (int j = 0; j < SEEY * 2; j++) {
@@ -2927,13 +2941,22 @@ case ot_lmoe: {
     {	
 	ter(i, j) = t_floor;
 
-//CAT-mgs: some zombies in a lab
+//CAT-mgs: some zombies in a lab, and stem cell treatment consoles
+//... make itm_arm, itm_leg, itm_fetus required to unninstal bionics
 	   if(one_in(70))
 	   {		
 		if(one_in(3))
 			add_spawn(mon_zombie_hulk, 1, i, j);
 		else
 			add_spawn(mon_zombie_master, 1, i, j);
+	   }
+	   else
+	   if(one_in(190))
+	   {
+		// computer to begin healing broken bones,
+		tmpcomp = add_computer(i, j, "Mr. Stem Cell v.2", 3);
+		tmpcomp->add_option("Stem Cell Treatment", COMPACT_STEMCELL_TREATMENT, 3);
+		tmpcomp->add_failure(COMPFAIL_ALARM);
 	   }
 
     }
@@ -3295,10 +3318,10 @@ case ot_lmoe: {
    for (int i = 0; i < SEEX * 2; i++) {
     for (int j = 0; j < SEEY * 2; j++) {
      if (trig_dist(i, j, SEEX, SEEY) == 7)
-	ter(i, j) = t_pavement_y;
+	ter(i, j) = t_sidewalk;
      else	
      if (trig_dist(i, j, SEEX, SEEY) == 6)
-	ter(i, j) = t_sidewalk;
+	ter(i, j) = t_pavement_y;
      else	
      if (trig_dist(i, j, SEEX, SEEY) < 6)
 	ter(i, j) = t_metal_floor;
@@ -3377,7 +3400,7 @@ case ot_lmoe: {
 	ter(i, j) = t_rock_floor;
 
 //CAT-mgs: some zombies, ready to be cooked
-	if(i > 12 && j > 7 && one_in(15))
+	if(i > 17 && j > 12 && one_in(5))
 		add_spawn(mon_zombie_soldier, 1, i, j);
     }
    }
@@ -6803,8 +6826,6 @@ break;
   case 4:	// Weed grow
    line(this, t_counter, 1, 1, 1, SEEY * 2 - 2);
    line(this, t_counter, SEEX * 2 - 2, 1, SEEX * 2 - 2, SEEY * 2 - 2);
-   ter(SEEX - 1, SEEY * 2 - 2) = t_stairs_up;
-   ter(SEEX    , SEEY * 2 - 2) = t_stairs_up;
    line(this, t_rock, SEEX - 2, SEEY * 2 - 4, SEEX - 2, SEEY * 2 - 2);
    line(this, t_rock, SEEX + 1, SEEY * 2 - 4, SEEX + 1, SEEY * 2 - 2);
    line(this, t_door_locked, SEEX - 1, SEEY * 2 - 4, SEEX, SEEY * 2 - 4);
@@ -6818,9 +6839,23 @@ break;
      }
     }
    }
+
+   ter(SEEX - 1, SEEY * 2 - 2) = t_stairs_up;
+   ter(SEEX    , SEEY * 2 - 2) = t_stairs_up;
+
    break;
   }
+
+//CAT-mgs: prevent crashing bug
+  if(t_above == ot_house_east || t_above == ot_house_base_east)
+   rotate(1);
+  if(t_above == ot_house_south || t_above == ot_house_base_south)
+   rotate(2);
+  if(t_above == ot_house_west  || t_above == ot_house_base_west)
+   rotate(3);
+
   break;
+
 
 // TODO: Maybe subway systems could have broken down trains in them?
  case ot_subway_station:

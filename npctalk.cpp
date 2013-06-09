@@ -107,29 +107,41 @@ void npc::talk_to_u(game *g)
  decide_needs();
 
  d.win = newwin(25, 80, (TERMY > 25) ? (TERMY-25)/2 : 0, (TERMX > 80) ? (TERMX-80)/2 : 0);
- wborder(d.win, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
-                LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
- for (int i = 1; i < 24; i++)
-  mvwputch(d.win, i, 41, c_ltgray, LINE_XOXO);
- mvwputch(d.win,  0, 41, c_ltgray, LINE_OXXX);
- mvwputch(d.win, 24, 41, c_ltgray, LINE_XXOX);
- mvwprintz(d.win, 1,  1, c_white, "Dialogue with %s", name.c_str());
- mvwprintz(d.win, 1, 43, c_white, "Your response:");
 
 // Main dialogue loop
  do {
+  werase(d.win);	
+
+//CAT-g: moved from above to refresh properly
+ wborder(d.win, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
+                LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
+
+ for (int i = 1; i < 24; i++)
+	mvwputch(d.win, i, 41, c_ltgray, LINE_XOXO);
+
+  mvwputch(d.win,  0, 41, c_ltgray, LINE_OXXX);
+  mvwputch(d.win, 24, 41, c_ltgray, LINE_XXOX);
+
+  mvwprintz(d.win, 1,  1, c_white, "Dialogue with %s", name.c_str());
+  mvwprintz(d.win, 1, 42, c_white, "Your response:");
+
   talk_topic next = d.opt(d.topic_stack.back(), g);
   if (next == TALK_NONE) {
    int cat = topic_category(d.topic_stack.back());
    do
-    d.topic_stack.pop_back();
-   while (cat != -1 && topic_category(d.topic_stack.back()) == cat);
+   {
+	d.topic_stack.pop_back();
+
+   }while (cat != -1 && topic_category(d.topic_stack.back()) == cat);
   }
+
   if (next == TALK_DONE || d.topic_stack.empty())
    d.done = true;
   else if (next != TALK_NONE)
    d.topic_stack.push_back(next);
+
  } while (!d.done);
+
  delwin(d.win);
  g->refresh_all();
 }
@@ -235,11 +247,9 @@ std::string dynamic_line(talk_topic topic, game *g, npc *p)
    return "Here's what I can teach you...";
  } break;
 
+//CAT-mgs:
  case TALK_TRAIN_START:
-  if (g->cur_om.is_safe(g->om_location().x, g->om_location().y, g->levz))
    return "Alright, let's begin.";
-  else
-   return "It's not safe here. Let's get to safety first.";
  break;
 
  case TALK_TRAIN_FORCE:
@@ -451,6 +461,10 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
  if (selected != -1 && selected < p->chatbin.missions_assigned.size())
   miss = g->find_mission( p->chatbin.missions_assigned[selected] );
 
+//CAT-mgs:
+  std::vector<skill> trainable = p->skills_offered_to( &(g->u) );
+  std::vector<itype_id> styles = p->styles_offered_to( &(g->u) );
+
  switch (topic) {
  case TALK_MISSION_LIST:
   if (p->chatbin.missions.empty()) {
@@ -601,9 +615,15 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
   RESPONSE("How about some items as payment?");
    SUCCESS(TALK_MISSION_REWARD);
    SUCCESS_ACTION(&talk_function::mission_reward);
-  SELECT_TEMP("Maybe you can teach me something as payment.", 0);
-   SUCCESS(TALK_TRAIN);
-   SUCCESS_ACTION(&talk_function::clear_mission);
+
+//CAT-mgs:
+  if(!trainable.empty() || !styles.empty())
+  {
+	SELECT_TEMP("Maybe you can teach me something as payment.", 0);
+	SUCCESS(TALK_TRAIN);
+	SUCCESS_ACTION(&talk_function::clear_mission);
+  }
+
   RESPONSE("Alright, well, you owe me one.");
    SUCCESS(TALK_NONE);
    SUCCESS_ACTION(&talk_function::clear_mission);
@@ -743,8 +763,10 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
    SELECT_TEMP( resume.str(), g->u.backlog.index);
     SUCCESS(TALK_TRAIN_START);
   }
-  std::vector<skill> trainable = p->skills_offered_to( &(g->u) );
-  std::vector<itype_id> styles = p->styles_offered_to( &(g->u) );
+
+//CAT-mgs: moved outside to use it below again
+//  std::vector<skill> trainable = p->skills_offered_to( &(g->u) );
+//  std::vector<itype_id> styles = p->styles_offered_to( &(g->u) );
   if (trainable.empty() && styles.empty()) {
    RESPONSE("Oh, okay."); // Nothing to learn here
     SUCCESS(TALK_NONE);
@@ -788,6 +810,8 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
    SUCCESS(TALK_NONE);
   } break;
 
+//CAT-mgs: cut training dialog
+/*
  case TALK_TRAIN_START:
   if (g->cur_om.is_safe(g->om_location().x, g->om_location().y, g->levz)) {
    RESPONSE("Sounds good.");
@@ -804,6 +828,15 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
    RESPONSE("On second thought, never mind.");
     SUCCESS(TALK_NONE);
   }
+  break;
+*/
+
+ case TALK_TRAIN_START:
+   RESPONSE("I'm ready, let's do it.");
+    SUCCESS(TALK_DONE);
+    SUCCESS_ACTION(&talk_function::start_training);
+   RESPONSE("On second thought, never mind.");
+    SUCCESS(TALK_NONE);
   break;
 
  case TALK_TRAIN_FORCE:
@@ -939,8 +972,14 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
    SUCCESS(TALK_COMBAT_COMMANDS);
   RESPONSE("Can I do anything for you?");
    SUCCESS(TALK_MISSION_LIST);
-  SELECT_TEMP("Can you teach me anything?", 0);
-   SUCCESS(TALK_TRAIN);
+
+//CAT-mgs:
+  if(!trainable.empty() || !styles.empty())
+  {
+	  SELECT_TEMP("Can you teach me anything?", 0);
+	   SUCCESS(TALK_TRAIN);
+  }
+
   RESPONSE("Let's trade items.");
    SUCCESS(TALK_NONE);
    SUCCESS_ACTION(&talk_function::start_trade);
@@ -1769,15 +1808,7 @@ bool trade(game *g, npc *p, int cost, std::string deal)
  WINDOW* w_you = newwin(21, 40, 4+((TERMY > 25) ? (TERMY-25)/2 : 0), 40+((TERMX > 80) ? (TERMX-80)/2 : 0));
 
  WINDOW* w_tmp;
- mvwprintz(w_head, 0, 0, c_white, "\
-Trading with %s\n\
-Tab key to switch lists, letters to pick items, Enter to finalize, Esc to quit\n\
-? to get information on an item", p->name.c_str());
 
-// Set up line drawings
- for (int i = 0; i < 80; i++)
-  mvwputch(w_head,  3, i, c_white, LINE_OXOX);
- wrefresh(w_head);
 
 
 // End of line drawings
@@ -1809,12 +1840,19 @@ Tab key to switch lists, letters to pick items, Enter to finalize, Esc to quit\n
 
  do {
   if (update) {	// Time to re-draw
+
    update = false;
 // Draw borders, one of which is highlighted
    werase(w_them);
    werase(w_you);
+   werase(w_head);
+   mvwprintz(w_head, 0, 0, c_white, "\
+ Trading with %s\n\
+ TAB to switch active panel, ENTER to finish, ESC to quit,'?' for item info.", p->name.c_str());
+
    for (int i = 1; i < 80; i++)
-    mvwputch(w_head, 3, i, c_white, LINE_OXOX);
+	mvwputch(w_head, 3, i, c_white, LINE_OXOX);
+
    mvwprintz(w_head, 3, 30, ((cash <  0 && g->u.cash >= cash * -1) ||
                              (cash >= 0 && p->cash  >= cash) ?
                              c_green : c_red),
@@ -1822,15 +1860,18 @@ Tab key to switch lists, letters to pick items, Enter to finalize, Esc to quit\n
    if (deal != "")
     mvwprintz(w_head, 3, 45, (cost < 0 ? c_ltred : c_ltgreen), deal.c_str());
    if (focus_them)
-    wattron(w_them, c_yellow);
+    wattron(w_them, c_red);
    else
-    wattron(w_you,  c_yellow);
+    wattron(w_you,  c_red);
+
    wborder(w_them, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
                    LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
    wborder(w_you,  LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
                    LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
-   wattroff(w_them, c_yellow);
-   wattroff(w_you,  c_yellow);
+
+//   wattroff(w_them, c_yellow);
+//   wattroff(w_you,  c_yellow);
+
    mvwprintz(w_them, 0, 1, (cash < 0 || p->cash >= cash ? c_green : c_red),
              "%s: $%d", p->name.c_str(), p->cash);
    mvwprintz(w_you,  0, 2, (cash > 0 || g->u.cash>=cash*-1 ? c_green:c_red),
@@ -1985,16 +2026,21 @@ Tab key to switch lists, letters to pick items, Enter to finalize, Esc to quit\n
   g->u.cash += cash;
   p->cash   -= cash;
  }
- werase(w_head);
+
  werase(w_you);
  werase(w_them);
- wrefresh(w_head);
+ werase(w_head);
+
  wrefresh(w_you);
  wrefresh(w_them);
- delwin(w_head);
+ wrefresh(w_head);
+
  delwin(w_you);
  delwin(w_them);
+ delwin(w_head);
+
  if (ch == '\n')
   return true;
+
  return false;
 }

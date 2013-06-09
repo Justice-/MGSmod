@@ -94,7 +94,7 @@ void iuse::bandage(game *g, player *p, item *it, bool t)
             }
         }
     } else { // Player--present a menu
-        WINDOW* hp_window = newwin(10, 22, (TERMY-10)/2, (TERMX-22)/2);
+        WINDOW* hp_window = newwin(11, 22, (TERMY-10)/2, (TERMX-22)/2 +2);
         wborder(hp_window, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
                            LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
 
@@ -249,7 +249,7 @@ void iuse::firstaid(game *g, player *p, item *it, bool t)
             }
         }
     } else { // Player--present a menu
-        WINDOW* hp_window = newwin(10, 22, (TERMY-10)/2, (TERMX-22)/2);
+        WINDOW* hp_window = newwin(11, 22, (TERMY-10)/2, (TERMX-22)/2 +2);
         wborder(hp_window, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
                            LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
         mvwprintz(hp_window, 1, 1, c_ltred,  "Use First Aid:");
@@ -451,12 +451,12 @@ void iuse::caff(game *g, player *p, item *it, bool t)
 void iuse::alcohol(game *g, player *p, item *it, bool t)
 {
 //CAT-mgs:
- int duration = 590 - (10 * p->str_max); // Weaker characters are cheap drunks
+ int duration = 390 - (10 * p->str_max); // Weaker characters are cheap drunks
  if(duration < 100)
 	duration= 100;
 
  if (p->has_trait(PF_LIGHTWEIGHT))
-  duration += 300;
+  duration += 200;
 
  p->pkill += 8;
  p->add_disease(DI_DRUNK, duration, g);
@@ -1270,37 +1270,46 @@ void iuse::radio_on(game *g, player *p, item *it, bool t)
  }
 }
 
+//CAT-mgs: 
 void iuse::roadmap(game *g, player *p, item *it, bool t)
 {
- roadmap_a_target(g, p, it, t, (int)ot_hospital);
+
+   g->add_msg_if_player(p, "You look at the road map...");
+
+   for (int i = 0; i < OMAPX; i++) {
+    for (int j = 0; j < OMAPY; j++)
+     g->cur_om.seen(i, j, g->levz) = true;
+   }
+
+	roadmap_a_target(g, p, it, t, (int)ot_hospital_entrance);
+	roadmap_a_target(g, p, it, t, (int)ot_megastore_entrance);
+
+	roadmap_a_target(g, p, it, t, (int)ot_shelter);
+	roadmap_a_target(g, p, it, t, (int)ot_lmoe);
+	roadmap_a_target(g, p, it, t, (int)ot_silo);
+	roadmap_a_target(g, p, it, t, (int)ot_spider_pit); //"Forest location"
+	roadmap_a_target(g, p, it, t, (int)ot_spiral_hub);
+	roadmap_a_target(g, p, it, t, (int)ot_nuke_plant_entrance);
+	roadmap_a_target(g, p, it, t, (int)ot_hellmouth);
+	roadmap_a_target(g, p, it, t, (int)ot_ants_queen);
+
+	it->make(g->itypes[itm_wrapper]);
+
+//CAT-s: actionUse
+	playSound(6);
 }
 
+//CAT-mgs: ***** vvv
 void iuse::roadmap_a_target(game *g, player *p, item *it, bool t, int target)
 {
- int dist = 0;
- oter_t oter_target = oterlist[target];
- point place = g->cur_om.find_closest(g->om_location(), (oter_id)target, 1, dist,
-                                      false);
+  int dist= 0;
+  oter_t oter_target = oterlist[target];
+  point place = g->cur_om.find_closest(g->om_location(), (oter_id)target, 1, dist, false);
 
- int pomx = (g->levx + int(MAPSIZE / 2)) / 2; //overmap loc
- int pomy = (g->levy + int(MAPSIZE / 2)) / 2; //overmap loc
+  if(place.x >= 0 && place.y >= 0)
+	g->add_msg_if_player(p, "You note %s at location %d:%d",
+				oterlist[target].name.c_str(), place.x, place.y);
 
- if (g->debugmon) debugmsg("Map: %s at %d,%d found! You @ %d %d",oter_target.name.c_str(), place.x, place.y, pomx,pomy);
-
- if (place.x >= 0 && place.y >= 0) {
-  for (int x = place.x - 3; x <= place.x + 3; x++) {
-   for (int y = place.y - 3; y <= place.y + 3; y++)
-    g->cur_om.seen(x, y, g->levz) = true;
-  }
-
-  direction to_hospital = direction_from(pomx,pomy, place.x, place.y);
-  int distance = trig_dist(pomx,pomy, place.x, place.y);
-
-  g->add_msg_if_player(p, "You add a %s location to your map.", oterlist[target].name.c_str());
-  g->add_msg_if_player(p, "It's %d squares to the %s", distance,  direction_name(to_hospital).c_str());
- } else {
-  g->add_msg_if_player(p, "You can't find a hospital near your location.");
- }
 }
 
 //CAT-mgs: *** whole lot ***
@@ -2694,41 +2703,6 @@ void iuse::mp3_on(game *g, player *p, item *it, bool t)
 		   return;	// We're not carrying it!
 
 		p->add_morale(MORALE_MUSIC, 1, 50);
-
-		if(int(g->turn) % 100 == 0)
-		{
-//CAT-s: 100 turns now... change this, or throw away
-		   // Every 10 turns, describe the music
-		   std::string sound = "";
-		   switch (rng(1, 10))
-		   {
-			case 1: 
-				sound = "a sweet guitar solo!"; 
-				p->stim++; 
-			break;
-
-			case 2: 
-				sound = "a funky bassline.";
-			break;
-
-			case 3: 
-				sound = "some amazing vocals.";
-			break;
-
-			case 4:
-				sound = "some pumping bass.";	
-			break;
-
-			case 5:
-				sound = "dramatic classical music.";
-				if(p->int_cur >= 10)
-					p->add_morale(MORALE_MUSIC, 1, 100);
-			break;
-		   }
-
-		   if(sound.length() > 0)
-			g->add_msg_if_player(p,"You listen to %s", sound.c_str());
-		}
 	}
 	else
 	{	
