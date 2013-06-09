@@ -61,6 +61,9 @@ struct talk_function
  void toggle_use_guns		(game *g, npc *p);
  void toggle_use_silent	(game *g, npc *p);
  void toggle_use_grenades	(game *g, npc *p);
+
+//CAT-mgs:
+ void set_engagement_wait	(game *g, npc *p);
  void set_engagement_none	(game *g, npc *p);
  void set_engagement_close	(game *g, npc *p);
  void set_engagement_weak	(game *g, npc *p);

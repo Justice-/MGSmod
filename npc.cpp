@@ -1649,8 +1649,8 @@ bool npc::took_painkiller()
 
 bool npc::is_friend()
 {
- if (attitude == NPCATT_FOLLOW || attitude == NPCATT_DEFEND ||
-     attitude == NPCATT_LEAD)
+ if(attitude == NPCATT_FOLLOW || attitude == NPCATT_DEFEND
+	|| attitude == NPCATT_LEAD || attitude == NPCATT_WAIT)
   return true;
  return false;
 }
@@ -1830,24 +1830,33 @@ int npc::speed_estimate(int speed)
 // make everyone green with night vision
 void npc::draw(WINDOW* w, int ux, int uy, bool inv, bool nv)
 {
+ nc_color col = c_pink;
  int x = getmaxx(w)/2 + posx - ux;
  int y = getmaxy(w)/2 + posy - uy;
- nc_color col = c_pink;
- if (attitude == NPCATT_KILL)
-  col = c_red;
- if (is_friend())
-  col = c_green;
- else if (is_following())
-  col = c_ltgreen;
 
 //CAT:
  if(nv)
 	col= c_ltgreen;
-
- if (inv)
-  mvwputch_inv(w, y, x, col, '@');
  else
-  mvwputch    (w, y, x, col, '@');
+ if(attitude == NPCATT_KILL)
+	col = c_red;
+ else
+ if(is_friend())
+ {
+	if(attitude == NPCATT_WAIT)
+		col= c_ltgreen;
+	else
+		col= c_green;
+ }
+ else
+ if(is_following())
+  col = c_ltgreen;
+
+
+ if(inv)
+   mvwputch_inv(w, y, x, col, '@');
+ else
+   mvwputch    (w, y, x, col, '@');
 }
 
 void npc::print_info(WINDOW* w)

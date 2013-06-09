@@ -194,7 +194,13 @@ void overmap::init_layers()
 {
 	layer = new map_layer[OVERMAP_LAYERS];
 	for(int z = 0; z < OVERMAP_LAYERS; ++z) {
-		oter_id default_type = (z < OVERMAP_DEPTH) ? ot_rock : (z == OVERMAP_DEPTH) ? ot_field : ot_null;
+
+//CAT: abaraba abovelevel
+		oter_id default_type = (z < OVERMAP_DEPTH) ? ot_rock : ot_field;
+
+		if(z > OVERMAP_DEPTH)
+			default_type= ot_sky;
+
 		for(int i = 0; i < OMAPX; ++i) {
 			for(int j = 0; j < OMAPY; ++j) {
 				layer[z].terrain[i][j] = default_type;
@@ -204,14 +210,17 @@ void overmap::init_layers()
 	}
 }
 
+
 oter_id& overmap::ter(int x, int y, int z)
 {
- if (x < 0 || x >= OMAPX || y < 0 || y >= OMAPY || z < -OVERMAP_DEPTH || z > OVERMAP_HEIGHT) {
-  nullret = ot_null;
-  return nullret;
- }
 
- return layer[z + OVERMAP_DEPTH].terrain[x][y];
+//CAT: z > OVERMAP_HEIGHT -> z > 0
+   if(x < 0 || x >= OMAPX || y < 0 || y >= OMAPY || z < -OVERMAP_DEPTH || z > OVERMAP_HEIGHT)
+	nullret= ot_null;
+   else
+	return layer[z + OVERMAP_DEPTH].terrain[x][y];
+
+   return nullret;
 }
 
 bool& overmap::seen(int x, int y, int z)
@@ -584,13 +593,18 @@ void overmap::generate(game *g, overmap* north, overmap* east, overmap* south,
 
  // TODO: there is no reason we can't generate the sublevels in one pass
  //       for that matter there is no reason we can't as we add the entrance ways either
-
  // Always need at least one sublevel, but how many more
+
+
+//CAT: Aboveground ??
  int z = -1;
  bool requires_sub = false;
  do {
+
   	requires_sub = generate_sub(z);
  } while(requires_sub && (--z >= -OVERMAP_DEPTH));
+
+//generate_sub(1);
 
 // Place the monsters, now that the terrain is laid out
  place_mongroups();
@@ -613,6 +627,8 @@ bool overmap::generate_sub(int const z)
  std::vector<point> triffid_points;
  std::vector<point> temple_points;
 
+
+//CAT-mgs: *** vvv
  for (int i = 0; i < OMAPX; i++) {
   for (int j = 0; j < OMAPY; j++) {
    if (ter(i, j, z + 1) >= ot_sub_station_north &&
@@ -675,8 +691,10 @@ bool overmap::generate_sub(int const z)
    else if (ter(i, j, z + 1) == ot_bunker && z == -1)
     bunker_points.push_back( point(i, j) );
 
-   else if (ter(i, j, z + 1) == ot_shelter)
-    shelter_points.push_back( point(i, j) );
+
+//CAT:  z + 1
+   else if (ter(i, j, 0) == ot_shelter)
+	shelter_points.push_back( point(i, j) );
 
    else if (ter(i, j, z + 1) == ot_lmoe)
     lmoe_points.push_back( point(i, j) );
@@ -753,8 +771,25 @@ bool overmap::generate_sub(int const z)
  for (int i = 0; i < bunker_points.size(); i++)
   ter(bunker_points[i].x, bunker_points[i].y, z) = ot_bunker;
 
+
+//CAT:
  for (int i = 0; i < shelter_points.size(); i++)
-  ter(shelter_points[i].x, shelter_points[i].y, z) = ot_shelter_under;
+ {
+	if(z == -1)
+	{
+	   ter(shelter_points[i].x, shelter_points[i].y, z) = ot_shelter_under;
+	   requires_sub = true;
+	}
+	else
+	if(z == -2)
+	{
+	   ter(shelter_points[i].x, shelter_points[i].y, 1) = ot_shelter_over;
+	   requires_sub = true;
+	}
+	else
+	if(z == -3)
+	   ter(shelter_points[i].x, shelter_points[i].y, 2) = ot_shelter_over2;
+ }
 
  for (int i = 0; i < lmoe_points.size(); i++)
   ter(lmoe_points[i].x, lmoe_points[i].y, z) = ot_lmoe_under;

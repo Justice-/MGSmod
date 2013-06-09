@@ -987,9 +987,9 @@ int start_color(void)
  windowsPalette[1]= BGR(0, 0, 200); // Red
  windowsPalette[2]= BGR(0,150,0); // Green
  windowsPalette[3]= BGR(50,90,170); // Brown???
- windowsPalette[4]= BGR(200, 0, 0); // Blue
+ windowsPalette[4]= BGR(255, 0, 0); // Blue
  windowsPalette[5]= BGR(98, 58, 139); // Purple
- windowsPalette[6]= BGR(180, 150, 0); // Cyan
+ windowsPalette[6]= BGR(200, 180, 0); // Cyan
  windowsPalette[7]= BGR(196, 196, 196);// Gray
  windowsPalette[8]= BGR(90, 90, 90);// Dark Gray
  windowsPalette[9]= BGR(0, 80, 255); // Light Red
@@ -997,7 +997,7 @@ int start_color(void)
  windowsPalette[11]= BGR(0, 255, 255); // Yellow
  windowsPalette[12]= BGR(255, 100, 100); // Light Blue
  windowsPalette[13]= BGR(240, 0, 255); // Pink
- windowsPalette[14]= BGR(255, 240, 0); // Light Cyan?
+ windowsPalette[14]= BGR(255, 230, 0); // Light Cyan?
  windowsPalette[15]= BGR(255, 255, 255); // White
  return SetDIBColorTable(backbuffer, 0, 16, windowsPalette);
 };

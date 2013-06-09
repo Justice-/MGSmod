@@ -1139,7 +1139,7 @@ bool map::bash(const int x, const int y, const int str, std::string &sound, int 
 
 //CAT-s:
  int rlD= rl_dist(cat_px, cat_py, x, y);
- bool playWav= (rlD < 12);
+ bool playWav= (rlD < 14);
 
  switch (ter(x, y)) {
 
@@ -1732,7 +1732,7 @@ case t_wall_log:
   if (res) *res = result;
   if (str >= result) {
    sound += "crunch!";
-   ter(x, y) = t_underbrush;
+   ter(x, y) = t_dirt;
    const int num_sticks = rng(0, 3);
    for (int i = 0; i < num_sticks; i++)
     add_item(x, y, (*itypes)[itm_stick], 0);
@@ -1812,7 +1812,7 @@ case t_wall_log:
    ter(x, y) = t_floor;
 //CAT-s: 
    if(playWav)
-	playSound(90);
+	playSound(25);
    return true;
   } else {
    sound += "plunk.";
@@ -2001,7 +2001,8 @@ void map::destroy(game *g, const int x, const int y, const bool makesound)
 }
 
 
-
+//CAT-mgs: this is incomlete
+//... should duplicated from, or handled with, ::bash()
 void map::shoot(game *g, const int x, const int y, int &dam,
                 const bool hit_items, const unsigned effects)
 {
@@ -2009,7 +2010,7 @@ void map::shoot(game *g, const int x, const int y, int &dam,
   return;
 
  if (has_flag(alarmed, x, y) && !g->event_queued(EVENT_WANTED)) {
-  g->sound(g->u.posx, g->u.posy, 30, "An alarm sounds!");
+	g->sound(x, y, 30, "An alarm sounds!");
 
 //CAT-s:
 	playSound(58); //alarm1 sound
@@ -2024,17 +2025,28 @@ void map::shoot(game *g, const int x, const int y, int &dam,
   dam = veh->damage (vpart, dam, inc? 2 : 0, hit_items);
  }
 
+//CAT-s:
+ int rlD= rl_dist(cat_px, cat_py, x, y);
+ bool playWav= (rlD < 25);
+
  switch (ter(x, y)) {
 
+ case t_door_b:
  case t_wall_wood_broken:
  case t_wall_log_broken:
- case t_door_b:
   if (hit_items || one_in(8)) {	// 1 in 8 chance of hitting the door
    dam -= rng(20, 40);
    if (dam > 0)
     ter(x, y) = t_dirt;
   } else
    dam -= rng(0, 1);
+
+//CAT-s: 
+   if(playWav)
+	playSound(85);
+
+  g->sound(x, y, 10, "whump!");
+
   break;
 
 
@@ -2044,33 +2056,117 @@ void map::shoot(game *g, const int x, const int y, int &dam,
   dam -= rng(15, 30);
   if (dam > 0)
    ter(x, y) = t_door_b;
+
+//CAT-s: 
+   if(playWav)
+	playSound(85);
+
+  g->sound(x, y, 10, "whump!");
+
   break;
 
  case t_door_boarded:
   dam -= rng(15, 35);
   if (dam > 0)
    ter(x, y) = t_door_b;
+
+//CAT-s: 
+   if(playWav)
+	playSound(85);
+
+  g->sound(x, y, 10, "whump!");
   break;
 
  case t_window:
  case t_window_domestic:
+ case t_curtains: 
  case t_window_alarm:
   dam -= rng(0, 5);
-  ter(x, y) = t_window_frame;
+	if(dam > 0)
+	{
+
+	   ter(x, y) = t_floor;
+//CAT-s: 
+	   if(playWav)
+		playSound(25);
+
+	   g->sound(x, y, 21, "glass breaking!");
+
+	}
+	else
+	{
+//CAT-s: 
+	   if(playWav)
+		playSound(87);
+
+	   g->sound(x, y, 9, "whack!");
+	}
+
   break;
 
  case t_window_boarded:
   dam -= rng(10, 30);
   if (dam > 0)
-   ter(x, y) = t_window_frame;
+	ter(x, y) = t_window_frame;
+
+//CAT-s: 
+   if(playWav)
+	playSound(93);
+
+   g->sound(x, y, 10, "wham!");
+
   break;
 
  case t_wall_glass_h:
  case t_wall_glass_v:
  case t_wall_glass_h_alarm:
  case t_wall_glass_v_alarm:
-  dam -= rng(0, 8);
-  ter(x, y) = t_floor;
+	dam -= rng(0, 8);
+ 	if(dam > 0)
+	{
+
+	   ter(x, y) = t_floor;
+//CAT-s: 
+	   if(playWav)
+		playSound(25);
+
+	   g->sound(x, y, 21, "glass breaking!");
+
+	}
+	else
+	{
+//CAT-s: 
+	   if(playWav)
+		playSound(87);
+
+	   g->sound(x, y, 9, "whack!");
+	}
+  break;
+
+//CAT-mgs:
+ case t_reinforced_glass_h:
+ case t_reinforced_glass_v:
+	dam -= rng(20, 70);
+	if(dam > 0)
+	{
+
+	   ter(x, y) = t_floor;
+//CAT-s: 
+	   if(playWav)
+		playSound(25);
+
+	   g->sound(x, y, 21, "glass breaking!");
+
+	}
+	else
+	{
+//CAT-s: 
+	   if(playWav)
+		playSound(87);
+
+	   g->sound(x, y, 9, "whack!");
+	}
+
   break;
 
  case t_paper:
@@ -2079,6 +2175,13 @@ void map::shoot(game *g, const int x, const int y, int &dam,
    ter(x, y) = t_dirt;
   if (effects & mfb(AMMO_INCENDIARY))
    add_field(g, x, y, fd_fire, 1);
+
+//CAT-s: 
+   if(playWav)
+	playSound(92);
+
+  g->sound(x, y, 5, "rrrrip!");
+
   break;
 
  case t_gas_pump:
@@ -2105,7 +2208,8 @@ void map::shoot(game *g, const int x, const int y, int &dam,
    g->sound(x, y, 15, "ke-rash!");
 
 //CAT-s:
-	playSound(85);
+   if(playWav)
+	playSound(25);
 
    ter(x, y) = t_floor;
   } else
@@ -2288,6 +2392,7 @@ bool map::open_door(const int x, const int y, const bool inside)
  return false;
 }
 
+
 void map::translate(const ter_id from, const ter_id to)
 {
  if (from == to) {
@@ -2295,10 +2400,12 @@ void map::translate(const ter_id from, const ter_id to)
                                       terlist[from].name.c_str());
   return;
  }
+ 
  for (int x = 0; x < SEEX * my_MAPSIZE; x++) {
   for (int y = 0; y < SEEY * my_MAPSIZE; y++) {
-   if (ter(x, y) == from)
-    ter(x, y) = to;
+	if (ter(x, y) == from)
+		ter(x, y) = to;
+	
   }
  }
 }
@@ -2835,16 +2942,17 @@ void map::draw(game *g, WINDOW* w, const point center)
   bool u_is_boomered = g->u.has_disease(DI_BOOMERED);
   bool u_sight_impaired = g->u.sight_impaired();
 
+
 //CAT: what's this doing here?
 /*
   char trans_buf[my_MAPSIZE*SEEX][my_MAPSIZE*SEEY];
   memset(trans_buf, -1, sizeof(trans_buf));
 */
 
-//CAT-mgs: 
+//CAT-mgs: weather, lightning strike
   if(g->cat_lightning)
 	light_sight_range= DAYLIGHT_LEVEL;
- 
+
   for(int realx= center.x-getmaxx(w)/2; realx <= center.x+getmaxx(w)/2; realx++) 
   {
     for(int realy= center.y-getmaxy(w)/2; realy <= center.y+getmaxy(w)/2; realy++) 
@@ -2868,13 +2976,29 @@ void map::draw(game *g, WINDOW* w, const point center)
 	int diffx = (g->u.posx - center.x), diffy = (g->u.posy - center.y);
 	bool can_see = g->lm.sees(diffx, diffy, realx - center.x, realy - center.y, DAYLIGHT_LEVEL);
 
+
+
+//lit= LL_BRIGHT;
+//can_see= true;
+
 	if(!can_see || dist > DAYLIGHT_LEVEL || ( dist > light_sight_range 
 		&& (lit == LL_DARK || (u_sight_impaired && lit != LL_BRIGHT)) )) 
 	{
 	  if (u_is_boomered)
    	    mvwputch(w, catY, catX, c_magenta, '#');
 	  else
-	    mvwputch(w, catY, catX, c_black, ' ');
+	  {
+
+//CAT-mgs: roof
+		if( is_outside(realx, realy) || g->levz < 0 )
+			mvwputch(w, catY, catX, c_black, ' ');
+		else
+		{
+
+//			if(g->turn.is_night())
+				mvwputch(w, catY, catX, c_dkgray, '#');
+		}
+	  }
 	}
 	else
 	if(dist > light_sight_range && u_sight_impaired && lit == LL_BRIGHT)
@@ -2883,7 +3007,7 @@ void map::draw(game *g, WINDOW* w, const point center)
 	    mvwputch(w, catY, catX, c_pink, '#');
 	  else
 	  //CAT: this triggers underwater, any othertime?
-	    mvwputch(w, catY, catX, c_black, ' '); 
+		mvwputch(w, catY, catX, c_black, ' ');
 	}
 	else
 	if(dist <= u_clairvoyance || can_see) 
@@ -2895,23 +3019,25 @@ void map::draw(game *g, WINDOW* w, const point center)
 			center.x, center.y, cat_lowlight, lit, g->cat_lightning); 
 
 	}
+/*
 	else
 	{
-		mvwputch(w, catY, catX, c_black, ' ');
+//		mvwputch(w, catY, catX, c_black, ' ');
 
 //CAT: work in progress
-/*
 	  if(!is_outside(realx, realy) )
 	    mvwputch(w, catY, catX, c_dkgray,'#');	
 	  else
 	  {
-	     if(lit != LL_DARK || DAYLIGHT_LEVEL > 10 )	
-		drawsq(w, g->u, realx, realy, false, true, center.x, center.y, true, false);
-	     else
+//	     if(lit != LL_DARK || DAYLIGHT_LEVEL > 10 )	
+//		drawsq(w, g->u, realx, realy, false, true, center.x, center.y, true, false);
+//	     else
+
 	   	mvwputch(w, catY, catX, c_red, '1');	
 	  }
-*/
 	}
+
+*/
 
     }//end for realx
   }//end for realy

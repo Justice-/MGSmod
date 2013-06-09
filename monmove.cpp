@@ -58,13 +58,14 @@ void monster::set_dest(int x, int y, int &t)
 // "Stupid" movement; "if (wandx < posx) posx--;" etc.
 void monster::wander_to(int x, int y, int f)
 {
+
+//CAT-mgs:
+ if(f < wandf)
+	return;
+
  wandx = x;
  wandy = y;
  wandf = f;
-
-//CAT-mgs: this was already taken care of before the call, 5 -> 3
- if (has_flag(MF_GOODHEARING))
-	wandf *= 3;
 }
 
 void monster::plan(game *g)
@@ -115,7 +116,6 @@ void monster::plan(game *g)
  }
 
 //CAT-mgs: no NPCs
-
  for (int i = 0; i < g->active_npc.size(); i++) {
   npc *me = &(g->active_npc[i]);
   int medist = rl_dist(posx, posy, me->posx, me->posy);
@@ -170,6 +170,7 @@ void monster::plan(game *g)
  }
 }
 
+
 // General movement.
 // Currently, priority goes:
 // 1) Special Attack
@@ -178,10 +179,6 @@ void monster::plan(game *g)
 // 4) Sound-based tracking
 void monster::move(game *g)
 {
-// We decrement wandf no matter what.  We'll save our wander_to plans until
-// after we finish out set_dest plans, UNLESS they time out first.
- if (wandf > 0)
-  wandf--;
 
 // First, use the special attack, if we can!
  if (sp_timeout > 0)
@@ -225,54 +222,62 @@ void monster::move(game *g)
   if (plans.back().x == g->u.posx && plans.back().y == g->u.posy)
    current_attitude = attitude(&(g->u));
   else {
-
-//CAT-mgs: no NPCs
-
    for (int i = 0; i < g->active_npc.size(); i++) {
     if (plans.back().x == g->active_npc[i].posx &&
         plans.back().y == g->active_npc[i].posy)
      current_attitude = attitude(&(g->active_npc[i]));
    }
-
-
   }
  }
+
+
+ if(current_attitude == MATT_IGNORE && wandf < 10)
+ {
+	stumble(g, false);
+	return;
+ }
+
+//CAT-mgs: *** vvv
+ if(plans.size() > 0 && !is_fleeing(g->u) 
+	&& (mondex == -1 || g->z[mondex].friendly != 0 || has_flag(MF_ATTACKMON)) 
+	&& (can_move_to(g->m, plans[0].x, plans[0].y) 
+	|| (plans[0].x == g->u.posx && plans[0].y == g->u.posy)
+	|| (g->m.has_flag(bashable, plans[0].x, plans[0].y)
+	&& has_flag(MF_BASHES))))
+ {
+	// CONCRETE PLANS - Most likely based on sight
+	next = plans[0];
+	moved = true;
+
+//   g->add_msg("I SEE");
+ } 
+ else
+ if(has_flag(MF_SMELLS))
+ {
+	point tmp = scent_move(g);
+	if(tmp.x != -1)
+	{
+	   next = tmp;
+	   moved = true;
+	}
+//   g->add_msg("I SMELL");
+ }
+
+
+ if(!moved && --wandf > 0)
+ { 
+	point tmp = sound_move(g);
+	if(tmp.x != posx || tmp.y != posy)
+	{
+	   next = tmp;
+	   moved = true;
+	}
 
 //CAT-mgs:
- if(current_attitude == MATT_IGNORE)
-//	|| (current_attitude == MATT_FOLLOW && plans.size() <= MONSTER_FOLLOW_DIST)) 
-
- {
-  stumble(g, false);
-  return;
+//	g->add_msg("I HEAR: %d (%d,%d):(%d,%d)", 
+//			wandf, wandx, wandy, g->u.posx, g->u.posy);
  }
 
- if (plans.size() > 0 && !is_fleeing(g->u) &&
-     (mondex == -1 || g->z[mondex].friendly != 0 || has_flag(MF_ATTACKMON)) &&
-     (can_move_to(g->m, plans[0].x, plans[0].y) ||
-      (plans[0].x == g->u.posx && plans[0].y == g->u.posy) ||
-     (g->m.has_flag(bashable, plans[0].x, plans[0].y) && has_flag(MF_BASHES)))){
-  // CONCRETE PLANS - Most likely based on sight
-  next = plans[0];
-  moved = true;
- } else if (has_flag(MF_SMELLS)) {
-// No sight... or our plans are invalid (e.g. moving through a transparent, but
-//  solid, square of terrain).  Fall back to smell if we have it.
-  point tmp = scent_move(g);
-  if(tmp.x != -1 && (tmp.x != posx || tmp.y != posy))
-  {
-   next = tmp;
-   moved = true;
-  }
- }
- if(wandf > 0 && !moved) { // No LOS, no scent, so as a fall-back follow sound
-  point tmp = sound_move(g);
-  if(tmp.x != -1 && (tmp.x != posx || tmp.y != posy))
-  {
-   next = tmp;
-   moved = true;
-  }
- }
 
 // Finished logic section.  By this point, we should have chosen a square to
 //  move to (moved = true).
@@ -283,7 +288,7 @@ void monster::move(game *g)
    hit_player(g, g->u);
   else if (mondex != -1 && g->z[mondex].type->species == species_hallu)
    g->kill_mon(mondex);
-  else if (mondex != -1 && type->melee_dice > 0 &&
+  else if (mondex != -1 && type->melee_dice > 0 && this != &(g->z[mondex]) &&
            (g->z[mondex].friendly != 0 || has_flag(MF_ATTACKMON)))
    hit_monster(g, mondex);
   else if (npcdex != -1 && type->melee_dice > 0)
@@ -303,46 +308,58 @@ void monster::move(game *g)
    moves -= 100;
  }
 
-
 // If we're close to our target, we get focused and don't stumble
-//CAT-mgs:
-// if( !moved ||(has_flag(MF_STUMBLES) && (plans.size() > 3 || plans.size() == 0)) )
- if( !moved || (has_flag(MF_STUMBLES) && plans.size() > 3) )
-  stumble(g, moved);
-
+ if( !moved || (has_flag(MF_STUMBLES) 
+		&& (plans.size() > 4 || plans.size() == 0)) )
+	stumble(g, moved);
 }
+
+
 
 // footsteps will determine how loud a monster's normal movement is
 // and create a sound in the monsters location when they move
+
+//CAT-mgs: *** vvv
 void monster::footsteps(game *g, int x, int y)
 {
- if (made_footstep)
-  return;
- if (has_flag(MF_FLIES))
-  return; // Flying monsters don't have footsteps!
- made_footstep = true;
- int volume = 6; // same as player's footsteps
- if (has_flag(MF_DIGS))
-  volume = 10;
+ if(made_footstep)
+	return;
+
+ int volume= 0; 
  switch (type->size) {
   case MS_TINY:
-   return; // No sound for the tinies
+    volume= 1;
+    break;
   case MS_SMALL:
-   volume /= 3;
-   break;
+    volume= 3;
+    break;
   case MS_MEDIUM:
-   break;
+    volume= 5;
+    break;
   case MS_LARGE:
-   volume *= 1.5;
-   break;
+    volume= 9;
+    break;
   case MS_HUGE:
-   volume *= 2;
-   break;
-  default: break;
+    volume= 12;
+    break;
+
+  default:
+    break;
  }
- int dist = rl_dist(x, y, g->u.posx, g->u.posy);
- g->add_footstep(x, y, volume, dist);
- return;
+
+ if(has_flag(MF_DIGS))
+    volume+= 2;
+ else
+ if(has_flag(MF_FLIES))
+    volume-= 2;
+
+ if(volume > 0)
+ {
+	made_footstep= true;
+	int dist = rl_dist(x, y, g->u.posx, g->u.posy);
+	g->add_footstep(x, y, volume, dist);
+ }
+
 }
 
 void monster::friendly_move(game *g)
@@ -423,65 +440,37 @@ point monster::scent_move(game *g)
  return next;
 }
 
+
+//CAT-mgs: *** vvv
 point monster::sound_move(game *g)
 {
  plans.clear();
+
  point next;
- bool xbest = true;
- if (abs(wandy - posy) > abs(wandx - posx))// which is more important
-  xbest = false;
  next.x = posx;
  next.y = posy;
- int x = posx, x2 = posx - 1, x3 = posx + 1;
- int y = posy, y2 = posy - 1, y3 = posy + 1;
- if (wandx < posx) { x--; x2++;          }
- if (wandx > posx) { x++; x2++; x3 -= 2; }
- if (wandy < posy) { y--; y2++;          }
- if (wandy > posy) { y++; y2++; y3 -= 2; }
- if (xbest) {
-  if (can_move_to(g->m, x, y) || (x == g->u.posx && y == g->u.posy) ||
-      (has_flag(MF_BASHES) && g->m.has_flag(bashable, x, y))) {
-   next.x = x;
-   next.y = y;
-  } else if (can_move_to(g->m, x, y2) || (x == g->u.posx && y == g->u.posy) ||
-             (has_flag(MF_BASHES) && g->m.has_flag(bashable, x, y2))) {
-   next.x = x;
-   next.y = y2;
-  } else if (can_move_to(g->m, x2, y) || (x == g->u.posx && y == g->u.posy) ||
-             (has_flag(MF_BASHES) && g->m.has_flag(bashable, x2, y))) {
-   next.x = x2;
-   next.y = y;
-  } else if (can_move_to(g->m, x, y3) || (x == g->u.posx && y == g->u.posy) ||
-             (has_flag(MF_BASHES) && g->m.has_flag(bashable, x, y3))) {
-   next.x = x;
-   next.y = y3;
-  } else if (can_move_to(g->m, x3, y) || (x == g->u.posx && y == g->u.posy) ||
-             (has_flag(MF_BASHES) && g->m.has_flag(bashable, x3, y))) {
-   next.x = x3;
-   next.y = y;
-  }
- } else {
-  if (can_move_to(g->m, x, y) || (x == g->u.posx && y == g->u.posy) ||
-      (has_flag(MF_BASHES) && g->m.has_flag(bashable, x, y))) {
-   next.x = x;
-   next.y = y;
-  } else if (can_move_to(g->m, x2, y) || (x == g->u.posx && y == g->u.posy) ||
-             (has_flag(MF_BASHES) && g->m.has_flag(bashable, x2, y))) {
-   next.x = x2;
-   next.y = y;
-  } else if (can_move_to(g->m, x, y2) || (x == g->u.posx && y == g->u.posy) ||
-             (has_flag(MF_BASHES) && g->m.has_flag(bashable, x, y2))) {
-   next.x = x;
-   next.y = y2;
-  } else if (can_move_to(g->m, x3, y) || (x == g->u.posx && y == g->u.posy) ||
-             (has_flag(MF_BASHES) && g->m.has_flag(bashable, x3, y))) {
-   next.x = x3;
-   next.y = y;
-  } else if (can_move_to(g->m, x, y3) || (x == g->u.posx && y == g->u.posy) ||
-             (has_flag(MF_BASHES) && g->m.has_flag(bashable, x, y3))) {
-   next.x = x;
-   next.y = y3;
-  }
+
+
+ int dist= 99;
+ for(int x= posx-1; x <= posx+1; x++)
+ {
+	for(int y= posy-1; y <= posy+1; y++)
+	{
+		if(can_move_to(g->m, x, y) || (x == g->u.posx && y == g->u.posy)
+			|| (has_flag(MF_BASHES) && g->m.has_flag(bashable, x, y)))
+		{
+			if(rl_dist(x, y, wandx, wandy) < dist)
+			{
+				dist= rl_dist(x, y, g->u.posx, g->u.posy);
+
+				if(dist < 5)
+					wandf= 1 ;
+
+				next.x= x;
+				next.y= y;
+			}
+		}
+	}
  }
  return next;
 }

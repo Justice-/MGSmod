@@ -1849,7 +1849,7 @@ void player::disp_morale(game* g)
 void player::disp_status(WINDOW *w, game *g)
 {
 //CAT-mgs:
- mvwprintz(w, 0, 0, c_ltblue, "Weapon: %s", weapname().c_str());
+ mvwprintz(w, 0, 0, c_white, "Weapon: %s", weapname().c_str());
  if (weapon.is_gun()) {
    int adj_recoil = recoil + driving_recoil;
        if (adj_recoil >= 36)
@@ -1865,9 +1865,9 @@ void player::disp_status(WINDOW *w, game *g)
 //CAT-mgs:
  // Print the current weapon mode
  if (weapon.mode == IF_NULL)
-  mvwprintz(w, 1, 0, c_ltblue,    "Normal");
+  mvwprintz(w, 1, 0, c_white,    "Normal");
  else if (weapon.mode == IF_MODE_BURST)
-  mvwprintz(w, 1, 0, c_ltblue,    "Burst");
+  mvwprintz(w, 1, 0, c_white,    "Burst");
  else {
   item* gunmod = weapon.active_gunmod();
   if (gunmod != NULL)
@@ -2104,21 +2104,29 @@ void player::charge_power(int amount)
   power_level = 0;
 }
 
-//CAT-g: makes no difference?
+
+
+//CAT-g: matters only during the day and on ground level, 
+//...during the day or underground can do without this, hm?
 // used by lm.generate in 'game.cpp'
 float player::active_light()
 {
  float lumination = 0;
 
-/*
- int flashlight = active_item_charges(itm_flashlight_on);
- if (flashlight > 0)
-  lumination = std::min(100, flashlight * 5); // Will do for now
- else if (has_active_bionic(bio_flashlight))
-  lumination = 60;
- else if (has_artifact_with(AEP_GLOW))
+ if(active_item_charges(itm_flashlight_on) > 0)
+  lumination = std::min(100, active_item_charges(itm_flashlight_on) * 5); 
+ else
+ if(active_item_charges(itm_torch_lit) > 0)
+  lumination = 50;
+ else
+ if(active_item_charges(itm_candle_lit) > 0)
+  lumination = 9; 
+ else
+ if(has_active_bionic(bio_flashlight))
+  lumination = 50;
+ else
+ if(has_artifact_with(AEP_GLOW))
   lumination = 25;
-*/
 
  return lumination;
 }

@@ -1068,26 +1068,44 @@ void iuse::hammer(game *g, player *p, item *it, bool t)
  g->m.ter(dirx, diry) = newter;
 }
 
+
+
+//CAT-s: vvv
 void iuse::light_off(game *g, player *p, item *it, bool t)
 {
+
  if (it->charges == 0)
   g->add_msg_if_player(p,"The flashlight's batteries are dead.");
- else {
+ else 
+ if(!it->active)
+ {
+
   g->add_msg_if_player(p,"You turn the flashlight on.");
   it->make(g->itypes[itm_flashlight_on]);
   it->active = true;
   it->charges --;
+
+//CAT-s: click
+	playSound(0);
  }
 }
 
+
+//CAT-s: vvv
 void iuse::light_on(game *g, player *p, item *it, bool t)
 {
+
  if (t) {	// Normal use
 // Do nothing... player::active_light and the lightmap::generate deal with this
- } else {	// Turning it off
+ } else
+ if(it->active)
+ {	// Turning it off
   g->add_msg_if_player(p,"The flashlight flicks off.");
   it->make(g->itypes[itm_flashlight]);
   it->active = false;
+
+//CAT-s: click
+	playSound(0);
  }
 }
 

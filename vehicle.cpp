@@ -1193,19 +1193,23 @@ void vehicle::thrust (int thd)
         g->sound(global_x(), global_y(), noise(), "");
     }
 
-    if (skidding)
+
+    if(skidding)
         return;
 
     int accel = acceleration();
     int max_vel = max_velocity();
 
+
 //CAT-mgs: *** vvv 
 //...brake should be proportional to number of wheels
 //not proportional to velcoity, rather inverse
-    int brake = 200+ (int)(accel/5);
 
 //CAT: mass is less when it's more, huh?
-//    g->add_msg("acc: %d, brk: %d", accel, brake);
+    int mss= (int)(k_mass()*200); 	    
+    int brake = (int)(accel/3 + mss);
+
+//    g->add_msg("acc: %d, brk: %d, mss: %d", accel, brake, mss);
 
     int vel_inc = (thrusting? accel : brake) * thd;
     if ((velocity > 0 && velocity + vel_inc < 0) ||

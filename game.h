@@ -206,6 +206,9 @@ class game
   void process_artifact(item *it, player *p, bool wielded = false);
   void add_artifact_messages(std::vector<art_effect_passive> effects);
 
+//CAT-mgs:
+  void runJump();
+
   void peek();
   point look_around();// Look at nearby terrain	';'
   void list_items(); //List all items around the player

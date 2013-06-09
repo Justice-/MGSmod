@@ -127,51 +127,16 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
   trange = LONG_RANGE + .6 * (trange - LONG_RANGE);
  std::string message = "";
 
- bool missed = false;
+
+
  int tart;
- for (int curshot = 0; curshot < num_shots; curshot++) {
-// Burst-fire weapons allow us to pick a new target after killing the first
-  if (curshot > 0 &&
-      (mon_at(tarx, tary) == -1 || z[mon_at(tarx, tary)].hp <= 0)) {
-   std::vector<point> new_targets;
-   int mondex;
-   for (int radius = 1; radius <= 2 + p.skillLevel("gun") && new_targets.empty();
-        radius++) {
-    for (int diff = 0 - radius; diff <= radius; diff++) {
-     mondex = mon_at(tarx + diff, tary - radius);
-     if (mondex != -1 && z[mondex].hp > 0 && z[mondex].friendly == 0)
-      new_targets.push_back( point(tarx + diff, tary - radius) );
+ bool missed = false;
 
-     mondex = mon_at(tarx + diff, tary + radius);
-     if (mondex != -1 && z[mondex].hp > 0 && z[mondex].friendly == 0)
-      new_targets.push_back( point(tarx + diff, tary + radius) );
+//CAT-mgs: *** vvv
+ for(int curshot = 0; curshot < num_shots; curshot++)
+ {
 
-     if (diff != 0 - radius && diff != radius) { // Corners were already checked
-      mondex = mon_at(tarx - radius, tary + diff);
-      if (mondex != -1 && z[mondex].hp > 0 && z[mondex].friendly == 0)
-       new_targets.push_back( point(tarx - radius, tary + diff) );
-
-      mondex = mon_at(tarx + radius, tary + diff);
-      if (mondex != -1 && z[mondex].hp > 0 && z[mondex].friendly == 0)
-       new_targets.push_back( point(tarx + radius, tary + diff) );
-     }
-    }
-   }
-   if (!new_targets.empty()) {
-    int target_picked = rng(0, new_targets.size() - 1);
-    tarx = new_targets[target_picked].x;
-    tary = new_targets[target_picked].y;
-    if (m.sees(p.posx, p.posy, tarx, tary, 0, tart))
-     trajectory = line_to(p.posx, p.posy, tarx, tary, tart);
-    else
-     trajectory = line_to(p.posx, p.posy, tarx, tary, 0);
-   }
-//CAT-mgs: always shoot whole burst
-//   else if ((!p.has_trait(PF_TRIGGERHAPPY) || one_in(3)) &&
-//              (p.skillLevel("gun") >= 7 || one_in(7 - p.skillLevel("gun"))))
-//    return; // No targets, so return
-
-  }
+//CAT-mgs: *** ^^^
 
   // Drop a shell casing if appropriate.
   itype_id casing_type = itm_null;
@@ -230,8 +195,12 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
   }
 
   make_gun_sound_effect(this, p, burst, weapon);
+
   int trange = calculate_range(p, tarx, tary);
+
+//CAT: more precision
   double missed_by = calculate_missed_by(p, trange, weapon);
+
 // Calculate a penalty based on the monster's speed
   double monster_speed_penalty = 1.;
   int target_index = mon_at(tarx, tary);
@@ -248,15 +217,29 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
   } else
    p.recoil += recoil_add(p);
 
-  if (missed_by >= 1.) {
+
+//CAT-mgs: *** vvv
+	if( curshot > 0 ) 
+	{
+		do
+		{
+			tarx+= rng(-2,2);
+			tary+= rng(-2,2);
+
+		}while(tarx == p.posx && tary == p.posy);
+
+		if (m.sees(p.posx, p.posy, tarx, tary, 0, tart))
+			trajectory = line_to(p.posx, p.posy, tarx, tary, tart);
+		else
+			trajectory = line_to(p.posx, p.posy, tarx, tary, 0);
+	}
+
+
+//CAT-mgs: *** vvv
+  if (missed_by >= 1.0) {
 // We missed D:
-// Shoot a random nearby space?
-   tarx += rng(0 - int(sqrt(double(missed_by))), int(sqrt(double(missed_by))));
-   tary += rng(0 - int(sqrt(double(missed_by))), int(sqrt(double(missed_by))));
-   if (m.sees(p.posx, p.posy, x, y, -1, tart))
-    trajectory = line_to(p.posx, p.posy, tarx, tary, tart);
-   else
-    trajectory = line_to(p.posx, p.posy, tarx, tary, 0);
+
+
    missed = true;
    if (!burst) {
     if (&p == &u)
@@ -264,7 +247,7 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
     else if (u_see_shooter)
      add_msg("%s misses!", p.name.c_str());
    }
-  } else if (missed_by >= .7 / monster_speed_penalty) {
+  } else if (missed_by >= 0.7 / monster_speed_penalty) {
 // Hit the space, but not necessarily the monster there
    missed = true;
    if (!burst) {
@@ -275,15 +258,17 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
    }
   }
 
+
   int dam= weapon->gun_damage();
-//CAT: i++ - > i+=2
   for( int i= 0; i < trajectory.size() &&
-       ( dam > 0 || (effects & (AMMO_FLAME | AMMO_TRAIL)) ); i+=2 )
+       ( dam > 0 || (effects & (AMMO_FLAME | AMMO_TRAIL)) ); i++ )
   {
 
 	// Drawing the bullet uses player u, and not player p, because it's drawn
 	// relative to YOUR position, which may not be the gunman's position.
-	if(u_see(trajectory[i].x, trajectory[i].y, junk))
+
+//CAT-mgs: every second trail
+	if(i%2 == 0 && u_see(trajectory[i].x, trajectory[i].y, junk))
 	{
 //CAT:
 		char bullet = '.';
@@ -324,7 +309,6 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
 			mvwputch(w_terrain, trajectory[i].y + VIEWY-u.view_offset_y - u.posy +rng(-1,1),
                         trajectory[i].x + VIEWX-u.view_offset_x - u.posx +rng(-1,1), c_ltgray, '8');
 
-
 	}
 
 
@@ -344,24 +328,46 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
 	    return;
 	}
 
+
+
+
+
 	int tx = trajectory[i].x, ty = trajectory[i].y;
+
 	// If there's a monster in the path of our bullet, and either our aim was true,
 	//  OR it's not the monster we were aiming at and we were lucky enough to hit it
 	int mondex = mon_at(tx, ty);
+
 	// If we shot us a monster...
+//CAT-mgs: I don't wanna miss, ever
+/*
 	if (mondex != -1 && (!z[mondex].has_flag(MF_DIGS) ||
 		rl_dist(p.posx, p.posy, z[mondex].posx, z[mondex].posy) <= 1) &&
 		((!missed && i == trajectory.size() - 1) ||
 		one_in((5 - int(z[mondex].type->size))))) 
+*/
+	if(mondex != -1)
 	{
 
 	    double goodhit = missed_by;
-	    if (i < trajectory.size() - 1) // Unintentional hit
-	     goodhit = double(rand() / (RAND_MAX + 1.0)) / 2;
 
+//	    add_msg("target: %f", missed_by);
+
+//CAT-mgs: more precision
+	    if(z[mondex].type->size > 0 && i < trajectory.size() - 1) // Unintentional hit
+	    {
+	        goodhit = 0.5 + (int)(missed_by / z[mondex].type->size);
+
+//		add_msg("casulty: %f", goodhit);
+	    }
+
+
+//CAT-mgs: already accounted for?
+/*
 	// Penalize for the monster's speed
 	    if (z[mondex].speed > 80)
 	     goodhit *= double( double(z[mondex].speed) / 80.);
+*/
 
 	    std::vector<point> blood_traj = trajectory;
 	    blood_traj.insert(blood_traj.begin(), point(p.posx, p.posy));
@@ -370,8 +376,10 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
 
 	}
 	else
-	if( (!missed || one_in(3)) &&
-              (npc_at(tx, ty) != -1 || (u.posx == tx && u.posy == ty)) )
+//CAT-mgs: what the?
+//	if( (!missed || one_in(3)) &&
+	if( !missed 
+		&& (npc_at(tx, ty) != -1 || (u.posx == tx && u.posy == ty)) )
 	{
 	    double goodhit = missed_by;
 	    if (i < trajectory.size() - 1) // Unintentional hit
@@ -614,6 +622,9 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 
 // First, decide on a target among the monsters, if there are any in range
  if (t.size() > 0) {
+
+//CAT-mgs:
+/*
 // Check for previous target
   if (target == -1) {
 // If no previous target, target the closest there is
@@ -627,6 +638,9 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
     }
    }
   }
+
+*/
+
   x = t[target].posx;
   y = t[target].posy;
  } else
@@ -1188,6 +1202,7 @@ void shoot_monster(game *g, player &p, monster &mon, int &dam, double goodhit, i
    dam = 0;
    goodhit = 1;
   }
+
   if (goodhit < .1 && !mon.has_flag(MF_NOHEAD)) {
    message = "Headshot!";
    dam = rng(5 * dam, 8 * dam);

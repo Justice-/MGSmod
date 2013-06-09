@@ -182,13 +182,13 @@ std::string dynamic_line(talk_topic topic, game *g, npc *p)
     return "I don't have any more jobs for you.";
   } else if (p->chatbin.missions.size() == 1) {
     if (p->chatbin.missions_assigned.empty())
-     return "I just have one job for you.  Want to hear about it?";
+     return "I just have one job for you. Want to hear about it?";
     else
-     return "I have other one job for you.  Want to hear about it?";
+     return "I have other one job for you. Want to hear about it?";
   } else if (p->chatbin.missions_assigned.empty())
-    return "I have several jobs for you.  Which should I describe?";
+    return "I have several jobs for you. Which should I describe?";
   else
-   return "I have several more jobs for you.  Which should I describe?";
+   return "I have several more jobs for you. Which should I describe?";
 
  case TALK_MISSION_LIST_ASSIGNED:
   if (p->chatbin.missions_assigned.empty())
@@ -239,7 +239,7 @@ std::string dynamic_line(talk_topic topic, game *g, npc *p)
   if (g->cur_om.is_safe(g->om_location().x, g->om_location().y, g->levz))
    return "Alright, let's begin.";
   else
-   return "It's not safe here.  Let's get to safety first.";
+   return "It's not safe here. Let's get to safety first.";
  break;
 
  case TALK_TRAIN_FORCE:
@@ -265,10 +265,10 @@ std::string dynamic_line(talk_topic topic, game *g, npc *p)
   return "You're really leaving?";
 
  case TALK_PLAYER_LEADS:
-  return "Alright.  You can lead now.";
+  return "Alright. You can lead now.";
 
  case TALK_LEADER_STAYS:
-  return "No.  I'm the leader here.";
+  return "No. I'm the leader here.";
 
  case TALK_HOW_MUCH_FURTHER: {
   int dist = rl_dist(g->om_location(), point(p->goalx, p->goaly));
@@ -520,14 +520,14 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
  case TALK_MISSION_ADVICE:
   RESPONSE("Sounds good, thanks.");
    SUCCESS(TALK_NONE);
-  RESPONSE("Sounds good.  Bye!");
+  RESPONSE("Sounds good. Bye!");
    SUCCESS(TALK_DONE);
   break;
 
  case TALK_MISSION_REJECTED:
   RESPONSE("I'm sorry.");
    SUCCESS(TALK_NONE);
-  RESPONSE("Whatever.  Bye.");
+  RESPONSE("Bye.");
    SUCCESS(TALK_DONE);
   break;
 
@@ -555,7 +555,7 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
      FAILURE_OPINION(-5, 0, -1, 5, 0);
      FAILURE_ACTION(&talk_function::mission_failure);
    }
-   RESPONSE("No.  I'll get back to it, bye!");
+   RESPONSE("No. I'll get back to it, bye!");
     SUCCESS(TALK_DONE);
   } else {
 // TODO: Lie about mission
@@ -593,7 +593,7 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
  } break;
 
  case TALK_MISSION_SUCCESS:
-  RESPONSE("Glad to help.  I need no payment.");
+  RESPONSE("Glad to help. I need no payment.");
    SUCCESS(TALK_NONE);
    SUCCESS_OPINION(miss->value / (OWED_VAL * 4), -1,
                    miss->value / (OWED_VAL * 2), -1, 0 - miss->value);
@@ -607,7 +607,7 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
   RESPONSE("Alright, well, you owe me one.");
    SUCCESS(TALK_NONE);
    SUCCESS_ACTION(&talk_function::clear_mission);
-  RESPONSE("Glad to help.  I need no payment.  Bye!");
+  RESPONSE("Glad to help. I need no payment. Bye!");
    SUCCESS(TALK_DONE);
    SUCCESS_ACTION(&talk_function::clear_mission);
    SUCCESS_OPINION(p->op_of_u.owed / (OWED_VAL * 4), -1,
@@ -620,7 +620,7 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
    SUCCESS_ACTION(&talk_function::clear_mission);
 
  case TALK_MISSION_FAILURE:
-  RESPONSE("I'm sorry.  I did what I could.");
+  RESPONSE("I'm sorry. I did what I could.");
    SUCCESS(TALK_NONE);
   break;
 
@@ -657,7 +657,7 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
 
  case TALK_SHELTER_PLANS:
 // TODO: Add "follow me"
-  RESPONSE("Hmm, okay.  Bye.");
+  RESPONSE("Hmm, okay. Bye.");
    SUCCESS(TALK_DONE);
   break;
 
@@ -710,7 +710,7 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
      FAILURE_OPINION(-3, 1, -3, 5, 0);
    RESPONSE("Eh, never mind.");
     SUCCESS(TALK_NONE);
-   RESPONSE("Never mind, I'll do without.  Bye.");
+   RESPONSE("Never mind, I'll do without. Bye.");
     SUCCESS(TALK_DONE);
   }
   break;
@@ -796,7 +796,7 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
    RESPONSE("On second thought, never mind.");
     SUCCESS(TALK_NONE);
   } else {
-   RESPONSE("Okay.  Lead the way.");
+   RESPONSE("Okay. Lead the way.");
     SUCCESS(TALK_DONE);
     SUCCESS_ACTION(&talk_function::lead_to_safety);
    RESPONSE("No, we'll be okay here.");
@@ -816,7 +816,7 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
 
  case TALK_SUGGEST_FOLLOW:
   if (p->has_disease(DI_INFECTION)) {
-   RESPONSE("Understood.  I'll get those antibiotics.");
+   RESPONSE("Understood. I'll get those antibiotics.");
     SUCCESS(TALK_NONE);
   } else if (p->has_disease(DI_ASKED_TO_FOLLOW)) {
    RESPONSE("Right, right, I'll ask later.");
@@ -890,7 +890,7 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
      SUCCESS_ACTION(&talk_function::follow);
     FAILURE(TALK_LEADER_STAYS);
      FAILURE_OPINION(0, 0, -1, -1, 0);
-   RESPONSE("Step aside.  I'm leader now.");
+   RESPONSE("Step aside. I'm leader now.");
     TRIAL(TALK_TRIAL_INTIMIDATE, 40);
     SUCCESS(TALK_PLAYER_LEADS);
      SUCCESS_ACTION(&talk_function::follow);
@@ -910,13 +910,13 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
  case TALK_LEAVE:
   RESPONSE("Nah, I'm just kidding.");
    SUCCESS(TALK_NONE);
-  RESPONSE("Yeah, I'm sure.  Bye.");
+  RESPONSE("Yeah, I'm sure. Bye.");
    SUCCESS_ACTION(&talk_function::leave);
    SUCCESS(TALK_DONE);
   break;
 
  case TALK_PLAYER_LEADS:
-  RESPONSE("Good.  Something else...");
+  RESPONSE("Good. Something else...");
    SUCCESS(TALK_FRIEND);
   RESPONSE("Alright, let's go.");
    SUCCESS(TALK_DONE);
@@ -949,11 +949,37 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
     SUCCESS(TALK_DONE);
     SUCCESS_ACTION(&talk_function::assign_base);
   }
-  RESPONSE("Let's go.");
+
+
+  if(p->attitude == NPCATT_WAIT)
+  {
+	RESPONSE("See ya later.");
+  }
+  else
+  {
+	RESPONSE("Let's go.");
+  }
+
    SUCCESS(TALK_DONE);
   break;
 
+
+//CAT-mgs:
  case TALK_COMBAT_COMMANDS: {
+
+  if(p->attitude != NPCATT_WAIT)
+  {
+    RESPONSE("Wait here.");
+    SUCCESS(TALK_NONE);
+    SUCCESS_ACTION(&talk_function::set_engagement_wait);
+  }
+  else
+  {
+    RESPONSE("Follow me.");
+    SUCCESS(TALK_NONE);
+    SUCCESS_ACTION(&talk_function::set_engagement_hit);
+  }
+
   RESPONSE("Change your engagement rules...");
    SUCCESS(TALK_COMBAT_ENGAGEMENT);
   if (p->combat_rules.use_guns) {
@@ -988,6 +1014,7 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
  } break;
 
  case TALK_COMBAT_ENGAGEMENT: {
+
   if (p->combat_rules.engagement != ENGAGE_NONE) {
    RESPONSE("Don't fight unless your life depends on it.");
     SUCCESS(TALK_NONE);
@@ -1073,7 +1100,7 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
    int chance = 30 + p->personality.bravery - 3 * p->personality.aggression +
                  2 * p->personality.altruism - 2 * p->op_of_u.fear +
                  3 * p->op_of_u.trust;
-   RESPONSE("!Calm down.  I'm not going to hurt you.");
+   RESPONSE("!Calm down. I'm not going to hurt you.");
     TRIAL(TALK_TRIAL_PERSUADE, chance);
     SUCCESS(TALK_STRANGER_WARY);
      SUCCESS_OPINION(1, -1, 0, 0, 0);
@@ -1096,7 +1123,7 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
    int chance = 35 + p->personality.bravery - 3 * p->personality.aggression +
                  2 * p->personality.altruism - 2 * p->op_of_u.fear +
                  3 * p->op_of_u.trust;
-   RESPONSE("!Calm down.  I'm not going to hurt you.");
+   RESPONSE("!Calm down. I'm not going to hurt you.");
     TRIAL(TALK_TRIAL_PERSUADE, chance);
     SUCCESS(TALK_STRANGER_WARY);
      SUCCESS_OPINION(1, -1, 0, 0, 0);
@@ -1405,7 +1432,7 @@ void talk_function::leave(game *g, npc *p)
 void talk_function::start_mugging(game *g, npc *p)
 {
  p->attitude = NPCATT_MUG;
- g->add_msg("Pause to stay still.  Any movement may cause %s to attack.",
+ g->add_msg("Pause to stay still. Any movement may cause %s to attack.",
             p->name.c_str());
 }
 
@@ -1456,6 +1483,12 @@ void talk_function::toggle_use_grenades(game *g, npc *p)
  p->combat_rules.use_grenades = !p->combat_rules.use_grenades;
 }
 
+void talk_function::set_engagement_wait(game *g, npc *p)
+{
+ p->attitude = NPCATT_WAIT;
+ p->combat_rules.engagement = ENGAGE_CLOSE;
+}
+
 void talk_function::set_engagement_none(game *g, npc *p)
 {
  p->combat_rules.engagement = ENGAGE_NONE;
@@ -1473,6 +1506,7 @@ void talk_function::set_engagement_weak(game *g, npc *p)
 
 void talk_function::set_engagement_hit(game *g, npc *p)
 {
+ p->attitude = NPCATT_FOLLOW;
  p->combat_rules.engagement = ENGAGE_HIT;
 }
 

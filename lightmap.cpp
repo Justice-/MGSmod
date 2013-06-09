@@ -41,10 +41,12 @@ void light_map::generate(game* g, int x, int y, float natural_light, float lumin
   }
  }
 
-//CAT-g: makes no difference? 
+
+//CAT-g: matters only during the day and on ground level, 
+//...during the day or underground can do without this, hm?
 // Apply player light sources
-// if (luminance > LIGHT_AMBIENT_LOW)
-//  apply_light_source(g->u.posx, g->u.posy, x, y, luminance);
+ if (luminance > LIGHT_AMBIENT_LOW)
+  apply_light_source(g->u.posx, g->u.posy, x, y, luminance);
 
  for(int sx = x - LIGHTMAP_RANGE_X; sx <= x + LIGHTMAP_RANGE_X; ++sx) {
   for(int sy = y - LIGHTMAP_RANGE_Y; sy <= y + LIGHTMAP_RANGE_Y; ++sy) {
@@ -165,8 +167,7 @@ lit_level light_map::at(int dx, int dy)
   return LL_DARK; // Out of bounds
 
 //CAT: what's this, let's try lm[] instead of sm[]
-// if (sm[dx + SEEX][dy + SEEY] >= LIGHT_SOURCE_BRIGHT)
- if (lm[dx + SEEX][dy + SEEY] >= LIGHT_SOURCE_BRIGHT)
+ if (sm[dx + SEEX][dy + SEEY] >= LIGHT_SOURCE_BRIGHT)
   return LL_BRIGHT;
 
  if (lm[dx + SEEX][dy + SEEY] >= LIGHT_AMBIENT_LIT)

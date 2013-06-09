@@ -120,6 +120,11 @@ enum oter_id {
  ot_cavern,
 
  ot_tutorial,
+
+
+//CAT-mgs: aboveground
+ ot_sky, ot_shelter_over, ot_shelter_over2,
+
  num_ter_types
 };
 
@@ -265,6 +270,7 @@ const oter_t oterlist[num_ter_types] = {
 {"mansion",		'M',	c_green,	5, build_extras, false, false},
 {"fema camp",		'+',	c_blue,	5, build_extras, false, false},
 {"fema camp",		'F',	i_blue,	5, build_extras, false, false},
+//CAR-mgs: true, false
 {"evac shelter",	'+',	c_white,	2, no_extras, true, false},
 {"evac shelter",	'+',	c_white,	2, no_extras, false, true},
 {"LMOE shelter",	'+',	c_red,	2, no_extras, true, false},
@@ -346,7 +352,12 @@ const oter_t oterlist[num_ter_types] = {
 {"ant larva chamber",	'O',	c_white,	5, no_extras, false, false},
 {"ant queen chamber",	'O',	c_red,		5, no_extras, false, false},
 {"cavern",		'0',	c_ltgray,	5, no_extras, false, false},
-{"tutorial room",	'O',	c_cyan,		5, no_extras, false, false}
+{"tutorial room",	'O',	c_cyan,		5, no_extras, false, false},
+
+//CAT-mgs:
+{"sky",	'8',	c_ltcyan,	2, no_extras, false, false},
+{"evac shelter",	'+',	c_white,	2, no_extras, false, true},
+{"evac shelter",	'+',	c_white,	2, no_extras, false, true}
 };
 
 // Overmap specials--these are "special encounters," dungeons, nests, etc.

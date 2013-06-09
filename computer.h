@@ -92,7 +92,7 @@ private:
  WINDOW *w_terminal; // Output window
 
 // Called by use()
- void activate_function      (game *g, computer_action action);
+void activate_function      (game *g, computer_action action);
 // Generally called when we fail a hack attempt
  void activate_random_failure(game *g);
 // ...but we can also choose a specific failure.

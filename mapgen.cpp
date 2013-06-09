@@ -7,7 +7,6 @@
 #include "line.h"
 #include "debug.h"
 #include "options.h"
-
 #ifndef sgn
 #define sgn(x) (((x) < 0) ? -1 : 1)
 #endif
@@ -241,6 +240,7 @@ void map::draw_map(const oter_id terrain_type, const oter_id t_north, const oter
        int SEEX_oth=SEEX;
        int SEEY_oth=SEEY-5;
 
+
  switch (terrain_type) {
 
  case ot_null:
@@ -248,6 +248,15 @@ void map::draw_map(const oter_id terrain_type, const oter_id t_north, const oter
    for (int j = 0; j < SEEY * 2; j++) {
     ter(i, j) = t_null;
     radiation(i, j) = 0;
+   }
+  }
+  break;
+
+//CAT-mgs: aboveground
+ case ot_sky:
+  for (int i = 0; i < SEEX * 2; i++) {
+   for (int j = 0; j < SEEY * 2; j++) {
+    ter(i, j) = t_air;
    }
   }
   break;
@@ -2260,18 +2269,28 @@ void map::draw_map(const oter_id terrain_type, const oter_id t_north, const oter
   place_spawns(g, "GROUP_GROCERY", 2, 0, 0, SEEX * 2 - 1, SEEX * 2 - 1, density);
   break;
 
-//....
-case ot_shelter: {
+
+//CAT-mgs:
+case ot_shelter: 
+{
 // Init to grass & dirt;
   for (int i = 0; i < SEEX * 2; i++) {
    for (int j = 0; j < SEEY * 2; j++)
     ter(i, j) = grass_or_dirt();
   }
-  //square(this, t_floor_l, 5, 5, SEEX * 2 - 6, SEEY * 2 - 6);
-        square(this, t_floor, 5, 5, SEEX * 2 - 6, SEEY * 2 - 6);
-        /*ter(6,6) = t_counter;
-        ter(6,7) = t_console_broken;*/
 
+  square(this, t_floor, 0, 0, 5, 2);
+  line(this, t_wall_h, 1, 0, 4, 0);
+  line(this, t_wall_h, 1, 2, 4, 2);
+  line(this, t_wall_v, 0, 0, 0, 2);
+  line(this, t_wall_v, 5, 0, 5, 2);
+
+  ter(4, 2) = t_door_c;
+//  ter(2, 1) = t_stairs_up;
+
+
+  square(this, t_floor, 5, 5, SEEX * 2 - 6, SEEY * 2 - 6);
+  ter(6,7) = t_console_broken;
 
   square(this, t_stairs_down, SEEX - 1, SEEY - 1, SEEX, SEEY);
   line(this, t_wall_h, 4, 4, SEEX * 2 - 5, 4);
@@ -2303,11 +2322,14 @@ case ot_shelter: {
             line(this, t_bench, 6,SEEY+2, 6,SEEY*2-7);
             line(this, t_bench, 8,SEEY+2, 8,SEEY*2-7);
             line(this, t_bench, 10,SEEY+2, 10,SEEY*2-7);
-        }
+
+  ter(16, 18) = t_stairs_up;
+}
 
   break;
-//....
 
+
+//CAT:
  case ot_shelter_under:
   square(this, t_rock, 0, 0, SEEX * 2 - 1, SEEY * 2 - 1);
   square(this, t_rock_floor, 8, 8, SEEX * 2 - 9, SEEY * 2 - 9);
@@ -2315,7 +2337,105 @@ case ot_shelter: {
   place_items(mi_shelter, 80, 8, 8, SEEX * 2 - 9, SEEY * 2 - 9, false, 0);
   break;
 
-  //....
+
+case ot_shelter_over:
+{
+
+// Init to air;
+
+  for (int i = 0; i < SEEX*2; i++) {
+   for (int j = 0; j < SEEY*2; j++)
+    ter(i, j) = t_air;
+  }
+
+  square(this, t_floor_red, 0, 0, 5, 2);
+  line(this, t_wall_h, 1, 0, 4, 0);
+  line(this, t_wall_h, 1, 2, 2, 2);
+  line(this, t_wall_v, 0, 0, 0, 2);
+  line(this, t_wall_v, 2, 2, 2, 0);
+  ter(2, 1) = t_door_locked;
+
+  ter(1, 1) = t_stairs_up;
+
+
+  square(this, t_floor, 4, 4, SEEX * 2 - 5, SEEY * 2 - 5);
+
+  line(this, t_wall_h, 4, 4, SEEX * 2 - 5, 4);
+  line(this, t_wall_h, 4, SEEY * 2 - 5, SEEX * 2 - 5, SEEY * 2 - 5);
+
+  line(this, t_pavement, SEEX+4, 3, SEEX * 2 - 4, 3);
+  line(this, t_pavement, SEEX * 2 - 4, 4, SEEX * 2 - 4, 11);
+  line(this, t_pavement, SEEX * 2 - 4, 14, SEEX * 2 - 4, 19);
+
+  line(this, t_pavement, SEEX * 2 - 5, SEEY * 2 - 4, SEEX+1, SEEY * 2 - 4);
+  line(this, t_pavement, SEEX-3, SEEY * 2 - 4, 3, 20);
+
+  line(this, t_pavement, 3, 19, 3, 15);
+  line(this, t_sidewalk, 3, 11, 3, 5);
+
+  line(this, t_wall_v, 4, 5, 4, SEEY * 2 - 6);
+  line(this, t_wall_v, 7, 5, 7, SEEY * 2 - 6);
+
+  line(this, t_wall_v, SEEX * 2 - 5, 5, SEEX * 2 - 5, SEEY * 2 - 6);
+  line(this, t_wall_v, SEEX * 2 - 8, 5, SEEX * 2 - 8, SEEY * 2 - 6);
+
+  ter(16, 11) = t_door_c;
+  ter(15, 13) = t_bookcase;
+  ter(15, 14) = t_rack;
+  ter(15, 14) = t_locker;
+  ter(15, 9) = t_table;
+  ter(15, 5) = t_dresser;
+
+  ter(8, 7) = t_rack;
+  ter(7, 11) = t_door_c;
+  ter(8, 10) = t_locker;
+  ter(8, 11) = t_locker;
+  ter(8, 12) = t_bookcase;
+  ter(8, 18) = t_chair;
+  ter(9, 12) = t_crate_c;
+
+  ter(11, 18) = t_locker;  
+  ter(12,18) = t_bookcase;
+
+  ter(SEEX+2, 4) = t_curtains;
+  ter(SEEX+3, 4) = t_curtains;
+
+  ter(SEEX-4, 4) = t_curtains;
+  ter(SEEX-3, 4) = t_window_domestic;
+
+  ter(5, 17) = t_stairs_up;
+  ter(15, 18) = t_stairs_down;
+
+  add_item(5, 5, g->itypes[itm_flashlight], 0);
+  add_item(17, 18, g->itypes[itm_crowbar], 0);
+}
+ break;
+
+
+case ot_shelter_over2:
+{
+// Init to air;
+  for (int i = 0; i < SEEX*2; i++) {
+   for (int j = 0; j < SEEY*2; j++)
+    ter(i, j) = t_air;
+  }
+
+  square(this, t_floor_blue, 0, 0, 2, 2);
+  ter(0, 1) = t_stairs_down;
+
+  square(this, t_pavement, 4, 4, SEEX * 2 - 5, SEEY * 2 - 5);
+  ter(5, 18) = t_stairs_down;
+
+  add_item(14+rng(-2,2), 14+rng(-2,2), g->itypes[itm_law_packed], 0);
+  for(int i= 0; i < 5; i++)	
+	  add_item(14+rng(-2,2), 14+rng(-2,2), g->itypes[itm_66mm_HEAT], 0);
+
+}
+ break;
+
+
+
+
 case ot_lmoe: {
 // Init to grass & dirt;
   for (int i = 0; i < SEEX * 2; i++) {
@@ -2413,7 +2533,6 @@ case ot_lmoe: {
   place_items(mi_office, 50, 20, 7, 20, 7, false, 0);
 
 
-
   //place_items(whatever, 80, 0, 0, 0, 0, false, 0);
   break;
 
@@ -2433,7 +2552,8 @@ case ot_lmoe: {
    bw = SEEY * 2;
   if (t_west >=ot_sewer_ns && t_west <=ot_sewer_nesw && connects_to(t_west, 1))
    lw = SEEX * 2;
-  if (t_above == ot_null) {	// We're on ground level
+  if (t_above == ot_sky) {	// We're on ground level
+
    for (int i = 0; i < SEEX * 2; i++) {
     for (int j = 0; j < SEEY * 2; j++) {
      if (i <= 1 || i >= SEEX * 2 - 2 ||
@@ -2499,18 +2619,34 @@ case ot_lmoe: {
    rw = (t_east  >= ot_lab && t_east  <= ot_lab_finale) ? 1 : 2;
    bw = (t_south >= ot_lab && t_south <= ot_lab_finale) ? 1 : 2;
    lw = (t_west  >= ot_lab && t_west  <= ot_lab_finale) ? 0 : 2;
+
    switch (rng(1, 3)) {	// Pick a random lab layout
+
+
    case 1:	// Cross shaped
-    for (int i = 0; i < SEEX * 2; i++) {
-     for (int j = 0; j < SEEY * 2; j++) {
+
+   for (int j = 0; j < SEEY * 2; j++) {
+
+     bool glass_wall= false;
+     if(one_in(2))
+	glass_wall= true;
+
+     for (int i = 0; i < SEEX * 2; i++) {
+
       if ((i < lw || i > SEEX * 2 - 1 - rw) ||
           ((j < SEEY - 1 || j > SEEY) && (i == SEEX - 2 || i == SEEX + 1)))
        ter(i, j) = t_concrete_v;
       else if ((j < tw || j > SEEY * 2 - 1 - bw) ||
                ((i < SEEX - 1 || i > SEEX) && (j == SEEY - 2 || j == SEEY + 1)))
-       ter(i, j) = t_concrete_h;
+	{
+	   if(glass_wall)
+		ter(i, j) = t_reinforced_glass_h;
+	   else
+		ter(i, j) = t_concrete_h;
+	}
       else
-       ter(i, j) = t_rock_floor;
+         ter(i, j) = t_rock_floor;
+
      }
     }
     if (t_above == ot_lab_stairs)
@@ -2595,17 +2731,45 @@ case ot_lmoe: {
 
     break;
 
+
    case 2:	// tic-tac-toe # layout
-    for (int i = 0; i < SEEX * 2; i++) {
-     for (int j = 0; j < SEEY * 2; j++) {
+
+   for (int i = 0; i < SEEX * 2; i++) {
+     bool glass_wall= false;
+     if(one_in(3))
+	glass_wall= true;
+
+    for (int j = 0; j < SEEY * 2; j++) {
+
       if (i < lw || i > SEEX * 2 - 1 - rw || i == SEEX - 4 || i == SEEX + 3)
-       ter(i, j) = t_concrete_v;
-      else if (j < lw || j > SEEY*2 - 1 - bw || j == SEEY - 4 || j == SEEY + 3)
-       ter(i, j) = t_concrete_h;
+	{
+	   if(glass_wall)
+		ter(i, j) = t_wall_glass_v;
+	   else
+		ter(i, j) = t_concrete_v;
+	}
+      else 
+	if (j < lw || j > SEEY*2 - 1 - bw || j == SEEY - 4 || j == SEEY + 3)
+		ter(i, j) = t_concrete_h;
       else
-       ter(i, j) = t_rock_floor;
+	{ 
+         ter(i, j) = t_rock_floor;
+
+//CAT-mgs: some zombies in a lab
+	   if(one_in(80))
+	   {		
+		if(one_in(5))
+			add_spawn((mon_id)rng(mon_zombie_shrieker, mon_zombie_electric), 1, i, j);
+		else
+			add_spawn(mon_zombie_scientist, 1, i, j);
+	   }
+	}
+
+
      }
     }
+
+
     if (t_above == ot_lab_stairs) {
      ter(SEEX - 1, SEEY - 1) = t_stairs_up;
      ter(SEEX    , SEEY - 1) = t_stairs_up;
@@ -2632,6 +2796,7 @@ case ot_lmoe: {
     science_room(this, lw, SEEY + 4, SEEX - 5, SEEY * 2 - 1 - bw, rng(0, 1));
     science_room(this, SEEX - 3, SEEY + 4, SEEX + 2, SEEY * 2 - 1 - bw, 0);
     science_room(this, SEEX+4, SEEX+4, SEEX*2-1-rw, SEEY*2-1-bw, 3 * rng(0, 1));
+
     if (rw == 1) {
      ter(SEEX * 2 - 1, SEEY - 1) = t_door_metal_c;
      ter(SEEX * 2 - 1, SEEY    ) = t_door_metal_c;
@@ -2640,6 +2805,8 @@ case ot_lmoe: {
      ter(SEEX - 1, SEEY * 2 - 1) = t_door_metal_c;
      ter(SEEX    , SEEY * 2 - 1) = t_door_metal_c;
     }
+
+
     if (terrain_type == ot_lab_stairs)
      ter(SEEX - 3 + 5 * rng(0, 1), SEEY - 3 + 5 * rng(0, 1)) = t_stairs_down;
     break;
@@ -2652,7 +2819,18 @@ case ot_lmoe: {
       else if (j < tw || j >= SEEY * 2 - 1 - bw)
        ter(i, j) = t_concrete_h;
       else
-       ter(i, j) = t_rock_floor;
+	{ 
+         ter(i, j) = t_rock_floor;
+
+//CAT-mgs: some zombies in a lab
+	   if(one_in(90))
+	   {		
+		if(one_in(7))
+			add_spawn((mon_id)rng(mon_zombie, mon_zombie_hulk), 1, i, j);
+		else
+			add_spawn(mon_zombie_scientist, 1, i, j);
+	   }
+	}
      }
     }
     science_room(this, lw, tw, SEEX * 2 - 1 - rw, SEEY * 2 - 1 - bw, rng(0, 3));
@@ -2746,7 +2924,19 @@ case ot_lmoe: {
     else if (j < tw || j > SEEY * 2 - 1 - bw)
      ter(i, j) = t_concrete_h;
     else
-     ter(i, j) = t_floor;
+    {	
+	ter(i, j) = t_floor;
+
+//CAT-mgs: some zombies in a lab
+	   if(one_in(70))
+	   {		
+		if(one_in(3))
+			add_spawn(mon_zombie_hulk, 1, i, j);
+		else
+			add_spawn(mon_zombie_master, 1, i, j);
+	   }
+
+    }
    }
   }
   if (rw == 1) {
@@ -2861,7 +3051,8 @@ case ot_lmoe: {
   break;
 
  case ot_bunker:
-  if (t_above == ot_null) {	// We're on ground level
+  if (t_above == ot_sky) {	// We're on ground level
+
    for (int i = 0; i < SEEX * 2; i++) {
     for (int j = 0; j < SEEY * 2; j++)
      ter(i, j) = grass_or_dirt();
@@ -3096,16 +3287,26 @@ case ot_lmoe: {
 
  } break;
 
+
+
  case ot_silo:
-  if (t_above == ot_null) {	// We're on ground level
+  if (t_above == ot_sky) {	// We're on ground level
+
    for (int i = 0; i < SEEX * 2; i++) {
     for (int j = 0; j < SEEY * 2; j++) {
-     if (trig_dist(i, j, SEEX, SEEY) <= 6)
-      ter(i, j) = t_metal_floor;
+     if (trig_dist(i, j, SEEX, SEEY) == 7)
+	ter(i, j) = t_pavement_y;
+     else	
+     if (trig_dist(i, j, SEEX, SEEY) == 6)
+	ter(i, j) = t_sidewalk;
+     else	
+     if (trig_dist(i, j, SEEX, SEEY) < 6)
+	ter(i, j) = t_metal_floor;
      else
       ter(i, j) = grass_or_dirt();
     }
    }
+
    switch (rng(1, 4)) {	// Placement of stairs
    case 1:
     lw = 3;
@@ -3158,9 +3359,11 @@ case ot_lmoe: {
   }
   break;
 
+
  case ot_silo_finale: {
   for (int i = 0; i < SEEX * 2; i++) {
    for (int j = 0; j < SEEY * 2; j++) {
+
     if (i == 5) {
      if (j > 4 && j < SEEY)
       ter(i, j) = t_reinforced_glass_v;
@@ -3168,21 +3371,42 @@ case ot_lmoe: {
       ter(i, j) = t_door_metal_c;
      else
       ter(i, j) = t_rock;
-    } else
-     ter(i, j) = t_rock_floor;
+    }
+    else
+    {
+	ter(i, j) = t_rock_floor;
+
+//CAT-mgs: some zombies, ready to be cooked
+	if(i > 12 && j > 7 && one_in(15))
+		add_spawn(mon_zombie_soldier, 1, i, j);
+    }
    }
   }
+
+//CAT-mgs: show missile on bottom floor?
+/*
+  for (int i = 0; i < SEEX * 2; i++) {
+    for (int j = 0; j < SEEY * 2; j++) {
+
+	if (trig_dist(i, j, SEEX, SEEY) < 5)
+	      ter(i, j) = t_missile;
+    }
+  }
+*/
+
   ter(0, 0) = t_stairs_up;
   tmpcomp = add_computer(4, 5, "Missile Controls", 8);
   tmpcomp->add_option("Launch Missile", COMPACT_MISS_LAUNCH, 10);
   tmpcomp->add_option("Disarm Missile", COMPACT_MISS_DISARM,  8);
   tmpcomp->add_failure(COMPFAIL_SECUBOTS);
   tmpcomp->add_failure(COMPFAIL_DAMAGE);
+
   } break;
+
 
  case ot_temple:
  case ot_temple_stairs:
-  if (t_above == ot_null) { // Ground floor
+  if (t_above == ot_sky) { // Ground floor
 // TODO: More varieties?
    square(this, t_dirt, 0, 0, 23, 23);
    square(this, t_grate, SEEX - 1, SEEY - 1, SEEX, SEEX);
@@ -4917,10 +5141,10 @@ break;
   square(this, t_table, 9, 8, 10, 9);
   square(this, t_table, 14, 8, 15, 9);
   // Pool tables
-  square(this, t_pool_table,      4, 13,  8, 14);
-  place_items(mi_pool_table, 50,  4, 13,  8, 14, false, 0);
-  square(this, t_pool_table,     13, 13, 17, 14);
-  place_items(mi_pool_table, 50, 13, 13, 17, 14, false, 0);
+  square(this, t_pool_table,      5, 13,  7, 14);
+  place_items(mi_pool_table, 50,  5, 13,  7, 14, false, 0);
+  square(this, t_pool_table,     12, 13, 14, 14);
+  place_items(mi_pool_table, 50, 12, 13, 14, 14, false, 0);
   // 1 in 4 chance to have glass walls in front
   if (one_in(4)) {
    line(this, t_wall_glass_h, 3, 1, 5, 1);
@@ -6333,7 +6557,7 @@ break;
      ter(i, j) = (!one_in(10) ? t_slime : t_rock_floor);
     else if (rng(0, SEEX) > abs(i - SEEX) && rng(0, SEEY) > abs(j - SEEY))
      ter(i, j) = t_slime;
-    else if (t_above == ot_null)
+    else if (t_above == ot_sky)
      ter(i, j) = t_dirt;
     else
      ter(i, j) = t_rock_floor;
@@ -7035,7 +7259,7 @@ break;
   }
   ter(7, SEEY * 2 - 4) = t_rack;
   ter(SEEX * 2 - 2, SEEY * 2 - 4) = t_gas_pump;
-  if (t_above != ot_null) {
+  if (t_above != ot_null && t_above != ot_sky) {
    ter(SEEX - 2, SEEY + 2) = t_stairs_up;
    ter(2, 2) = t_water_sh;
    ter(2, 3) = t_water_sh;
@@ -7940,8 +8164,11 @@ void science_room(map *m, int x1, int y1, int x2, int y2, int rotate)
   valid_rooms.push_back(room_chemistry);
  if ((height > 7 || width > 7) && height > 2 && width > 2)
   valid_rooms.push_back(room_teleport);
- if (height > 4 && width > 4)
+
+//CAT: less goo
+ if (height == 5 && width == 5)
   valid_rooms.push_back(room_goo);
+
  if (height > 7 && width > 7)
   valid_rooms.push_back(room_bionics);
  if (height > 7 && width > 7)
@@ -8360,6 +8587,8 @@ void silo_rooms(map *m)
   }
  } while (okay);
 
+
+//CAT: make a tower?
  m->ter(rooms[0].x, rooms[0].y) = t_stairs_up;
  int down_room = rng(0, rooms.size() - 1);
  point dp = rooms[down_room], ds = room_sizes[down_room];

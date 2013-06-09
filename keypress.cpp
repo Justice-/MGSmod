@@ -58,6 +58,7 @@ bool input_wait(char & ret_ch, int delay_ms)
 }
 */
 
+
 void get_direction(game *g, int &x, int &y, char ch)
 {
  x = 0;
@@ -107,6 +108,7 @@ void get_direction(game *g, int &x, int &y, char ch)
   y = -2;
  }
 }
+
 
 std::string default_keymap_txt()
 {

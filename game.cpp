@@ -37,6 +37,10 @@
 //CAT-s:
 int closeMonster= 99;
 
+//CAT-mgs:
+int JUMPING= 0;
+
+
 void intro();
 nc_color sev(int a);	// Right now, ONLY used for scent debugging....
 
@@ -1227,7 +1231,6 @@ bool game::handle_action()
 //CAT-s: 
    playSound(1);
    peek();
-   playSound(2);
    break;
 
   case ACTION_LIST_ITEMS:
@@ -1337,7 +1340,7 @@ bool game::handle_action()
 
   case ACTION_USE_WIELDED:
 //CAT-s: 
-   playSound(1);
+//   playSound(1);
    use_wielded_item();
    break;
 
@@ -2315,7 +2318,7 @@ void game::groupdebug()
 
 void game::draw_overmap()
 {
- cur_om.choose_point(this, levz);
+	cur_om.choose_point(this, levz);
 }
 
 void game::disp_kills()
@@ -2622,6 +2625,7 @@ void game::list_missions()
  refresh_all();
 }
 
+
 void game::draw()
 {
 //CAT-g:
@@ -2633,6 +2637,7 @@ void game::draw()
  write_msg();
 
  draw_ter();
+
  draw_footsteps();
 
  werase(w_status);
@@ -2648,9 +2653,24 @@ void game::draw()
  werase(w_location);
  mvwprintz(w_location, 0,  0, oterlist[cur_ter].color, tername.c_str());
 
+//CAT-mgs: abovelevel check
+/*
+ for(int i=-2; i < 5; i++)
+ {
+	cur_ter = cur_om.ter((levx + int(MAPSIZE / 2)) / 2,
+                              (levy + int(MAPSIZE / 2)) / 2, levz+i);
+
+	tername = oterlist[cur_ter].name;
+	add_msg("%d: %s", i, tername.c_str());
+}
+*/
+
 //CAT: *** vvv
- if (levz < 0)
-  mvwprintz(w_location, 0, 18, c_ltgray, "Underground");
+ if(levz < 0)
+  mvwprintz(w_location, 0, 18, c_ltgray, "Underground: %d", levz);
+ else
+ if (levz > 0)
+  mvwprintz(w_location, 0, 18, c_white, "Aboveground: +%d", levz);
  else
  {
 	mvwprintz(w_location, 0, 18, 
@@ -2706,18 +2726,17 @@ void game::draw()
   wprintz(w_status, (run_mode == 0) ? ((iPercent == 100) ? c_green : c_red): c_green, "E");
 
 
-//CAT-s: BEGIN ***
+//CAT-s: BEGIN *** vvv
 // per turn bkg_music and monster sounds
 
 	static int time2growl= 0;
 	static bool oldOutside= false;
 
-	if(one_in(5) && (iPercent < 10) && (++time2growl > closeMonster*2))
+	if(one_in(5) && (iPercent < 10) && (time2growl++ > closeMonster*2))
 	{
 	   playSound(rng(13,22));
 	   time2growl= 0;
 	}
-
 
 	if(u.underwater)
 	{
@@ -2740,7 +2759,7 @@ void game::draw()
 		playMusic(0);
 	}
 	else
-	if(!m.is_outside(u.posx, u.posy) && levz >= 0 )
+	if(!m.is_outside(u.posx, u.posy) || levz < 0)
 	{
 //CAT-s: stepping outdoors->indoors
 		if(oldOutside)
@@ -2749,7 +2768,11 @@ void game::draw()
 			oldOutside= false;
 			stopLoop(-99);
 		}
-		playMusic(1);
+
+		if(levz < 0)
+			playMusic(2);
+		else
+			playMusic(1);
 	}
 	else
 	if(m.is_outside(u.posx, u.posy))
@@ -2813,11 +2836,14 @@ void game::draw_ter(int posx, int posy)
 //CAT-mgs: moved down, then removed
 // mapRain.clear();
 
+
 // posx/posy default to -999
+
  if (posx == -999)
   posx = u.posx + u.view_offset_x;
  if (posy == -999)
   posy = u.posy + u.view_offset_y;
+
  int t = 0;
 
 //CAT-g: check this, performance
@@ -3815,40 +3841,54 @@ void game::monmove()
 }
 
 
+//CAT-mgs: *** vvv
 void game::sound(int x, int y, int vol, std::string description)
 {
 //CAT-mgs: 
- vol= vol*2; // Scale it a little
-// First, alert all monsters (that can hear) to the sound
- for (int i = 0; i < z.size(); i++) {
-  if (z[i].can_hear()) {
-   int dist = rl_dist(x, y, z[i].posx, z[i].posy);
-//CAT-mgs:
-   int volume = vol - (z[i].has_flag(MF_GOODHEARING) ? int(dist / 8) : int(dist / 4));
+   if(abs(x-u.posx) < 10 && abs(y-u.posy) < 10)
+   {
+	x= u.posx;
+	y= u.posy;
+
+//	vol= vol*2;
+   }
+   else
+      vol= (int)(vol/2); 
+
+	// First, alert all monsters (that can hear) to the sound
+	 for (int i = 0; i < z.size(); i++) {
+	  if (z[i].can_hear()) {
+	   int dist = rl_dist(x, y, z[i].posx, z[i].posy);
+	//CAT-mgs:
+	   int volume = vol - (z[i].has_flag(MF_GOODHEARING) ? (int)(dist/5) : (int)(dist/3));
+
+	   if(volume < 1)
+		volume= 1;
 
 //CAT-mgs: it's getting accumulated?
-   z[i].wander_to(x, y, volume);
-   z[i].process_trigger(MTRIG_SOUND, volume);
-  }
- }
+	   z[i].wander_to(x, y, volume);
+	   z[i].process_trigger(MTRIG_SOUND, volume);
+	  }
+	 }
 
+	// Loud sounds make the next spawn sooner!
+	 int spawn_range = int(MAPSIZE / 2) * SEEX;
+	 if (vol >= spawn_range) {
+	  int max = (vol - spawn_range);
+	  int min = int(max / 6);
+	  if (max > spawn_range * 4)
+	   max = spawn_range * 4;
+	  if (min > spawn_range * 4)
+	   min = spawn_range * 4;
+	  int change = rng(min, max);
+	  if (nextspawn < change)
+	   nextspawn = 0;
+	  else
+	   nextspawn -= change;
+	 }
 
-//CAT-mgs: check this
-// Loud sounds make the next spawn sooner!
- int spawn_range = int(MAPSIZE / 2) * SEEX;
- if (vol >= spawn_range) {
-  int max = (vol - spawn_range);
-  int min = int(max / 6);
-  if (max > spawn_range * 4)
-   max = spawn_range * 4;
-  if (min > spawn_range * 4)
-   min = spawn_range * 4;
-  int change = rng(min, max);
-  if (nextspawn < change)
-   nextspawn = 0;
-  else
-   nextspawn -= change;
- }
+//CAT-mgs: *** ^^^
+
 
 // Next, display the sound as the player hears it
  if (description == "")
@@ -3930,16 +3970,25 @@ void game::add_footstep(int x, int y, int volume, int distance)
  return;
 }
 
+
 // draws footsteps that have been created by monsters moving about
 void game::draw_footsteps()
 {
  for (int i = 0; i < footsteps.size(); i++) {
-  mvwputch(w_terrain, VIEWY + footsteps[i].y - u.posy - u.view_offset_y,
-                      VIEWX + footsteps[i].x - u.posx - u.view_offset_x, c_yellow, '?');
- }
- footsteps.clear();
 
-//CAT: check this
+	if( footsteps[i].x < u.posx+SEEX && footsteps[i].x > u.posx-SEEX
+			&& footsteps[i].y < u.posy+SEEY && footsteps[i].y > u.posy-SEEY )
+	{
+		mvwputch(w_terrain, VIEWY + footsteps[i].y - u.posy - u.view_offset_y,
+                      VIEWX + footsteps[i].x - u.posx - u.view_offset_x, c_yellow, '?');
+
+//CAT-mgs: more horror atmosphere
+		if(one_in(30))
+			playSound(rng(13,22));
+	}
+ }
+
+ footsteps.clear();
  wrefresh(w_terrain);
  return;
 }
@@ -4811,7 +4860,7 @@ void game::handbrake ()
  } else if (veh->velocity < 0)
   veh->stop();
  else {
-  veh->velocity-= (int)veh->velocity / 7;
+  veh->velocity-= (int)veh->velocity / 30;
   if (veh->velocity < 0)
       veh->stop();
  }
@@ -5601,10 +5650,172 @@ shape, but with long, twisted, distended limbs.");
 }
 
 
+
+//CAT-mgs: *** vvv
+void game::runJump()
+{
+ u.view_offset_x= 0;
+ u.view_offset_y= 0;
+ int lx = u.posx;
+ int ly = u.posy;
+
+ refresh_all();
+ mvwprintw(w_terrain, 0, 0, "Jump where?");
+ mvwputch(w_terrain, VIEWY, VIEWX, c_red, 'X');
+ wrefresh(w_terrain);
+
+ int mx, my, junk;
+ InputEvent input;
+
+ int landX, dx;
+ int landY, dy;
+
+ do
+ {
+	input = get_input();
+	get_direction(mx, my, input);
+
+	if(mx != -2 && my != -2)
+	{
+	// Directional key pressed
+	   lx += mx;
+	   ly += my;
+	}
+
+
+//	g->draw();
+//	g->draw_ter(lx, ly);
+
+	draw_ter();
+
+
+	dx= lx - u.posx;
+	dy= ly - u.posy;
+
+	if(dx < -8)
+		lx++;
+	else
+	if(dx > 8)
+		lx--;
+
+	if(dy < -8)
+		ly++;
+	else
+	if(dy > 8)
+		ly--;
+
+
+	mvwputch(w_terrain, ly - u.posy + VIEWY, 
+			lx - u.posx + VIEWX, c_yellow, 'x');
+
+
+	float dist= 1.5 + sqrt(dx*dx + dy*dy);
+
+	landX= lx+ (int)(dx/ (dist/5));
+	landY= ly+ (int)(dy/ (dist/5));
+
+
+	mvwputch(w_terrain, landY - u.posy + VIEWY, 
+			landX - u.posx + VIEWX, c_ltred, 'X');
+
+
+
+
+	wrefresh(w_terrain);
+
+ } while (input != Close && input != Cancel && input != Confirm);
+
+ if(input == Confirm)
+ {
+	add_msg("You jump.");
+	refresh_all();
+
+
+	timespec ts;
+	ts.tv_sec = 0;
+	ts.tv_nsec = 90000000;
+
+	std::vector<point> ret;
+
+	int blah;
+
+	ret= line_to(u.posx, u.posy, lx, ly, blah); 
+
+	dx= ret[0].x - u.posx;
+	dy= ret[0].y - u.posy;
+
+	plmove(dx, dy);		
+	draw_ter();
+
+	JUMPING= 1;
+	for(int i= 1; i < ret.size(); i++) 
+	{
+		dx= ret[i].x - ret[i-1].x;
+		dy= ret[i].y - ret[i-1].y;
+
+//		if(i == ret.size()-1)
+//			JUMPING= 2;
+	
+		plmove(dx, dy);		
+		draw_ter();
+	}
+
+	JUMPING= 2;
+	playSound(38);
+
+	ret= line_to(lx, ly, landX, landY, blah); 
+
+	dx= ret[0].x - lx;
+	dy= ret[0].y - ly;
+	plmove(dx, dy);
+	draw_ter();
+
+	nanosleep(&ts, NULL);	
+	for(int i= 1; i < ret.size(); i++) 
+	{
+		dx= ret[i].x - ret[i-1].x;
+		dy= ret[i].y - ret[i-1].y;
+	
+		plmove(dx, dy);		
+		draw_ter();
+
+//CAT: shadow or motion blur, not looking good enough
+//		mvwputch(w_terrain, VIEWY -dy, VIEWX -dx , c_dkgray, '@');
+
+		wrefresh(w_terrain);
+		nanosleep(&ts, NULL);	
+	}
+
+	JUMPING= 3; //landing
+	playSound(55);
+	plmove(0, 0);
+
+	JUMPING= 0;
+
+//	g->u.view_offset_x= lx - g->u.posx;
+//	g->u.view_offset_y= ly - g->u.posy;
+ }
+ else
+ {
+	u.view_offset_x= 0;
+	u.view_offset_y= 0;
+ }
+}
+
+
 //Shift player by one tile, look_around(), then restore previous position.
 //represents carfully peeking around a corner, hence the large move cost.
 void game::peek()
 {
+
+ if(query_yn("Y: Jump, N: Peek"))
+ {
+	runJump();
+	return;
+ }
+
+ refresh_all();
+
 //CAT-g:
  mvwprintw(w_terrain, 0, 0, "Peek from where?");
  wrefresh(w_terrain);
@@ -5633,9 +5844,8 @@ point game::look_around()
 	|| u.has_active_bionic(bio_night_vision) )
     night_vision= true;
 
-//CAT-mgs:
+//CAT-mgs: comment out?
 // draw_ter();
-// int lx = u.posx + u.view_offset_x, ly = u.posy + u.view_offset_y;
 
 //CAT-mgs: 
  u.view_offset_x= 0;
@@ -5650,8 +5860,7 @@ point game::look_around()
  wborder(w_look, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
                  LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
  mvwprintz(w_look, 1, 1, c_white, "Looking Around");
- mvwprintz(w_look, 2, 1, c_white, "Use directional keys to move the cursor");
- mvwprintz(w_look, 3, 1, c_white, "to a nearby square.");
+ mvwprintz(w_look, 2, 1, c_white, "Use directional keys.");
 
 //CAT-mgs:
  draw_ter(lx, ly);
@@ -5669,7 +5878,7 @@ point game::look_around()
    ly += my;
   }
 
-//CAT-g:
+//CAT-g: 
 //  werase(w_terrain);
   draw_ter(lx, ly);
 
@@ -5755,22 +5964,26 @@ point game::look_around()
   if (m.graffiti_at(lx, ly).contents)
    mvwprintw(w_look, 6, 1, "Graffiti: %s", m.graffiti_at(lx, ly).contents->c_str());
 
-//CAT-g:
-	u.view_offset_x= lx- u.posx;
-	u.view_offset_y= ly - u.posy;
-
   wrefresh(w_look);
   wrefresh(w_terrain);
  } while (input != Close && input != Cancel && input != Confirm);
 
+//CAT-mgs:
  if(input == Confirm)
+ {
+	u.view_offset_x= lx- u.posx;
+	u.view_offset_y= ly - u.posy;
+
 	return point(lx, ly);
-//CAT-g:
+ }
  else
  {
 	u.view_offset_x= 0;
 	u.view_offset_y= 0;
  }
+
+//CAT-s: close menu
+ playSound(2);
 
  return point(-1, -1);
 }
@@ -7483,11 +7696,14 @@ void game::unload(char chInput)
 
 void game::unload()
 {
- if (!u.weapon.is_gun() && u.weapon.contents.size() == 0 &&
-     (!u.weapon.is_tool() || u.weapon.ammo_type() == AT_NULL)) {
-  add_msg("You can't unload a %s!", u.weapon.tname(this).c_str());
-  return;
+ if( !u.weapon.is_gun() && u.weapon.contents.size() == 0 
+	&& (!u.weapon.is_tool() || u.weapon.ammo_type() == AT_NULL || u.weapon.has_flag(IF_NO_UNLOAD)) )
+ {
+
+	add_msg("You can't unload a %s!", u.weapon.tname(this).c_str());
+	return;
  }
+
  int spare_mag = -1;
  int has_m203 = -1;
  int has_shotgun = -1;
@@ -7753,7 +7969,7 @@ void game::plmove(int x, int y)
   y += u.posy;
  }
 
- dbg(D_PEDANTIC_INFO) << "game:plmove: From ("<<u.posx<<","<<u.posy<<") to ("<<x<<","<<y<<")";
+// dbg(D_PEDANTIC_INFO) << "game:plmove: From ("<<u.posx<<","<<u.posy<<") to ("<<x<<","<<y<<")";
 
 // Check if our movement is actually an attack on a monster
  int mondex = mon_at(x, y);
@@ -7798,6 +8014,12 @@ void game::plmove(int x, int y)
   return;
  }
 
+//CAT-s:
+ if(u.underwater && m.ter(x,y) != t_water_dp)
+ {
+	vertical_move(1, true);
+	u.underwater = false;
+ }
 
 // Otherwise, actual movement, zomg
  if (u.has_disease(DI_AMIGARA)) {
@@ -7851,11 +8073,6 @@ void game::plmove(int x, int y)
   veh_closed_door = dpart >= 0 && !veh->parts[dpart].open;
  }
 
- if(u.underwater && m.ter(x,y) != t_water_dp)
- {
-	vertical_move(1, false);
-	u.underwater = false;
- }
 
  if (m.move_cost(x, y) > 0) { // move_cost() of 0 = impassible (e.g. a wall)
   if (u.underwater)
@@ -7863,17 +8080,77 @@ void game::plmove(int x, int y)
   dpart = veh ? veh->part_with_feature (vpart, vpf_seat) : -1;
   bool can_board = dpart >= 0 && veh->parts[dpart].items.size() == 0 &&
       !veh->parts[dpart].has_flag(vehicle_part::passenger_flag);
-/*  if (veh.type != veh_null)
-      add_msg ("vp=%d dp=%d can=%c", vpart, dpart, can_board? 'y' : 'n',);*/
+//  if (veh.type != veh_null)
+//      add_msg ("vp=%d dp=%d can=%c", vpart, dpart, can_board? 'y' : 'n',);
+
   if (can_board && query_yn("Board vehicle?")) { // empty vehicle's seat ahead
    m.board_vehicle (this, x, y, &u);
    u.moves -= 200;
    return;
   }
 
-  if (m.field_at(x, y).is_dangerous() &&
-      !query_yn("Really step into that %s?", m.field_at(x, y).name().c_str()))
-   return;
+//CAT-mgs: *** vvv
+  if(JUMPING != 2 && m.field_at(x, y).is_dangerous() )
+  {
+	if(JUMPING == 0 && !m.field_at(u.posx, u.posy).is_dangerous())
+	{
+	     	if( !query_yn("Really step into that %s?", m.field_at(x, y).name().c_str()) )
+			return;
+	}
+  }
+
+  if(JUMPING != 2 && m.tr_at(x, y) != tr_null &&
+      u.per_cur - u.encumb(bp_eyes) >= traps[m.tr_at(x, y)]->visibility)
+  {
+	if(!traps[m.tr_at(x, y)]->is_benign())
+	{
+		bool goon= true;
+		
+		if(JUMPING == 3)
+		{
+			bool canHang= false;
+	      	for(int i= -1; i <= 1; i++)
+			{
+				for(int j= -1; j <= 1; j++)
+				{
+					//|| !m.is_outside(x+i,y+j)
+					if( m.ter(x+i,y+j) == t_sidewalk)
+						canHang= true;
+				}
+
+			}
+
+			if(canHang)
+				goon= query_yn("You hang on, drop down?");
+		}
+		else
+		if(JUMPING == 0)		
+	      	goon= query_yn("Really step onto that %s?",traps[m.tr_at(x, y)]->name.c_str());
+
+		if(!goon)
+	           	return;
+	}
+  }
+
+
+//CAT-mgs: abovelevel drop
+/*
+  if(JUMPING != 2 && levz > 0 && m.ter(x, y) == t_air)
+  {
+//CAT: fall at once, or... ? 
+	
+	if(JUMPING == 0 && !m.ter(u.posx, u.posy) != t_air)
+	{
+  		if( !query_yn("Really jump down?") )
+			return;
+	}
+
+	add_msg("You fall down a level!");
+	vertical_move(-1, true); 
+  }
+
+*/
+
 
 // no need to query if stepping into 'benign' traps
 /*
@@ -7883,13 +8160,7 @@ void game::plmove(int x, int y)
    return;
 */
 
-  if (m.tr_at(x, y) != tr_null &&
-      u.per_cur - u.encumb(bp_eyes) >= traps[m.tr_at(x, y)]->visibility)
-      {
-        if (!traps[m.tr_at(x, y)]->is_benign())
-                  if (!query_yn("Really step onto that %s?",traps[m.tr_at(x, y)]->name.c_str()))
-             return;
-      }
+
 
 // Calculate cost of moving
   u.moves -= u.run_cost(m.move_cost(x, y) * 50);
@@ -7903,6 +8174,7 @@ void game::plmove(int x, int y)
     u.recoil = int(u.recoil / 2);
    }
   }
+
   if ((!u.has_trait(PF_PARKOUR) && m.move_cost(x, y) > 2) ||
       ( u.has_trait(PF_PARKOUR) && m.move_cost(x, y) > 4    ))
   {
@@ -7945,14 +8217,13 @@ void game::plmove(int x, int y)
     u.hit(this, bp, side, 0, rng(1, 4));
    }
   }
+
   if (!u.has_artifact_with(AEP_STEALTH) && !u.has_trait(PF_LEG_TENTACLES)) {
 
-//CAT-mgs: 4, 8
-//...quiet it down, it's getting accumulated?
    if (u.has_trait(PF_LIGHTSTEP))
-    sound(x, y, 3, "");	// Sound of footsteps may awaken nearby monsters
+    sound(x, y, 4, "");	// Sound of footsteps may awaken nearby monsters
    else
-    sound(x, y, 5, "");	// Sound of footsteps may awaken nearby monsters
+    sound(x, y, 8, "");	// Sound of footsteps may awaken nearby monsters
   }
   if (one_in(20) && u.has_artifact_with(AEP_MOVEMENT_NOISE))
    sound(x, y, 40, "You emit a rattling sound.");
@@ -7990,7 +8261,8 @@ void game::plmove(int x, int y)
 
   u.posx = x;
   u.posy = y;
-  if (m.tr_at(x, y) != tr_null) { // We stepped on a trap!
+//CAT-mgs:
+  if(JUMPING != 2 && m.tr_at(x, y) != tr_null) { // We stepped on a trap!
    trap* tr = traps[m.tr_at(x, y)];
    if (!u.avoid_trap(tr)) {
     trapfunc f;
@@ -8088,6 +8360,14 @@ void game::plmove(int x, int y)
  else
  {
 // Invalid move
+
+//CAT-mgs:
+	if(JUMPING == 2)
+	{
+		std::string junk;
+		m.bash(x, y, 10, junk);
+	}
+
 	if (u.has_disease(DI_BLIND) || u.has_disease(DI_STUNNED))
 	{
 	// Only lose movement if we're blind
@@ -8095,11 +8375,10 @@ void game::plmove(int x, int y)
 	   u.moves -= 100;
 	}
 	else
-	  if (m.open_door(x, y, m.is_indoor(u.posx, u.posy)))
+	  if(m.open_door(x, y, m.is_indoor(u.posx, u.posy)))
 	  {
 //CAT-s: 
 		playSound(56);
-
 		u.moves -= 100;
 	  }
 	  else
@@ -8277,8 +8556,8 @@ void game::fling_player_or_monster(player *p, monster *zz, int dir, int flvel)
 void game::vertical_move(int movez, bool force)
 {
 // > and < are used for diving underwater.
- if (m.move_cost(u.posx, u.posy) == 0 && m.has_flag(swimmable, u.posx, u.posy)){
-  if (movez == -1) {
+ if (m.has_flag(swimmable, u.posx, u.posy)){
+  if (movez < 0) {
    if (u.underwater) {
     add_msg("You are already underwater!");
     return;
@@ -8295,15 +8574,19 @@ void game::vertical_move(int movez, bool force)
 
   } else {
 
-   if (u.swim_speed() < 500) {
-    u.underwater = false;
-    add_msg("You surface.");
+
+//CAT-s: *** vvv
+   if(u.swim_speed() > 500 && !force)
+	add_msg("You can't surface!");
+   else
+   {
+	u.underwater = false;
+	add_msg("You surface.");
 	
 	playSound(30);
 	stopMusic(1);
+   }
 
-   } else
-    add_msg("You can't surface!");
   }
   return;
  }
@@ -8317,6 +8600,7 @@ void game::vertical_move(int movez, bool force)
 
  map tmpmap(&itypes, &mapitems, &traps);
  tmpmap.load(this, levx, levy, levz + movez, false);
+
 // Find the corresponding staircase
  int stairx = -1, stairy = -1;
  bool rope_ladder = false;
@@ -8357,6 +8641,7 @@ void game::vertical_move(int movez, bool force)
   }
  }
 
+
  bool replace_monsters = false;
 // Replace the stair monsters if we just came back
  if (abs(monstairx - levx) <= 1 && abs(monstairy - levy) <= 1 &&
@@ -8382,6 +8667,7 @@ void game::vertical_move(int movez, bool force)
   }
  }
 
+
  int z = levz + movez;
  // Fill in all the tiles we know about (e.g. subway stations)
  for (int i = 0; i < discover.size(); i++) {
@@ -8394,6 +8680,7 @@ void game::vertical_move(int movez, bool force)
       !cur_om.has_note(x, y, z))
    cur_om.add_note(x, y, z, "AUTO: goes up");
  }
+
 
  levz += movez;
  u.moves -= 100;

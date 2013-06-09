@@ -1,5 +1,8 @@
-data/audio/*
-save/*
+bindist/
+data/*.template
+data/audio/
+obj/
+save/
 *.wav
 *.mp3
 *.ogg
@@ -13,6 +16,10 @@ save/*
 *.lai
 *.la
 *.a
-cataclysm-launcher
 *.exe
+cataclysm
+cataclysm-launcher
 CataclysmWin.*
+cataclysmdda-*
+debug.log
+logg.txt

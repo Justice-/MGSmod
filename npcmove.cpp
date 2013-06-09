@@ -285,6 +285,13 @@ void npc::execute_action(game *g, npc_action action, int target)
   break;
 
  case npc_look_for_player:
+
+  if(attitude == NPCATT_WAIT)
+  {
+	move_pause();
+	break;
+  }
+
   if (saw_player_recently() && g->m.sees(posx, posy, plx, ply, light, linet)) {
 // (plx, ply) is the point where we last saw the player
    update_path(g, plx, ply);
@@ -304,6 +311,13 @@ void npc::execute_action(game *g, npc_action action, int target)
   break;
 
  case npc_follow_player:
+
+  if(attitude == NPCATT_WAIT)
+  {
+	move_pause();
+	break;
+  }
+
   update_path(g, g->u.posx, g->u.posy);
   if (path.size() <= follow_distance())	// We're close enough to u.
    move_pause();
@@ -314,6 +328,13 @@ void npc::execute_action(game *g, npc_action action, int target)
   break;
 
  case npc_follow_embarked:
+
+  if(attitude == NPCATT_WAIT)
+  {
+	move_pause();
+	break;
+  }
+
   if (in_vehicle)
    move_pause();
   else {

@@ -1,3 +1,40 @@
++ problems with indoor (own) illumination when looking around?
++ sunny at 11pm?
++ push furniture around, and jump key, throw ghjkl, 1234...?
++ remove glitchy movment close to map borders?
++ automated sliding doors, opened with science ID card?
++ cargo elevator for underground Metal Gear storage?
+
+
+
+- above ground z-levels!
+- NEW ACTION: jumping!!
+- glass takes damage or blocks fired shots
+- dangerous field no question if already in one
+- firearms are more effective
+- proper monsters reaction to noise
+- NPC commands: "wait here" and "follow me"
+- burst fire mechanics changed, balanced
+- zombies in labs and silo launch room
+- glass wals and more excitment in labs 
+- addde roof tiles for inside areas 
+- sound/noise when shooting stuff
+- fixed missile silo crash bug
+- remove missile and open hatch after launch
+- missile launch gas and fire animations
+- missile launch sound effects and messages
+- pavement ring around missile hatch
+- only one missile in a nuclear sillo
+- spawn items if missile disarmed
+- underground level number indicator
+- make pool tables shorter
+- flashlight on/off sound effect
+- balancad vehicle braking and handbrake
+- fixed lighmaps during the day
+
+
+
+Cataclysm-MGS_rev19
 - Metal Gear ZK-Mk.3
 - enable/disable turrets individually
 - show available ammo for mounted turrets
@@ -12,9 +49,9 @@
 - added moon phase indicator
 - extended monsters reaction to noise
 - read with wielded torch and candle light
-- added range info when looking arround
-- some bugfixes from DDA v0.4 main bracnh
-- some additions from DDA v0.4 main bracnh
+- added range info when looking around
+- some bugfixes from DDA v0.4 main branch
+- some additions from DDA v0.4 main branch
 - water sound effects: splash, swim, dive
 - game over will not delete save-file
 - combined looking around and shift-view

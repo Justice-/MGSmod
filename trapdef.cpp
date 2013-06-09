@@ -127,7 +127,7 @@ traps.push_back(new trap(id, sym, color, name, visibility, avoidance,\
 	&trapfunc::portal,	&trapfuncm::portal,
 	itm_null, NULL);
 
- TRAP("ledge",			' ',	c_black,	 0, 99, 99,
+ TRAP("ledge",			' ',	c_white,	 0, 99, 99,
 	&trapfunc::ledge,	&trapfuncm::ledge,
 	itm_null, NULL);
 
@@ -169,4 +169,8 @@ traps.push_back(new trap(id, sym, color, name, visibility, avoidance,\
 	&trapfunc::snake,	&trapfuncm::snake,
 	itm_null, NULL);
 
+//CAT-mgs:
+ TRAP("airhole",			'.',	c_ltcyan,	 0, 99, 99,
+	&trapfunc::airhole,	&trapfuncm::airhole,
+	itm_null, NULL);
 }

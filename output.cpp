@@ -366,7 +366,7 @@ bool query_yn(const char *mes, ...)
  while (ch != '\n' && ch != ' ' && ch != KEY_ESCAPE && ch != 'Y' && ch != 'N' && (force_uc || (ch != 'y' && ch != 'n')));
 
 //CAT-s:
-// werase(w);
+ werase(w);
  wrefresh(w);
  delwin(w);
 
