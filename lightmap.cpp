@@ -3,7 +3,7 @@
 #include "game.h"
 #include "lightmap.h"
 
-#define INBOUNDS(x, y) (x >= -SEEX && x <= SEEX && y >= -SEEY && y <= SEEY)
+#define INBOUNDS(x, y) (x >= -CAT_VX && x <= CAT_VX && y >= -CAT_VY && y <= CAT_VY)
 #define INBOUNDS_LARGE(x, y) (x >= -LIGHTMAP_RANGE_X && x <= LIGHTMAP_RANGE_X &&\
                                y >= -LIGHTMAP_RANGE_Y && y <= LIGHTMAP_RANGE_Y)
 
@@ -25,19 +25,20 @@ void light_map::generate(game* g, int x, int y, float natural_light, float lumin
  int dir_y[] = { 0, 1 ,  0, -1 };
  int dir_d[] = { 180, 270, 0, 90 };
 
- // Daylight vision handling returned back to map due to issues it causes here
- if (natural_light > LIGHT_SOURCE_BRIGHT) {
-  // Apply sunlight, first light source so just assign
-  for(int sx = x - SEEX; sx <= x + SEEX; ++sx) {
-   for(int sy = y - SEEY; sy <= y + SEEY; ++sy) {
-	// In bright light indoor light exists to some degree
-	if(!is_outside(sx - x + g->u.view_offset_x, sy - y + g->u.view_offset_y))
-		lm[sx - x + SEEX][sy - y + SEEY] = LIGHT_AMBIENT_LOW;	
-//CAT-g: let sun or moonlight shine outside, or not?
-	 else
-		lm[sx - x + SEEX][sy - y + SEEY]= natural_light;
-   }
-  }
+
+//g->add_msg("natural_light %f", natural_light);
+
+//CAT-mgs: this is just for indoors to initialize it at low ambient light
+ if(natural_light > LIGHT_AMBIENT_LOW) // LIGHT_SOURCE_BRIGHT
+ {
+	for(int sx = x - CAT_VX; sx <= x + CAT_VX; ++sx)
+	{
+		for(int sy = y - CAT_VY; sy <= y + CAT_VY; ++sy)
+		{
+			if(!is_outside(sx - x + g->u.view_offset_x, sy - y + g->u.view_offset_y))
+				lm[sx - x + CAT_VX][sy - y + CAT_VY] = LIGHT_AMBIENT_LOW;	
+		}
+	}
  }
 
 
@@ -67,7 +68,7 @@ void light_map::generate(game* g, int x, int y, float natural_light, float lumin
 //CAT-mgs: I did that above, didn't I?
 //... no, yes, what's this for anyway?
 		if(INBOUNDS(sx - x, sy - y) && is_outside(0, 0))
-			lm[sx - x + SEEX][sy - y + SEEY]= natural_light;
+			lm[sx - x + CAT_VX][sy - y + CAT_VY]= natural_light;
 
 		if(c[sx - x + LIGHTMAP_RANGE_X][sy - y + LIGHTMAP_RANGE_Y].transparency > LIGHT_TRANSPARENCY_SOLID)
 			apply_light_arc(sx, sy, dir_d[i], x, y, natural_light);
@@ -108,22 +109,23 @@ void light_map::generate(game* g, int x, int y, float natural_light, float lumin
    // TODO: [lightmap] Attach light brightness to fields
    switch(current_field.type) {
     case fd_fire:
-     if (3 == current_field.density)
-      apply_light_source(sx, sy, x, y, 90);
-     else if (2 == current_field.density)
+     if(current_field.density > 5)
       apply_light_source(sx, sy, x, y, 48);
-     else
+     else if (current_field.density > 2)
       apply_light_source(sx, sy, x, y, 20);
+     else
+      apply_light_source(sx, sy, x, y, 9);
      break;
     case fd_fire_vent:
+      apply_light_source(sx, sy, x, y, 3);
     case fd_flame_burst:
-     apply_light_source(sx, sy, x, y, 9);
+      apply_light_source(sx, sy, x, y, 8);
      break;
     case fd_electricity:
      if (3 == current_field.density)
       apply_light_source(sx, sy, x, y, 8);
      else if (2 == current_field.density)
-      apply_light_source(sx, sy, x, y, 3);
+      apply_light_source(sx, sy, x, y, 4);
      else
       apply_light_source(sx, sy, x, y, LIGHT_SOURCE_LOCAL);  // kinda a hack as the square will still get marked
      break;
@@ -179,14 +181,14 @@ lit_level light_map::at(int dx, int dy)
  if (!INBOUNDS(dx, dy))
   return LL_DARK; // Out of bounds
 
-//CAT: what's this, let's try lm[] instead of sm[]
- if (sm[dx + SEEX][dy + SEEY] >= LIGHT_SOURCE_BRIGHT)
+//CAT: check this
+ if (sm[dx + CAT_VX][dy + CAT_VY] >= LIGHT_SOURCE_BRIGHT)
   return LL_BRIGHT;
 
- if (lm[dx + SEEX][dy + SEEY] >= LIGHT_AMBIENT_LIT)
+ if (lm[dx + CAT_VX][dy + CAT_VY] >= LIGHT_AMBIENT_LIT)
   return LL_LIT;
 
- if (lm[dx + SEEX][dy + SEEY] >= LIGHT_AMBIENT_LOW)
+ if (lm[dx + CAT_VX][dy + CAT_VY] >= LIGHT_AMBIENT_LOW)
   return LL_LOW;
 
  return LL_DARK;
@@ -197,7 +199,7 @@ float light_map::ambient_at(int dx, int dy)
  if (!INBOUNDS(dx, dy))
   return 0.0f;
 
- return lm[dx + SEEX][dy + SEEY];
+ return lm[dx + CAT_VX][dy + CAT_VY];
 }
 
 bool light_map::is_outside(int dx, int dy)
@@ -266,9 +268,9 @@ void light_map::apply_light_source(int x, int y, int cx, int cy, float luminance
  memset(lit, 0, sizeof(lit));
 
  if (INBOUNDS(x - cx, y - cy)) {
-  lit[x - cx + SEEX][y - cy + SEEY] = true;
-  lm[x - cx + SEEX][y - cy + SEEY] += std::max(luminance, static_cast<float>(LL_LOW));
-  sm[x - cx + SEEX][y - cy + SEEY] += luminance;
+  lit[x - cx + CAT_VX][y - cy + CAT_VY] = true;
+  lm[x - cx + CAT_VX][y - cy + CAT_VY] += std::max(luminance, static_cast<float>(LL_LOW));
+  sm[x - cx + CAT_VX][y - cy + CAT_VY] += luminance;
  }
 
  if (luminance > LIGHT_SOURCE_LOCAL) {
@@ -375,11 +377,11 @@ void light_map::apply_light_ray(bool lit[LIGHTMAP_X][LIGHTMAP_Y], int sx, int sy
    float light = luminance / ((sx - x) * (sx - x));
    float cat_rng= sqrt( ((sx - x) * (sx - x)) + ((sy - y) * (sy - y)) );
 
-   if(INBOUNDS(x - cx, y - cy) && !lit[x - cx + SEEX][y - cy + SEEY] && cat_rng <= light*2+2)
+   if(INBOUNDS(x - cx, y - cy) && !lit[x - cx + CAT_VX][y - cy + CAT_VY] && cat_rng <= light*2+2)
    {
      //Multiple rays will pass through the same squares so we need to record that
-     lit[x - cx + SEEX][y - cy + SEEY] = true;
-     lm[x - cx + SEEX][y - cy + SEEY] += light * transparency;
+     lit[x - cx + CAT_VX][y - cy + CAT_VY] = true;
+     lm[x - cx + CAT_VX][y - cy + CAT_VY] += light * transparency;
    }
 
    if(INBOUNDS_LARGE(x - cx, y - cy))
@@ -406,11 +408,11 @@ void light_map::apply_light_ray(bool lit[LIGHTMAP_X][LIGHTMAP_Y], int sx, int sy
    float light = luminance / ((sy - y) * (sy - y));
    float cat_rng= sqrt( ((sx - x) * (sx - x)) + ((sy - y) * (sy - y)) );
 
-   if(INBOUNDS(x - cx, y - cy) && !lit[x - cx + SEEX][y - cy + SEEY] && cat_rng <= light*2+2)
+   if(INBOUNDS(x - cx, y - cy) && !lit[x - cx + CAT_VX][y - cy + CAT_VY] && cat_rng <= light*2+2)
    {
      //Multiple rays will pass through the same squares so we need to record that
-     lit[x - cx + SEEX][y - cy + SEEY] = true;
-     lm[x - cx + SEEX][y - cy + SEEY] += light;
+     lit[x - cx + CAT_VX][y - cy + CAT_VY] = true;
+     lm[x - cx + CAT_VX][y - cy + CAT_VY] += light;
    }
 
 
@@ -433,7 +435,8 @@ void light_map::build_outside_cache(map *m, const int x, const int y, const int 
  if( terrain == t_floor || terrain == t_rock_floor || terrain == t_floor_wax 
 	|| terrain == t_fema_groundsheet || terrain == t_dirtfloor
 	|| terrain == t_elevator || terrain == t_table || terrain == t_chair 
-	|| terrain == t_bench || terrain == t_desk || terrain == t_counter )
+	|| terrain == t_bench || terrain == t_desk || terrain == t_counter 
+	|| terrain == t_indoor_hole ) //|| terrain == t_rock
  {
 
 	for( int dx = -1; dx <= 1; dx++ )

@@ -306,6 +306,9 @@ std::string monster::save_info()
 
 void monster::debug(player &u)
 {
+//CAT-mgs:
+	return;	
+
  char buff[2];
  debugmsg("%s has %d steps planned.", name().c_str(), plans.size());
  debugmsg("%s Moves %d Speed %d HP %d",name().c_str(), moves, speed, hp);
@@ -370,9 +373,11 @@ monster_attitude monster::attitude(player *u)
 	    effective_morale += 5;
 	}
 
+
 //CAT-mgs: make the game easier
 //...connect with character loudness: done
-      effective_anger -= rl_dist(posx, posy, u->posx, u->posy)*5;
+      effective_anger -= int(rl_dist(posx, posy, u->posx, u->posy)*3);
+	
  }
 
  if(effective_morale < 0)
@@ -409,8 +414,8 @@ void monster::process_triggers(game *g)
 void monster::process_trigger(monster_trigger trig, int amount)
 {
  for (int i = 0; i < type->anger.size(); i++) {
-  if (type->anger[i] == trig)
-   anger += amount;
+  if(type->anger[i] == trig && amount > anger)
+   anger = amount;
  }
  for (int i = 0; i < type->placate.size(); i++) {
   if (type->placate[i] == trig)
@@ -582,7 +587,7 @@ bool monster::hurt(int dam)
  if (hp < 1)
   return true;
  if (dam > 0)
-  process_trigger(MTRIG_HURT, 1 + int(dam / 3));
+  process_trigger(MTRIG_HURT, 10*(1 + int(dam/3)));
  return false;
 }
 

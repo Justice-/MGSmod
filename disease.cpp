@@ -1324,6 +1324,19 @@ std::string dis_name(disease dis)
   return "Puss Filled Wound";
   case DI_RECOVER:	return "Recovering From Infection";
 
+
+//CAT-mgs:
+/*
+  case DI_DRUNK:
+	if(p.has_trait(PF_DRUNKEN))
+	{
+		if(p.disease_level(DI_DRUNK) > 800)	
+			return "Drunken Master!";
+		else
+			return "Drunk Bonus";
+	}
+*/
+
   break;
 
  default:		return "";

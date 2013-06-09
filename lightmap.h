@@ -13,14 +13,20 @@
 #define LIGHT_TRANSPARENCY_SOLID 0
 #define LIGHT_TRANSPARENCY_CLEAR 1
 
-#define LIGHTMAP_X (2 * SEEX + 1)
-#define LIGHTMAP_Y (2 * SEEY + 1)
+
+//CAT-mgs: former SEEX & SEEY, 
+//... can expand to any sreen size, but it slows down the game
+#define CAT_VX 12
+#define CAT_VY 12
+
+#define LIGHTMAP_X (2 * CAT_VX + 1)
+#define LIGHTMAP_Y (2 * CAT_VY + 1)
 
 #define LIGHT_RANGE(b) static_cast<int>(sqrt(b / LIGHT_AMBIENT_LOW) + 1)
-#define LIGHT_MAX_RANGE_X (SEEX*(MAPSIZE/2))
-#define LIGHT_MAX_RANGE_Y (SEEX*(MAPSIZE/2))
-#define LIGHTMAP_RANGE_X (SEEX + LIGHT_MAX_RANGE_X)
-#define LIGHTMAP_RANGE_Y (SEEY + LIGHT_MAX_RANGE_Y)
+#define LIGHT_MAX_RANGE_X (CAT_VX*(MAPSIZE/2))
+#define LIGHT_MAX_RANGE_Y (CAT_VY*(MAPSIZE/2))
+#define LIGHTMAP_RANGE_X (CAT_VX + LIGHT_MAX_RANGE_X)
+#define LIGHTMAP_RANGE_Y (CAT_VY + LIGHT_MAX_RANGE_Y)
 
 #define LIGHTMAP_CACHE_X (2 * LIGHTMAP_RANGE_X + 1)
 #define LIGHTMAP_CACHE_Y (2 * LIGHTMAP_RANGE_Y + 1)

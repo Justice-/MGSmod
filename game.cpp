@@ -461,24 +461,28 @@ bool game::do_turn()
  process_activity();
 
 //CAT-mgs:
- while(u.moves > 0) {
+ if(u.moves > 0)
+ {
+	 while(u.moves > 0)
+	 {
+		  cleanup_dead();
 
-  cleanup_dead();
+		  if(!u.has_disease(DI_SLEEP) && u.activity.type == ACT_NULL)
+			draw();
 
-  if(!u.has_disease(DI_SLEEP) && u.activity.type == ACT_NULL)
-	draw();
+		  if(handle_action())
+			  ++moves_since_last_save;
 
-  if(handle_action())
-	  ++moves_since_last_save;
-
-
-  if(is_game_over()) {
-   cleanup_at_end();
-   return true;
-  }
+		  if(is_game_over())
+		  {
+			   cleanup_at_end();
+			   return true;
+		  }
+	 }
  }
+		
+ u.moves= 0;
 
- update_scent();
  m.vehmove(this);
  m.process_fields(this);
  m.process_active_items(this);
@@ -488,7 +492,19 @@ bool game::do_turn()
  u.process_active_items(this);
  u.suffer(this);
 
- if(u.has_disease(DI_SLEEP) || u.activity.type == ACT_WAIT)
+ if(levz >= 0)
+ {
+	weather_effect weffect;
+	(weffect.*(weather_data[weather].effect))(this);
+ }
+
+ u.update_bodytemp(this);
+
+ if( u.has_disease(DI_SLEEP) 
+		|| u.activity.type == ACT_WAIT
+		|| u.activity.type == ACT_READ
+		|| u.activity.type == ACT_TRAIN
+		|| u.activity.type == ACT_CRAFT )
  {
 	if(turn%10 == 0)
 		draw();
@@ -499,20 +515,15 @@ bool game::do_turn()
 //  refresh();
  }
 
- if(levz >= 0)
- {
-	weather_effect weffect;
-	(weffect.*(weather_data[weather].effect))(this);
- }
-
- monmove();
- update_stair_monsters();
-
- rustCheck();
+// rustCheck();
  if(turn%10 == 0)
 	u.update_morale();
 
- u.update_bodytemp(this);
+ if(turn%3 == 0)
+	 update_scent();
+
+ monmove();
+ update_stair_monsters();
 
  return false;
 }
@@ -1087,13 +1098,13 @@ bool game::handle_action()
  switch (act) {
 
   case ACTION_PAUSE:
-   if (run_mode == 2) // Monsters around and we don't wanna pause
+   if (run_mode > 1) // Monsters around and we don't wanna pause
    {
-	add_msg("Monster spotted--safe mode is on! (Press '!' to turn it off.)");
+	if(run_mode==3)
+		add_msg("Monster spotted you!");
 
 //CAT-s:
 	playSound(10);
- 	playMusic(0);
    }
    else
    {
@@ -1534,6 +1545,8 @@ bool game::handle_action()
    break;
 
   case ACTION_TOGGLE_SAFEMODE:
+
+/*
    if (run_mode == 0 ) {
     run_mode = 1;
     mostseen = 0;
@@ -1541,11 +1554,8 @@ bool game::handle_action()
    } else {
     turnssincelastmon = 0;
     run_mode = 0;
-    if (autosafemode)
-    add_msg("Safe mode OFF! (Auto safe mode still enabled!)");
-    else
-    add_msg("Safe mode OFF!");
    }
+*/
    break;
 
   case ACTION_TOGGLE_AUTOSAFE:
@@ -1563,10 +1573,12 @@ bool game::handle_action()
    break;
 
   case ACTION_IGNORE_ENEMY:
+/*
    if (run_mode == 2) {
     add_msg("Ignoring enemy!");
     run_mode = 1;
    }
+*/
    break;
 
 //CAT-s: ***
@@ -2395,27 +2407,44 @@ void game::disp_kills()
 
 //CAT-mgs: *** vvv
  for (int i = 0; i < types.size(); i++) {
-  if (i < 22) {
-   mvwprintz(w, i + 2, 4, types[i]->color, "%c %s", types[i]->sym, types[i]->name.c_str());
-   int hori = 28;
+  if (i < 22) 
+  {
+   mvwprintz(w, i + 2, 2, types[i]->color, "%c %s", types[i]->sym, types[i]->name.c_str());
+   int hori = 25;
    if (count[i] >= 10)
-    hori = 27;
+    hori = 24;
    if (count[i] >= 100)
-    hori = 26;
+    hori = 23;
    if (count[i] >= 1000)
-    hori = 25;
+    hori = 22;
    mvwprintz(w, i + 2, hori, c_white, "%d", count[i]);
-  } else {
-   mvwprintz(w, i -20, 40, types[i]->color, "%c %s", types[i]->sym, types[i]->name.c_str());
-   int hori = 65;
+  }
+  else 
+  if (i < 44) 
+  {
+   mvwprintz(w, i -20, 29, types[i]->color, "%c %s", types[i]->sym, types[i]->name.c_str());
+   int hori = 52;
    if (count[i] >= 10)
-    hori = 64;
+    hori = 51;
    if (count[i] >= 100)
-    hori = 63;
+    hori = 50;
    if (count[i] >= 1000)
-    hori = 62;
+    hori = 49;
    mvwprintz(w, i -20, hori, c_white, "%d", count[i]);
   }
+  else 
+  {
+   mvwprintz(w, i -42, 56, types[i]->color, "%c %s", types[i]->sym, types[i]->name.c_str());
+   int hori = 77;
+   if (count[i] >= 10)
+    hori = 76;
+   if (count[i] >= 100)
+    hori = 75;
+   if (count[i] >= 1000)
+    hori = 74;
+   mvwprintz(w, i -42, hori, c_white, "%d", count[i]);
+  }
+
  }
 
  wrefresh(w);
@@ -2692,10 +2721,23 @@ void game::draw()
  oter_id cur_ter = cur_om.ter((levx + int(MAPSIZE / 2)) / 2,
                               (levy + int(MAPSIZE / 2)) / 2, levz);
  std::string tername = oterlist[cur_ter].name;
+
  if (tername.length() > 17)
   tername = tername.substr(0, 17);
  werase(w_location);
  mvwprintz(w_location, 0,  0, oterlist[cur_ter].color, tername.c_str());
+
+
+//CAT-mgs: level check
+/*
+	cur_ter = cur_om.ter((levx + int(MAPSIZE / 2)) / 2,
+                              (levy + int(MAPSIZE / 2)) / 2, 0);
+	add_msg("t_zero is: %d", cur_ter);
+
+	cur_ter = cur_om.ter((levx + int(MAPSIZE / 2)) / 2,
+                              (levy + int(MAPSIZE / 2)) / 2, levz);
+	add_msg("this is: %d", cur_ter);
+*/
 
 
 //CAT: *** vvv
@@ -2768,6 +2810,17 @@ void game::draw()
   wprintz(w_status, (run_mode == 0) ? ((iPercent == 100) ? c_green : c_red): c_green, "E");
 
 
+//CAT-mgs:
+  if(run_mode == 2)
+	run_mode = 3;
+  else
+  if(run_mode == 3)
+	run_mode = 4;
+  else
+  if(run_mode == 4)
+	run_mode = 0;
+
+
 //CAT-s: BEGIN *** vvv
 // per turn bkg_music and monster sounds
 
@@ -2795,7 +2848,7 @@ void game::draw()
 	if(iPercent > 0 && iPercent < 110)
 		fadeMusic(-2);
 	else
-	if(iPercent < 25)
+	if(run_mode == 0 && iPercent < 25)
 	{
 		fadeMusic(90);
 		playMusic(0);
@@ -2878,9 +2931,7 @@ void game::draw_ter(int posx, int posy)
 //CAT-mgs: moved down, then removed
 // mapRain.clear();
 
-
 // posx/posy default to -999
-
  if (posx == -999)
   posx = u.posx + u.view_offset_x;
  if (posy == -999)
@@ -2898,19 +2949,20 @@ void game::draw_ter(int posx, int posy)
 	|| u.has_active_bionic(bio_night_vision) )
     night_vision= true;
 
+
+//abaraba
  // Draw monsters
  int distx, disty;
  for (int i = 0; i < z.size(); i++) {
   disty = abs(z[i].posy - posy);
   distx = abs(z[i].posx - posx);
-  if (distx <= VIEWX && disty <= VIEWY && u_see(&(z[i]), t)) {
-   z[i].draw(w_terrain, posx, posy, false, night_vision);
-
-
-  } else if (z[i].has_flag(MF_WARM) && distx <= VIEWX && disty <= VIEWY &&
+  if(distx <= VIEWX && disty <= VIEWY && u_see(&(z[i]), t)) 
+	z[i].draw(w_terrain, posx, posy, false, night_vision);
+  else
+  if(z[i].has_flag(MF_WARM) && distx <= VIEWX && disty <= VIEWY &&
            (u.has_active_bionic(bio_infrared) || u.has_trait(PF_INFRARED)))
-   mvwputch(w_terrain, VIEWY + z[i].posy - posy, VIEWX + z[i].posx - posx,
-            c_red, '?');
+	mvwputch(w_terrain, VIEWY + z[i].posy - posy, 
+			VIEWX + z[i].posx - posx, c_red, '?');
  }
 
 
@@ -3254,33 +3306,34 @@ void game::hallucinate(const int x, const int y)
 // wrefresh(w_terrain);
 }
 
+
 float game::natural_light_level()
 {
- float ret = 0;
+   float ret= 1;
 
- if (levz >= 0) {
-  ret = turn.sunlight();
-  ret += weather_data[weather].light_modifier;
- }
+   if(levz >= 0)
+   {
+	ret = turn.sunlight();
+	ret+= weather_data[weather].light_modifier;
+   }
 
- return std::max(0.0f, ret);
+   return ret;
 }
 
 unsigned char game::light_level()
 {
-
  if(turn == latest_lightlevel_turn)
-  return latest_lightlevel;
+	return latest_lightlevel;
 
- int ret;
- if (levz < 0)	// Underground!
-  ret = 1;
- else {
-  ret = turn.sunlight();
-  ret -= weather_data[weather].sight_penalty;
+ int ret= 1;
+ if (levz >= 0)	
+ {
+	ret = turn.sunlight();
+	ret += weather_data[weather].light_modifier;
+	ret -= weather_data[weather].sight_penalty;
  }
 
- for (int i = 0; i < events.size(); i++) {
+ for(int i = 0; i < events.size(); i++) {
   // The EVENT_DIM event slowly dims the sky, then relights it
   // EVENT_DIM has an occurance date of turn + 50, so the first 25 dim it
   if (events[i].type == EVENT_DIM) {
@@ -3322,7 +3375,6 @@ unsigned char game::light_level()
  else
  if (ret < 1)
   ret = 1;
-
 
  latest_lightlevel = ret;
  latest_lightlevel_turn = turn;
@@ -3434,6 +3486,7 @@ bool game::sees_u(int x, int y, int &t)
          m.sees(x, y, u.posx, u.posy, range, t));
 }
 
+//CAT-mgs: fix when shift view in darkness *** vvv
 bool game::u_see(int x, int y, int &t)
 {
  int wanted_range = rl_dist(u.posx, u.posy, x, y);
@@ -3441,9 +3494,10 @@ bool game::u_see(int x, int y, int &t)
  bool can_see = false;
  if (wanted_range < u.clairvoyance())
   can_see = true;
- else if (wanted_range <= u.sight_range(light_level()) ||
+ else 
+ if (wanted_range <= u.sight_range(light_level()) ||
           (wanted_range <= u.sight_range(DAYLIGHT_LEVEL) &&
-            lm.at(x - u.posx, y - u.posy) >= LL_LOW))
+            lm.at(x - u.posx-u.view_offset_x, y - u.posy-u.view_offset_y) >= LL_LOW))
   can_see = m.sees(u.posx, u.posy, x, y, wanted_range, t);
 
  return can_see;
@@ -3475,6 +3529,7 @@ point game::find_item(item *it)
 {
  if (u.has_item(it))
   return point(u.posx, u.posy);
+
  point ret = m.find_item(it);
  if (ret.x != -1 && ret.y != -1)
   return ret;
@@ -3900,29 +3955,30 @@ void game::sound(int x, int y, int vol, std::string description)
 {
 
 //CAT-mgs: 
-   if(abs(x-u.posx) < 5 && abs(y-u.posy) < 5)
+   if(abs(x-u.posx) < 9 && abs(y-u.posy) < 9)
    {
 	x= u.posx;
 	y= u.posy;
-
-	vol= vol+5;
    }
    else
-      vol= (int)(vol/3); 
+      vol= (int)(vol/2); 
 
 	// First, alert all monsters (that can hear) to the sound
 	 for (int i = 0; i < z.size(); i++) {
 	  if (z[i].can_hear()) {
 	   int dist = rl_dist(x, y, z[i].posx, z[i].posy);
 	//CAT-mgs:
-	   int volume = vol - (z[i].has_flag(MF_GOODHEARING) ? (int)(dist/5) : (int)(dist/3));
+	   int volume = vol - (z[i].has_flag(MF_GOODHEARING) ? (int)(dist/7) : (int)(dist/5));
 
-	   if(volume < 1)
-		volume= 1;
+	   if(volume < 0)
+		volume= 0;
 
-//CAT-mgs: it's getting accumulated?
+//		add_msg("VOLUME: %d", volume);
+
+//CAT-mgs: it's getting accumulated? 
+// ...sorted out in moster.cpp
 	   z[i].wander_to(x, y, volume);
-	   z[i].process_trigger(MTRIG_SOUND, volume*3);
+	   z[i].process_trigger(MTRIG_SOUND, volume*25);
 	  }
 	 }
 
@@ -4708,43 +4764,58 @@ void game::smash()
   add_msg("Never mind.");
   return;
  }
+
+
  int smashx, smashy;
  get_direction(smashx, smashy, input);
-// TODO: Move this elsewhere.
- if (m.has_flag(alarmed, u.posx + smashx, u.posy + smashy) &&
-     !event_queued(EVENT_WANTED)) {
-  sound(u.posx, u.posy, 30, "An alarm sounds!");
-
+ if(smashx != -2 && smashy != -2)
+ {
+   if(m.has_flag(alarmed, u.posx + smashx, u.posy + smashy)
+	&& !event_queued(EVENT_WANTED))
+   {
 //CAT-s:
 	playSound(58); //alarm1 sound
+  
+	sound(u.posx, u.posy, 50, "An alarm sounds!");
+	add_event(EVENT_WANTED, int(turn) + 300, 0, levx, levy);
+   }
 
-  add_event(EVENT_WANTED, int(turn) + 300, 0, levx, levy);
+   didit = m.bash(u.posx + smashx, u.posy + smashy, smashskill, bashsound);
  }
- if (smashx != -2 && smashy != -2)
-  didit = m.bash(u.posx + smashx, u.posy + smashy, smashskill, bashsound);
  else
   add_msg("Invalid direction.");
- if (didit) {
-  if (extra != "")
-   add_msg(extra.c_str());
-  sound(u.posx, u.posy, 18, bashsound);
-  u.moves -= 80;
-  if (u.skillLevel("melee") == 0)
-   u.practice("melee", rng(0, 1) * rng(0, 1));
-  if (u.weapon.made_of(GLASS) &&
-      rng(0, u.weapon.volume() + 3) < u.weapon.volume()) {
-   add_msg("Your %s shatters!", u.weapon.tname(this).c_str());
-   for (int i = 0; i < u.weapon.contents.size(); i++)
-    m.add_item(u.posx, u.posy, u.weapon.contents[i]);
-   sound(u.posx, u.posy, 16, "");
-   u.hit(this, bp_hands, 1, 0, rng(0, u.weapon.volume()));
-   if (u.weapon.volume() > 20)// Hurt left arm too, if it was big
-    u.hit(this, bp_hands, 0, 0, rng(0, u.weapon.volume() * .5));
-   u.remove_weapon();
-  }
- } else
-  add_msg("There's nothing there!");
+
+ if (didit)
+ {
+   if (extra != "")
+     add_msg(extra.c_str());
+
+   sound(u.posx, u.posy, 14, bashsound);
+
+   u.moves -= 80;
+   if (u.skillLevel("melee") == 0)
+    u.practice("melee", rng(0, 1) * rng(0, 1));
+
+   if (u.weapon.made_of(GLASS) &&
+       rng(0, u.weapon.volume() + 3) < u.weapon.volume())
+   {
+	    add_msg("Your %s shatters!", u.weapon.tname(this).c_str());
+	    for (int i = 0; i < u.weapon.contents.size(); i++)
+	      m.add_item(u.posx, u.posy, u.weapon.contents[i]);
+
+	    sound(u.posx, u.posy, 12, "Crash!");
+	    u.hit(this, bp_hands, 1, 0, rng(0, u.weapon.volume()));
+
+	    if (u.weapon.volume() > 20)// Hurt left arm too, if it was big
+      	u.hit(this, bp_hands, 0, 0, rng(0, u.weapon.volume() * .5));
+
+	    u.remove_weapon();
+   }
+ }
+ else
+   add_msg("There's nothing there!");
 }
+
 
 void game::use_item(char chInput)
 {
@@ -5869,6 +5940,9 @@ void game::runJump()
 	u.view_offset_x= 0;
 	u.view_offset_y= 0;
  }
+
+
+// add_msg("1234 1234 1234 1234 1234 1234 1234 1234 1234 1234 1234 1234 1234 1234 1234 1234 1234 1234");
 }
 
 
@@ -8021,16 +8095,17 @@ void game::chat()
 
 
 void game::pldrive(int x, int y) {
- if (run_mode == 2) { // Monsters around and we don't wanna run
-  add_msg("Monster spotted--run mode is on! "
-          "(Press '!' to turn it off or ' to ignore monster.)");
 
+ if (run_mode > 1)
+ {
+	// Monsters around and we don't wanna run
+	if(run_mode==3)
+		add_msg("Monster spotted you!");
 //CAT-s:
 	playSound(10);
- 	playMusic(0);
-
-  return;
+	return;
  }
+
  int part = -1;
  vehicle *veh = m.veh_at (u.posx, u.posy, part);
  if (!veh) {
@@ -8132,17 +8207,14 @@ void game::pldrive(int x, int y) {
 
 void game::plmove(int x, int y)
 {
- if (run_mode == 2) { // Monsters around and we don't wanna run
-  add_msg("Monster spotted--safe mode is on! \
-(Press '!' to turn it off or ' to ignore monster.)");
-
+ if (run_mode > 1)
+ {
+	// Monsters around and we don't wanna run
+	if(run_mode==3)
+		add_msg("Monster spotted you!");
 //CAT-s:
 	playSound(10);
- 	playMusic(0);
-
-
-
-  return;
+	return;
  }
 
  if (u.has_disease(DI_STUNNED)) {
@@ -8368,8 +8440,9 @@ void game::plmove(int x, int y)
 	add_msg("Moving past this %s is slow!", veh->part_info(vpart).name);
 
 //CAT-s: say "Hoya!"
-	playSound(38);
+//	playSound(38);
 
+	playSound(55); //step
    }
    else
    {
@@ -8382,7 +8455,7 @@ void game::plmove(int x, int y)
 			playSound(27); //splash1.wav
 	}
 	else
-		playSound(38);
+	   playSound(38); //Hoya!
    }
   }
 
@@ -8851,6 +8924,8 @@ void game::vertical_move(int movez, bool force)
 //CAT-mgs: just in case
 //CAT-s:
 	playSound(3);	
+
+//	add_msg("So it's blocked off?");  
 
      popup("This way up is blocked off.");
      return;

@@ -649,10 +649,10 @@ fin.open("data\\FONTDATA");
    }
 
 */
-
 	font = CreateFont(fontheight, fontwidth, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
                       ANSI_CHARSET, OUT_RASTER_PRECIS, CLIP_DEFAULT_PRECIS,
                       NONANTIALIASED_QUALITY, FF_MODERN, typeface_c);   //Create our font
+
 
 
     //FixedSys will be user-changable at some point in time??

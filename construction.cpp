@@ -891,20 +891,18 @@ void construct::done_vehicle(game *g, point p)
     veh->install_part (0, 0, vp_frame_v2);
 }
 
+
 void construct::done_tape(game *g, point p)
 {
-  g->add_msg("You tape up the %s.", g->m.tername(p.x, p.y).c_str());
-  switch (g->m.ter(p.x, p.y))
+  if(	g->m.ter(p.x, p.y) == t_window_alarm 
+		|| g->m.ter(p.x, p.y) == t_window 
+		|| g->m.ter(p.x, p.y) == t_window_domestic )
   {
-    case t_window_alarm:
-      g->m.ter(p.x, p.y) = t_window_alarm_taped;
-
-    case t_window_domestic:
-      g->m.ter(p.x, p.y) = t_window_domestic_taped;
-
-    case t_window:
-      g->m.ter(p.x, p.y) = t_window_taped;
+	  g->m.ter(p.x, p.y) = t_window_taped;
+	  g->add_msg("You tape up the %s.", g->m.tername(p.x, p.y).c_str());
   }
+  else
+	  g->add_msg("You can't tape that.");
 
 }
 

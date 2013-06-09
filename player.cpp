@@ -79,6 +79,8 @@ player::player()
 
  for (int i = 0; i < num_bp; i++) {
   temp_cur[i] = BODYTEMP_NORM; ; frostbite_timer[i] = 0;
+  frostbite_timer[i]= 0;
+  
  }
 }
 
@@ -415,6 +417,7 @@ void player::update_bodytemp(game *g) // TODO bionics, diseases and humidity (no
    else if (veh && veh->part_with_feature (vpart, vpf_bed) >= 0)  temp_conv +=  300;
    else	temp_conv -= 2000;
   }
+
   // Convection heat sources : generates body heat, helps fight frostbite
   int blister_count = 0; // If the counter is high, your skin starts to burn
   for (int j = -6 ; j <= 6 ; j++){
@@ -432,27 +435,30 @@ void player::update_bodytemp(game *g) // TODO bionics, diseases and humidity (no
      if (frostbite_timer[i] > 0) 
 		frostbite_timer[i] -= heat_intensity - fire_dist / 2;
 
-//CAT: doesn't seem to work?
+
 //CAT-mgs: after release addition, plus change
-	temp_conv += 900 * heat_intensity /(1 + fire_dist);
-      blister_count += heat_intensity / (fire_dist * fire_dist);
+	temp_conv += int(900 * heat_intensity /(fire_dist * fire_dist));
+      blister_count += int(heat_intensity/(fire_dist * fire_dist));
     }
    }
   }
 
+
 //CAT: doesn't seem to work?
 //CAT: manually added fix from main build after 0.3 release
-// Fire (it is very dangerous to be on fire for long, as it directly increases body temperature, not temp_conv)
   if(has_disease(DI_ONFIRE))
-	temp_cur[i] += 250;
-  if((g->m.field_at(posx, posy).type == fd_fire && g->m.field_at(posx, posy).density > 2) || g->m.tr_at(posx, posy) == tr_lava) 
-	temp_cur[i] += 250;
+	temp_cur[i] += 400;
+
+  if((g->m.field_at(posx, posy).type == fd_fire 
+		&& g->m.field_at(posx, posy).density > 2) || g->m.tr_at(posx, posy) == tr_lava) 
+	temp_cur[i] += 300;
+
 
   // Weather
-  if (g->weather == WEATHER_SUNNY && !g->m.is_indoor(posx, posy)) temp_conv += 1000;
-  if (g->weather == WEATHER_CLEAR && !g->m.is_indoor(posx, posy)) temp_conv += 500;
+  if (g->weather == WEATHER_SUNNY && !g->m.is_indoor(posx, posy)) temp_conv += 500;
+  if (g->weather == WEATHER_CLEAR && !g->m.is_indoor(posx, posy)) temp_conv += 200;
   // Other diseases
-  if (has_disease(DI_FLU) && i == bp_head) temp_conv += 1500;
+  if (has_disease(DI_FLU) && i == bp_head) temp_conv += 700;
   // BIONICS
   // Bionic "Internal Climate Control" says it eases the effects of high and low ambient temps
   // NOTE : This should be the last place temp_conv is changed, otherwise the bionic will not work as intended.
@@ -518,12 +524,13 @@ void player::update_bodytemp(game *g) // TODO bionics, diseases and humidity (no
 	add_disease(dis_type(frost_pen), 1, g, 2, 2);
   }
   else
-  if (frostbite_timer[i] > 220 && g->temperature < 32)
+  if(frostbite_timer[i] > 220 && g->temperature < 32)
   {
 	if (!has_disease(dis_type(frost_pen)))
 		g->add_msg("You lose sensation in your %s.", body_part_name(body_part(i), -1).c_str());
 
-	add_disease(dis_type(frost_pen), 1, g, 1, 2);}
+	add_disease(dis_type(frost_pen), 1, g, 1, 2);
+  }
 
 	// Warn the player if condition worsens
 	if(temp_before > BODYTEMP_FREEZING  && temp_after < BODYTEMP_FREEZING)
@@ -543,7 +550,7 @@ void player::update_bodytemp(game *g) // TODO bionics, diseases and humidity (no
 	else
 	if(temp_before < BODYTEMP_HOT && temp_after > BODYTEMP_HOT)
 		g->add_msg("You feel your %s getting hot.", body_part_name(body_part(i), -1).c_str());
-  }
+ }
 //CAT-mgs: ***^^^***
 
 
@@ -2175,7 +2182,9 @@ int player::sight_range(int light_level)
 
 int player::unimpaired_range()
 {
- int ret = 12;
+//CAT-mgs: from DDA.5
+ int ret = SEEX * MAPSIZE;
+
  if (has_disease(DI_IN_PIT))
   ret = 1;
  if (has_disease(DI_BLIND))

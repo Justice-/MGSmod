@@ -170,7 +170,7 @@ traps.push_back(new trap(id, sym, color, name, visibility, avoidance,\
 	itm_null, NULL);
 
 //CAT-mgs:
- TRAP("airhole",			'.',	c_ltcyan, 0, 99, 99,
+ TRAP("airhole",			'8',	c_ltcyan, 0, 99, 99,
 	&trapfunc::airhole,	&trapfuncm::airhole,
 	itm_null, NULL);
 }

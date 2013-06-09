@@ -643,9 +643,12 @@ bool overmap::generate_sub(int const z)
  std::vector<point> triffid_points;
  std::vector<point> temple_points;
 
+//CAT-mgs: church bell tower
+ std::vector<point> church_points;
+
 //CAT-mgs: from DDA.5
- std::vector<point> office_entrance_points;
  std::vector<point> office_points; 
+ std::vector<point> office_entrance_points;
 
 
 //CAT-mgs: *** vvv
@@ -715,6 +718,15 @@ bool overmap::generate_sub(int const z)
 //CAT:  z + 1
    else if (ter(i, j, 0) == ot_shelter)
 	shelter_points.push_back( point(i, j) );
+
+//CAT:  church bell tower
+   else 
+   if( ter(i, j, 0) == ot_church_north
+		|| ter(i, j, 0) == ot_church_east
+		|| ter(i, j, 0) == ot_church_south
+		|| ter(i, j, 0) == ot_church_west )
+	church_points.push_back( point(i, j) );
+
 
    else if (ter(i, j, z + 1) == ot_lmoe)
     lmoe_points.push_back( point(i, j) );
@@ -802,7 +814,7 @@ bool overmap::generate_sub(int const z)
 
 
 //CAT:
- for (int i = 0; i < shelter_points.size(); i++)
+ for(int i= 0; i < shelter_points.size(); i++)
  {
 	if(z == -1)
 	{
@@ -819,6 +831,27 @@ bool overmap::generate_sub(int const z)
 	if(z == -3)
 	   ter(shelter_points[i].x, shelter_points[i].y, 2) = ot_shelter_over2;
  }
+
+
+//CAT: church bell tower
+ for(int i= 0; i < church_points.size(); i++)
+ {
+	if(z == -1)
+	{
+	   ter(church_points[i].x, church_points[i].y, 1) = ot_church_tower1;
+	   requires_sub = true;
+	}
+	else
+	if(z == -2)
+	{
+	   ter(church_points[i].x, church_points[i].y, 2) = ot_church_tower1;
+	   requires_sub = true;
+	}
+	else
+	if(z == -3)
+	   ter(church_points[i].x, church_points[i].y, 3) = ot_church_tower2;
+ }
+
 
  for (int i = 0; i < lmoe_points.size(); i++)
   ter(lmoe_points[i].x, lmoe_points[i].y, z) = ot_lmoe_under;
@@ -2109,6 +2142,7 @@ void overmap::polish(int z, oter_id min, oter_id max)
    }
   }
  }
+
 // Fixes stretches of parallel roads--turns them into two-lane highways
 // Note that this fixes 2x2 areas... a "tail" of 1x2 parallel roads may be left.
 // This can actually be a good thing; it ensures nice connections
@@ -2693,6 +2727,15 @@ void overmap::place_radios()
  }
 }
 
+
+//CAT-mgs: from DDA.5, modified
+inline std::string toS(int i)
+{
+  char buf[10];
+  snprintf(buf,10, "%d", i);
+  return (std::string(buf));
+}
+
 void overmap::save()
 {
 
@@ -2725,11 +2768,15 @@ void overmap::save()
  {
   fout << "L " << z << std::endl;
   for (int j = 0; j < OMAPY; j++) {
-   for (int i = 0; i < OMAPX; i++) {
-//    fout << char(int(layer[z].terrain[i][j]) + 32);
-    fout << int(layer[z].terrain[i][j]) << " ";
-   }
-   fout << std::endl;
+
+//   for (int i = 0; i < OMAPX; i++)
+//    fout << int(layer[z].terrain[i][j]) << " ";
+//   fout << std::endl;
+   std::string buf;
+   for (int i = 0; i < OMAPX; i++)
+      buf += toS(layer[z].terrain[i][j]) + " ";
+   fout << buf << std::endl;
+
   }
  }
 
@@ -2780,22 +2827,23 @@ void overmap::open(game *g)
    if(datatype == 'L') { 	// Load layer data, and switch to layer
     fin >> z;
 
-//    std::string dataline;
-//    getline(fin, dataline);	// Chomp endl 
+//    int tmp_ter;
 
-    int tmp_ter;
+    std::string dataline;
+    getline(fin, dataline);	// Chomp endl 
 
     if (z >= 0 && z < OVERMAP_LAYERS) 
     {
      for (int j = 0; j < OMAPY; j++) {
-//      getline(fin, dataline);
+      getline(fin, dataline);
+	char *n = &dataline[0];
       for (int i = 0; i < OMAPX; i++) {
 
-  	 fin >> tmp_ter;
-	 layer[z].terrain[i][j] = oter_id(tmp_ter);
-       layer[z].visible[i][j] = false;
+//  	 fin >> tmp_ter;
+//	 layer[z].terrain[i][j] = oter_id(tmp_ter);
 
-//	 layer[z].terrain[i][j] = oter_id((unsigned char)dataline[i] - 32);
+	 layer[z].terrain[i][j] = oter_id( strtol(n,&n,10));
+       layer[z].visible[i][j] = false;
 
        if(layer[z].terrain[i][j] < 0 || layer[z].terrain[i][j] > num_ter_types)
         g->add_msg("Loaded bad ter!  %s; ter %d", terfilename.c_str(), layer[z].terrain[i][j]);

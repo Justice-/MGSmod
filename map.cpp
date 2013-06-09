@@ -496,7 +496,8 @@ bool map::vehproceed(game* g){
             num_wheels++;
             const int px = x + veh->parts[p].precalc_dx[0];
             const int py = y + veh->parts[p].precalc_dy[0];
-            if(move_cost_ter_only(px, py) == 0) // deep water
+//            if(move_cost_ter_only(px, py) == 0) 
+            if(ter(px, py) == t_water_dp || ter(px, py) == t_air) 
                submerged_wheels++;
          }
       }
@@ -551,10 +552,15 @@ bool map::vehproceed(game* g){
    }
 
 
-   if(veh->skidding){
-      if(one_in(4)) // might turn uncontrollably while skidding
-         veh->move.init (veh->move.dir() +
-               (one_in(2) ? -15 * rng(1, 3) : 15 * rng(1, 3)));
+   if(veh->skidding)
+   {
+	g->add_msg("Skidding!");
+
+      if(one_in(3)) 
+		veh->turn (one_in(2) ? -15 : 15);
+
+//         veh->move.init (veh->move.dir() +
+//               (one_in(2) ? -15 * rng(1, 3) : 15 * rng(1, 3)));
    }
    else
    if( pl_ctrl 
@@ -1028,7 +1034,7 @@ bool map::is_outside(const int x, const int y)
    out = (terrain != t_floor && terrain != t_rock_floor && terrain != t_skin_groundsheet 
 		&& terrain != t_fema_groundsheet && terrain != t_dirtfloor && terrain != t_floor_wax
 		&& terrain != t_elevator && terrain != t_table && terrain != t_chair && terrain != t_bench
-		&& terrain != t_desk && terrain != t_counter);
+		&& terrain != t_desk && terrain != t_counter); //&& terrain != t_indoor_hole
   }
  }
 
@@ -2022,7 +2028,7 @@ void map::shoot(game *g, const int x, const int y, int &dam,
   return;
 
  if (has_flag(alarmed, x, y) && !g->event_queued(EVENT_WANTED)) {
-	g->sound(x, y, 30, "An alarm sounds!");
+	g->sound(x, y, 50, "An alarm sounds!");
 
 //CAT-s:
 	playSound(58); //alarm1 sound
@@ -2620,6 +2626,7 @@ void map::add_item(const int x, const int y, item new_item)
   grid[nonant]->active_item_count++;
 }
 
+
 void map::process_active_items(game *g)
 {
  for (int gx = 0; gx < my_MAPSIZE; gx++) {
@@ -2976,7 +2983,7 @@ void map::draw(game *g, WINDOW* w, const point center)
 
   g->reset_light_level();
 
-  int max_sight_range = g->u.unimpaired_range();
+//  int max_sight_range = g->u.unimpaired_range();
   int natural_sight_range = g->u.sight_range(1); 
   int light_sight_range = g->u.sight_range(g->light_level()) ;
   int lowlight_sight_range = std::max((int)g->light_level()-1, natural_sight_range);
@@ -2988,7 +2995,6 @@ void map::draw(game *g, WINDOW* w, const point center)
   int  u_clairvoyance = g->u.clairvoyance();
   bool u_is_boomered = g->u.has_disease(DI_BOOMERED);
   bool u_sight_impaired = g->u.sight_impaired();
-
 
   for(int realx= center.x-getmaxx(w)/2; realx <= center.x+getmaxx(w)/2; realx++) 
   {
@@ -3024,6 +3030,7 @@ void map::draw(game *g, WINDOW* w, const point center)
 
 	nc_color scope_c= c_ltgray;
 	int snipe_dist= DAYLIGHT_LEVEL;
+
 
 	if(g->SNIPER)
 	{
@@ -3079,8 +3086,6 @@ void map::draw(game *g, WINDOW* w, const point center)
 
   g->cat_lightning= false;
 
-
-
   int atx = getmaxx(w)/2 + g->u.posx - center.x;
   int aty = getmaxy(w)/2 + g->u.posy - center.y;
   if (atx >= 0 && atx < TERRAIN_WINDOW_WIDTH && aty >= 0 && aty < TERRAIN_WINDOW_HEIGHT)
@@ -3092,15 +3097,10 @@ void map::draw(game *g, WINDOW* w, const point center)
 	else
 	   mvwputch(w, aty, atx, g->u.color(), '@');
 
-	if(g->run_mode == 2)
+	if(g->run_mode > 1)
 	   mvwputch(w, aty-1, atx, c_white_red, '!');
-
   }
 
-
-//CAT-mgs: add some color to sewer and water surface to have
-//...some feeling of motion, don't change the pattern too often
-// fluid_surface++;
 }
 
 
@@ -3113,8 +3113,13 @@ void map::drawsq(WINDOW* w, player &u, const int x, const int y, const bool inve
  bool show_items = show_items_arg;
  int cx = cx_arg;
  int cy = cy_arg;
+
  if (!INBOUNDS(x, y))
   return;	// Out of bounds
+
+//CAT-mgs: fix black holes (nothing becomes sidewalk);
+ if(ter(x, y) < 1)
+	ter(x,y)= t_sidewalk;
 
  if (cx == -1)
   cx = u.posx;
@@ -3128,16 +3133,15 @@ void map::drawsq(WINDOW* w, player &u, const int x, const int y, const bool inve
  bool graf = false;
  bool normal_tercol = false, drew_field = false;
 
-
 //CAT:
  bool nv= false;
 
  if (u.has_disease(DI_BOOMERED))
-  tercol = c_magenta;
+	tercol = c_magenta;
  else
  if(lightning)
  {
-	if(has_flag(diggable, x, y) && ter(x, y) != t_grass)
+	if(ter(x, y) == t_grass)
 		tercol= c_ltgray;
 	else
 	if(low_light)
@@ -3150,9 +3154,6 @@ void map::drawsq(WINDOW* w, player &u, const int x, const int y, const bool inve
           u.has_active_bionic(bio_night_vision))
  {
 
-//CAT:
-//  tercol = (bright_light) ? c_white : c_ltgreen;
-
     if(bright_light == LL_LIT)
 	tercol= c_white;
     else	
@@ -3160,7 +3161,12 @@ void map::drawsq(WINDOW* w, player &u, const int x, const int y, const bool inve
 	tercol= c_ltgreen;
     else
     if(bright_light == LL_DARK)
-	tercol= c_green;
+    {	
+	if(ter(x, y) == t_grass)
+	   tercol= c_ltgreen;
+	else
+	   tercol= c_green;
+    }
     else
     if(bright_light == LL_BRIGHT)
 	tercol= c_yellow;
@@ -3188,69 +3194,92 @@ void map::drawsq(WINDOW* w, player &u, const int x, const int y, const bool inve
  if(move_cost(x, y) == 0 && has_flag(swimmable, x, y) && !u.underwater)
   show_items = false;	// Can only see underwater items if WE are underwater
 
+
+
 // If there's a trap here, and we have sufficient perception, draw that instead
- if (tr_at(x, y) != tr_null &&
-     u.per_cur - u.encumb(bp_eyes) >= (*traps)[tr_at(x, y)]->visibility) 
+ if(tr_at(x, y) != tr_null 
+	&& u.per_cur - u.encumb(bp_eyes) >= (*traps)[tr_at(x, y)]->visibility) 
  {
-  tercol = (*traps)[tr_at(x, y)]->color;
-  if ((*traps)[tr_at(x, y)]->sym == '%') {
-   switch(rng(1, 5)) {
-    case 1: sym = '*'; break;
-    case 2: sym = '0'; break;
-    case 3: sym = '8'; break;
-    case 4: sym = '&'; break;
-    case 5: sym = '+'; break;
-   }
-  } else
-   sym = (*traps)[tr_at(x, y)]->sym;
-
-/*
-  if(tercol == c_ltcyan && sym == '.' && nightime)
-  {
-	if(low_light)
-		tercol= c_blue;
+	if ((*traps)[tr_at(x, y)]->sym == '%')
+	{
+		switch(rng(1, 5))
+		{
+		    case 1: sym = '*'; break;
+		    case 2: sym = '0'; break;
+		    case 3: sym = '8'; break;
+		    case 4: sym = '&'; break;
+		    case 5: sym = '+'; break;
+		}
+	}
 	else
-		tercol= c_ltblue;
-  }
-  else
-*/
-
-//CAT: with night vision everything is green
-  if(lightning)
-	tercol= c_white;
-  else	
-  if(nv)
-	tercol= c_ltgreen;
+		sym = (*traps)[tr_at(x, y)]->sym;
 	
+//CAT: with night vision...
+	if(lightning)
+		tercol= c_white;
+	else
+	if(nv)
+		tercol= c_ltgreen;
+	else
+	if(normal_tercol)
+		tercol = (*traps)[tr_at(x, y)]->color;	
  }
  else
-// If there's a field here, draw that instead (unless its symbol is %)
- if (field_at(x, y).type != fd_null &&
-     fieldlist[field_at(x, y).type].sym != '&') 
+ if(field_at(x, y).type != fd_null
+			&& fieldlist[field_at(x, y).type].sym != '&') 
  {
-  tercol = fieldlist[field_at(x, y).type].color[field_at(x, y).density - 1];
-  drew_field = true;
-  if (fieldlist[field_at(x, y).type].sym == '*')
-  {
-   switch (rng(1, 5)) 
-   {
-    case 1: sym = '*'; break;
-    case 2: sym = '0'; break;
-    case 3: sym = '8'; break;
-    case 4: sym = '&'; break;
-    case 5: sym = '+'; break;
-   }
-  } else if (fieldlist[field_at(x, y).type].sym != '%' ||
-             i_at(x, y).size() > 0) {
-   sym = fieldlist[field_at(x, y).type].sym;
-   drew_field = false;
-  }
+	drew_field = true;
+	if (fieldlist[field_at(x, y).type].sym == '*')
+	{
+		switch (rng(1, 5)) 
+		{
+			case 1: sym = '*'; break;
+			case 2: sym = '0'; break;
+			case 3: sym = '8'; break;
+			case 4: sym = '&'; break;
+			case 5: sym = '+'; break;
+		}
+	}
+	else
+	if(fieldlist[field_at(x, y).type].sym != '%'
+		|| i_at(x, y).size() > 0)
+	{
+		sym = fieldlist[field_at(x, y).type].sym;
+		drew_field = false;
+	}
 
-//CAT: with night vision everything is green
-  if(lightning)
-	tercol= c_white;
-  else  if(nv)
-	tercol= c_ltgreen;
+//CAT: with night vision...
+	if(lightning)
+		tercol= c_white;
+	else
+	if(nv)
+		tercol= c_ltgreen;
+	else
+		tercol = fieldlist[field_at(x, y).type].color[field_at(x, y).density - 1];
+ }
+ else
+ if(show_items && !has_flag(container, x, y)
+		&& i_at(x, y).size() > 0 && !drew_field)
+ {
+	if ((terlist[ter(x, y)].sym != '.'))
+		hi = true;
+	else
+	{
+		if (i_at(x, y).size() > 1)
+			invert = !invert;
+
+		sym = i_at(x, y)[i_at(x, y).size() - 1].symbol();
+	}
+
+//CAT: with night vision...
+	if(lightning)
+		tercol= c_white;
+	else
+	if(nv)
+		tercol= c_ltgreen;
+	else
+	if(normal_tercol)
+	   tercol = i_at(x, y)[i_at(x, y).size() - 1].color();
  }
 
 
@@ -3259,30 +3288,11 @@ void map::drawsq(WINDOW* w, player &u, const int x, const int y, const bool inve
  if(veh) 
  {
    sym = special_symbol (veh->face.dir_symbol(veh->part_sym(veh_part)));
-   if (normal_tercol)
+
+   if(normal_tercol)
      tercol = veh->part_color(veh_part);
  }
  else
-// If there's items here, draw those instead
- if(show_items && !has_flag(container, x, y) && i_at(x, y).size() > 0 && !drew_field) {
-  if ((terlist[ter(x, y)].sym != '.'))
-   hi = true;
-  else {
-   tercol = i_at(x, y)[i_at(x, y).size() - 1].color();
-   if (i_at(x, y).size() > 1)
-    invert = !invert;
-   sym = i_at(x, y)[i_at(x, y).size() - 1].symbol();
-  }
-
-//CAT: with night vision everything is green
-  if(lightning)
-	tercol= c_white;
-  else
-  if(nv)
-	tercol= c_ltgreen;
- }
- else
- // If there's graffiti here, change background color
  if(graffiti_at(x,y).contents)
    graf = true;
 
@@ -3294,6 +3304,8 @@ void map::drawsq(WINDOW* w, player &u, const int x, const int y, const bool inve
  if(low_light)
 	tercol= c_dkgray;
 
+ if(ter(x,y) == t_lava && one_in(10))
+	tercol= c_ltred;
 
  if (invert)
   mvwputch_inv(w, j, k, tercol, sym);

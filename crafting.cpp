@@ -1343,6 +1343,7 @@ void game::craft()
 
 // Clear the screen of recipe data, and draw it anew
   werase(w_data);
+
   mvwprintz(w_data, 20, 5, c_white, "Press ? to describe object.  Press <ENTER> to attempt to craft object.");
   for (int i = 0; i < 80; i++) {
    mvwputch(w_data, 21, i, c_ltgray, LINE_OXOX);
@@ -1355,7 +1356,7 @@ void game::craft()
 
   mvwputch(w_data, 21,  0, c_ltgray, LINE_XXOO); // _|
   mvwputch(w_data, 21, 79, c_ltgray, LINE_XOOX); // |_
-  wrefresh(w_data);
+//  wrefresh(w_data);
 
   int recmin = 0, recmax = current.size();
   if(recmax > MAX_DISPLAYED_RECIPES){

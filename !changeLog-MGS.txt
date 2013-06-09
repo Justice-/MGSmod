@@ -1,27 +1,42 @@
 + secreet door can only be oppened on full moon, room contains all artifacts, 
 ...like Indiana Jones? (light through medallion)
 
-+ light on ground (bush on fire) does not shit when look_around?
+
++ limit car bashing sound to viewscreen (monster walking over car)?
++ put monsters on fire with lit torches, candles and fire arrows?
++ fires to burn outside of player view?
++ random vehicle spawn more out of order?
++ silenced shot sound effect, and laser, railgun too, what else?
++ make boltcutters and screwdriver requisite to hotwire car?
++ wind and smell?
++ Balance temperature in hellmouth/lava?
++ Amigara horror, no faulty yellow line?
++ Helmouth, stairs down blocked off? --- not coded
++ Nuke plant, where is it? --- not coded
++ new building and random vehicles spawning on roads?
++ three rows in killscreen?
++ make root wals flammable2 (burn to ash)?
++ fire exstinguisher (spray) sound effect?
++ scores and scoreboard?
++ zombies drawn in unseen areas?
++ rework indoor flag?
++ make burst fire more usefull/deadly?
++ make throwing radio_on (mp3_on, firecrackers) actually useful?
++ half/full moon too bright?
 + put cigarettes and bandana in char startup inventory?
-+ if there is Old Snake character jump menu jumps automatically to "predefined char" to start game?
-+ throw turned on radio/MP3 to attract zombie attention, monster to use noise before smell?
 + bucher corpse on altar to grant you wish, and summon demons (blood graffity for instructions)?
-+ make use of NPC tips?
 + jackhammer, or some genmeral construction sound?
-+ exclamation mark when alerted?
-+ disable sunlight glare when not inside?
++ disable sunlight glare when not ouside?
 + fix gunmods Slax mentioned in the thread?
 + include indoor flag?
 + use map, extend noted locations?
 + reading novels (and other) give correct morale boost?
-+ bullet time whnen stimulated over some point?
-+ curved roads?
++ targeting "bullet time" when stimulated over some point?
 + "you winish waiting" mesage when interupted?
 + burst fire missing sound effects and not all bulets actually shot?
 + info say romance novel +4 morale but gives 20, drama novel info says +2 but it gives 8?
-+ did I fix enemies showing in unseen tiles, plfire had redundand drawing?
 + pet food, animal training and adopting beside whistle?
-+ fuel tank empty show x2, why?
++ "fuel tank empty" show x2 when boarding vehicle without fuel, why?
 + make jumpstart requirement sometimes, beside hot-wiring?
 + show NPC, health, thirst, hunger... call them with talky-walky?
 + less radios, more cell phones... find some use for two way radio and radios?
@@ -30,26 +45,39 @@
 + burst bullet sounds doesn't trigger all when shooting close?
 + proper distance calculation in [Map] - overmap?
 + replace refresh_all() with draw()?
-+ lonely road houses and gas stations not spawning?
 + cell treatment in labs remove bionics if you have arm, leg, fetus
-+ NPC training cut two menues - "we'll be ok here"?
-+ half/full moon too bright?
-+ show "#" for numbered multidrop (in trunk)?
++ show "#" for numbered multidrop/pickup, whichever is missing?
 + failed mission tab screwed up? sound effects?
 + beds don't invert color when items on them?
 + show burst number under "Weapon:"?
-+ revisit body temperature when close to fire?
 + healing NPCs, does that work?
 + push furniture around, and jump key, throw ghjkl, 1234...?
-+ remove glitchy movment close to map borders?
 + add H&K G80 railgun to mountable turrets?
 + clear options extra option menu and disable SAFE mode operations?
 + automated sliding doors, opened with science ID card?
++ curved roads?
++ if there is Old Snake character menu should jumps automatically to "predefined char" to start game?
 + cargo elevator for underground Metal Gear storage?
 + Amigara horor text box drawing, in mine (fault line, t_fault)?
 + "shock where?" (tazer) message pops-up out of it self, when reloading fast - keypress gobbled?
 
 
+MGSmod rev.40b
+- pry windows with crowbar w/ chance of breaking, from DDA.5
+- random vehicles on the road, less common than in DDA.5
+- no need any more to acknowledge alert mode by pressing '!'
+- further improved monsters reaction to noise, silencers balanced
+- polished lighting effects, enabled DIM SKY EVENT (some artifacts)
+- corrected dawn/sunset indoor/outdoor lighting/shadows
+- balanced targeting timing and active items processing
+- plazas with threes and fountains in a city (enabled old code)
+- fixed alarm noise being overwritten with smashing noise
+- fixed noise volume vs. monster anger accumulation
+- no more corpses/items floating in the air
+ 
+
+
+MGSmod rev.23b-34b
 - NPC HINTS enabled
 - new buildings from Cataclysm: DDA 0.5
 - churches with lit candles/torches in braziers
@@ -69,9 +97,6 @@
 - balanced hit rate and wapons skills
 - show overmap coordinates and distance
 - road map: hospitals, malls, shelters, silos
-
-
-MGSmod rev.30b
 - NEW ACTION: jumping
 - above ground z-levels
 - NPC commands: "wait here" and "follow me"

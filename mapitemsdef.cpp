@@ -84,16 +84,16 @@ void game::init_mapitems()
  setvector(
    mapitems[mi_bedroom],
 	itm_inhaler, itm_cig, itm_cigar, itm_weed, itm_coke, itm_meth,
-	itm_heroin, itm_sneakers, itm_socks, itm_mocassins, itm_bandana, itm_glasses_eye, itm_sunglasses,
-	itm_glasses_reading, itm_hat_ball, itm_backpack, itm_purse, itm_mbag,
+	itm_heroin, itm_sneakers, itm_socks, itm_mocassins, itm_bandana, itm_glasses_eye, 
+	itm_sunglasses, itm_glasses_reading, itm_hat_ball, itm_backpack, itm_purse, itm_mbag,
 	itm_fanny, itm_battery, itm_bb, itm_bbgun, itm_mag_porn, itm_mag_tv,
 	itm_mag_news, itm_novel_romance, itm_novel_drama, itm_manual_mechanics,
 	itm_manual_speech, itm_manual_business, itm_manual_computers,
 	itm_mag_comic, itm_novel_fantasy, itm_novel_mystery,  itm_novel_horror,
 	itm_lighter, itm_sewing_kit, itm_thread, itm_scissors, itm_soldering_iron,
-	itm_radio, itm_syringe, itm_mp3, itm_usb_drive, itm_firecracker_pack, itm_firecracker,
-        itm_sneakers_fit, itm_boots_fit, itm_boots_steel_fit, itm_boots_winter_fit,
-        itm_dress_shoes_fit, itm_heels_fit, itm_chips, itm_cola, itm_picklocks, NULL);
+	itm_radio, itm_radio_on, itm_syringe, itm_mp3, itm_usb_drive, itm_firecracker_pack, 
+	itm_firecracker, itm_sneakers_fit, itm_boots_fit, itm_boots_steel_fit, itm_boots_winter_fit,
+	itm_dress_shoes_fit, itm_heels_fit, itm_chips, itm_cola, itm_picklocks, NULL);
 
  setvector(
    mapitems[mi_homeguns],
@@ -214,7 +214,7 @@ void game::init_mapitems()
    mapitems[mi_mischw],
 	itm_2x4, itm_machete, itm_boots_steel, itm_hat_hard, itm_mask_filter,
 	itm_glasses_safety, itm_bb, itm_bbgun, itm_beartrap, itm_two_way_radio,
-	itm_radio, itm_hotplate, itm_extinguisher, itm_nailgun,
+	itm_radio, itm_radio_on, itm_hotplate, itm_extinguisher, itm_nailgun,
 	itm_manual_mechanics, itm_manual_carpentry, itm_mag_carpentry,
 	itm_duct_tape, itm_lawnmower, itm_boltcutters,
 	itm_foot_crank, itm_cable, itm_textbook_mechanics, NULL);
@@ -444,7 +444,7 @@ void game::init_mapitems()
 	itm_cola, itm_aspirin, itm_cigar, itm_glasses_eye, itm_sunglasses, itm_glasses_reading,
 	itm_purse, itm_mbag, itm_battery, itm_mag_news, itm_manual_business,
 	itm_textbook_business, itm_lighter, itm_extinguisher, itm_flashlight,
-	itm_radio, itm_bubblewrap, itm_coffee_raw, itm_usb_drive,
+	itm_radio, itm_radio_on, itm_bubblewrap, itm_coffee_raw, itm_usb_drive,
 	itm_software_useless, NULL);
 
  setvector(
@@ -475,7 +475,7 @@ void game::init_mapitems()
 	itm_remington_870, itm_browning_blr, itm_remington_700, itm_sks,
 	itm_novel_romance, itm_novel_spy, itm_novel_scifi, itm_novel_drama,
 	itm_mag_comic, itm_novel_fantasy, itm_novel_mystery, itm_novel_horror,
-	itm_SICP, itm_textbook_robots, itm_extinguisher, itm_radio,
+	itm_SICP, itm_textbook_robots, itm_extinguisher, itm_radio, itm_radio_on,
 	itm_chainsaw_off, itm_jackhammer, itm_jacqueshammer, itm_ring, itm_necklace, itm_usb_drive,
 	itm_broadsword, itm_morningstar, itm_helmet_plate, itm_cot, itm_rollmat, itm_tent_kit,
 	itm_boots_fit, itm_boots_steel_fit, itm_boots_winter_fit,
@@ -489,7 +489,7 @@ void game::init_mapitems()
 	itm_knife_combat, itm_binoculars, itm_bolt_steel, itm_crossbow,
 	itm_mag_guns, itm_manual_brawl, itm_manual_knives, itm_cot,
 	itm_manual_mechanics, itm_manual_first_aid, itm_manual_traps,
-	itm_flashlight, itm_water_purifier, itm_two_way_radio, itm_radio,
+	itm_flashlight, itm_water_purifier, itm_two_way_radio, itm_radio, 
 	itm_geiger_off, itm_usb_drive, itm_canteen, itm_jerrycan, itm_rucksack, NULL);
 
  setvector(
@@ -503,8 +503,8 @@ void game::init_mapitems()
 	itm_mag_comic, itm_novel_fantasy, itm_novel_mystery, itm_novel_horror,
 	itm_manual_first_aid, itm_manual_tailor, itm_manual_carpentry,
 	itm_lighter, itm_sewing_kit, itm_thread, itm_hammer, itm_extinguisher,
-	itm_flashlight, itm_hotplate, itm_water_purifier, itm_radio, itm_rollmat,
-        itm_tent_kit, itm_canteen, itm_spray_can, itm_ax, NULL);
+	itm_flashlight, itm_hotplate, itm_water_purifier, itm_radio, itm_radio_on, 
+	itm_rollmat, itm_tent_kit, itm_canteen, itm_spray_can, itm_ax, NULL);
 
  setvector(
    mapitems[mi_mechanics],
@@ -713,14 +713,14 @@ void game::init_mapitems()
 	itm_transponder, itm_receiver, itm_antenna, itm_screwdriver,
 	itm_battery, itm_mag_porn, itm_mag_tv, itm_manual_electronics,
 	itm_mag_comic, itm_novel_fantasy, itm_novel_mystery, itm_novel_horror,
-	itm_lighter, itm_flashlight, itm_two_way_radio, itm_radio, itm_mp3,
-	itm_usb_drive, NULL);
+	itm_lighter, itm_flashlight, itm_two_way_radio, itm_radio, itm_radio_on,
+	itm_mp3, itm_usb_drive, NULL);
 
  setvector(
    mapitems[mi_toxic_dump_equipment],
 	itm_1st_aid, itm_iodine, itm_canister_empty, itm_boots_steel,
 	itm_hazmat_suit, itm_mask_gas, itm_hat_hard, itm_textbook_carpentry,
-	itm_extinguisher, itm_radio, itm_geiger_off, itm_UPS_off,
+	itm_extinguisher, itm_radio, itm_radio_on, itm_geiger_off, itm_UPS_off,
    itm_bionics_purifier, itm_bionics_climate, itm_bionics_heatsink, itm_bionics_blood_filter, NULL);
 
  setvector(
@@ -751,10 +751,10 @@ void game::init_mapitems()
 	itm_762_m87, itm_556, itm_556_incendiary, itm_3006_incendiary,
 	itm_762_51, itm_762_51_incendiary, itm_saiga_12, itm_hk_mp5, itm_TDI,
 	itm_savage_111f, itm_sks, itm_ak47, itm_m4a1, itm_steyr_aug, itm_v29,
-	itm_nx17, itm_flamethrower, itm_flashlight, itm_radio, itm_geiger_off,
-	itm_teleporter, itm_canister_goo, itm_dynamite, itm_mininuke,
+	itm_nx17, itm_flamethrower, itm_flashlight, itm_radio, itm_radio_on, 
+	itm_geiger_off, itm_teleporter, itm_canister_goo, itm_dynamite, itm_mininuke,
 	itm_bot_manhack, itm_UPS_off, itm_bionics_battery,
-   itm_bionics_flashlight, itm_bionics_lighter,
+	itm_bionics_flashlight, itm_bionics_lighter,
 	itm_arrow_cf, itm_spray_can, itm_bionics_blaster, NULL);
 
  setvector(
@@ -839,7 +839,7 @@ void game::init_mapitems()
 	itm_hard_plate, itm_motor, itm_motor_large, itm_hose, itm_pants_army,
 	itm_jumpsuit, itm_kevlar, itm_mask_gas, itm_helmet_army, itm_battery,
 	itm_plut_cell, itm_m249, itm_v8_combustion, itm_extinguisher,
-	itm_two_way_radio, itm_radio, itm_UPS_off, itm_beltrig,
+	itm_two_way_radio, itm_radio, itm_radio_on, itm_UPS_off, itm_beltrig,
         itm_pants_army_fit, itm_boots_fit, itm_rucksack, itm_law_packed, NULL);
 
 // TODO: Replace kevlar with the ceramic plate armor
@@ -961,7 +961,7 @@ setvector(
    mapitems[mi_cubical_office],
 	itm_cola, itm_aspirin, itm_cigar, itm_glasses_eye, itm_sunglasses, itm_glasses_reading, itm_purse,
 	itm_mbag, itm_battery, itm_mag_news, itm_manual_business, itm_textbook_business, itm_manual_computers,
-	itm_textbook_computers, itm_lighter, itm_extinguisher, itm_flashlight, itm_radio,
+	itm_textbook_computers, itm_lighter, itm_extinguisher, itm_flashlight, itm_radio, itm_radio_on,
 	itm_bubblewrap, itm_coffee_raw, itm_usb_drive, itm_rootbeer, itm_cig, itm_coat_rain, itm_poncho,
 	itm_mag_tv, itm_mag_news, itm_lighter, itm_extinguisher, itm_mp3, NULL);
 

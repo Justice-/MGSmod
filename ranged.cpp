@@ -521,7 +521,7 @@ void game::throw_item(player &p, int tarx, int tary, item &thrown,
      add_msg("The %s shatters!", thrown.tname().c_str());
     for (int i = 0; i < thrown.contents.size(); i++)
      m.add_item(tx, ty, thrown.contents[i]);
-    sound(tx, ty, 16, "glass breaking!");
+    sound(tx, ty, 17, "glass breaking!");
     int glassdam = rng(0, thrown.volume() * 2);
     if (glassdam > z[mon_at(tx, ty)].armor_cut())
      dam += (glassdam - z[mon_at(tx, ty)].armor_cut());
@@ -589,7 +589,7 @@ void game::throw_item(player &p, int tarx, int tary, item &thrown,
    add_msg("The %s shatters!", thrown.tname().c_str());
   for (int i = 0; i < thrown.contents.size(); i++)
    m.add_item(tx, ty, thrown.contents[i]);
-  sound(tx, ty, 16, "glass breaking!");
+  sound(tx, ty, 17, "glass breaking!");
 
 //CAT-s:
 	playSound(25);
@@ -953,11 +953,13 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 	if(ch == '.' || ch == '5' || ch == ' ')
 	{
 //CAT-s:
+		playSound(0);
+		add_msg("You pause to concentrate... ");
+
 		if(u.recoil > 0)
 		{
 			u.recoil= 0;
 			playSound(6);
-			add_msg("You pause to concentrate... ");
 		}
 	}
 
@@ -967,7 +969,7 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 	if(u.recoil > 0 && u.recoil < 3)
 		u.recoil= 3;
 
-
+	u.moves= 0;
 	monmove();
 	update_stair_monsters();
 
@@ -1046,6 +1048,7 @@ void make_gun_sound_effect(game *g, player &p, bool burst, item* weapon)
  // noise() doesn't suport gunmods, but it does return the right value
  int noise = p.weapon.noise();
 
+// g->add_msg("GUN NOISE= %d", noise);
 
 //CAT-mgs:
  if (weapon->curammo->type == AT_FUSION || weapon->curammo->type == AT_BATT ||

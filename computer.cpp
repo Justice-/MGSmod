@@ -304,7 +304,7 @@ void computer::activate_function(game *g, computer_action action)
    break;
 
   case COMPACT_RELEASE:
-   g->sound(g->u.posx, g->u.posy, 40, "An alarm sounds!");
+   g->sound(g->u.posx, g->u.posy, 50, "An alarm sounds!");
 
 //CAT-s:
 	playSound(58); //alarm1 sound
@@ -852,7 +852,7 @@ void computer::activate_failure(game *g, computer_failure fail)
    break;
 
   case COMPFAIL_ALARM:
-   g->sound(g->u.posx, g->u.posy, 60, "An alarm sounds!");
+   g->sound(g->u.posx, g->u.posy, 50, "An alarm sounds!");
 
 //CAT-s:
 	playSound(58); //alarm1 sound

@@ -8,7 +8,9 @@
 #include "player.h"
 #include <sstream>
 
-#define RADIO_PER_TURN 25 // how many characters per turn of radio
+// how many characters per turn of radio
+#define RADIO_PER_TURN 25
+
 
 static void add_or_drop_item(game *g, player *p, item *it)
 {
@@ -1237,14 +1239,14 @@ void iuse::radio_on(game *g, player *p, item *it, bool t)
     message = g->cur_om.radios[k].message;
    }
   }
-  if (best_signal > 0) {
-   for (int j = 0; j < message.length(); j++) {
-    if (dice(10, 100) > dice(10, best_signal * 3)) {
-     if (!one_in(10))
-      message[j] = '#';
-     else
-      message[j] = char(rng('a', 'z'));
-    }
+
+  if (best_signal > 0)
+  {
+
+   for (int j = 0; j < message.length(); j++)
+   {
+	if (dice(10, 170) > dice(10, best_signal * 3))
+		message[j] = '#';
    }
 
    std::vector<std::string> segments;
@@ -1258,11 +1260,21 @@ void iuse::radio_on(game *g, player *p, item *it, bool t)
    segments.push_back(message);
    int index = g->turn % (segments.size());
    std::stringstream messtream;
-   messtream << "radio: " << segments[index];
+   messtream << "Radio: " << segments[index];
    message = messtream.str();
   }
-  point p = g->find_item(it);
-  g->sound(p.x, p.y, 6, message.c_str());
+
+//CAT-msg: make throwing radio on more useful
+  point pt = g->find_item(it);
+  if(pt.x != g->u.posx || pt.y != g->u.posy)
+  {
+	  g->sound(pt.x, pt.y, 40, message.c_str());
+//	  g->add_msg("Noise from a radio.);
+  }
+  else
+     g->sound(pt.x, pt.y, 9, message.c_str());
+
+
  } else {	// Turning it off
   g->add_msg_if_player(p,"The radio dies.");
   it->make(g->itypes[itm_radio]);
@@ -1288,7 +1300,9 @@ void iuse::roadmap(game *g, player *p, item *it, bool t)
 	roadmap_a_target(g, p, it, t, (int)ot_lmoe);
 	roadmap_a_target(g, p, it, t, (int)ot_silo);
 	roadmap_a_target(g, p, it, t, (int)ot_spider_pit); //"Forest location"
-	roadmap_a_target(g, p, it, t, (int)ot_spiral_hub);
+
+//CAT-mgs: check these
+	roadmap_a_target(g, p, it, t, (int)ot_cavern);
 	roadmap_a_target(g, p, it, t, (int)ot_nuke_plant_entrance);
 	roadmap_a_target(g, p, it, t, (int)ot_hellmouth);
 	roadmap_a_target(g, p, it, t, (int)ot_ants_queen);
@@ -1408,7 +1422,7 @@ void iuse::picklock(game *g, player *p, item *it, bool t)
       dice(4, 7) <  dice(2, p->skillLevel("mechanics")) +
       dice(2, p->dex_cur) - it->damage / 2 && it->damage < 100) 
  {
-	g->sound(p->posx, p->posy, 30, "An alarm sounds!");
+	g->sound(p->posx, p->posy, 50, "An alarm sounds!");
 
 //CAT-s:
 	playSound(58); //alarm1 sound
@@ -1462,6 +1476,15 @@ void iuse::crowbar(game *g, player *p, item *it, bool t)
    difficulty = 6;
  }
  else
+ if (type == t_window_domestic || type == t_curtains)
+ {
+   door_name = "window";
+   action_name = "pry open";
+   new_type = t_window_open;
+   noisy = true;
+   difficulty = 6;
+ }
+ else 
  if(type == t_manhole_cover)
  {
    door_name = "manhole cover";
@@ -1535,28 +1558,45 @@ void iuse::crowbar(game *g, player *p, item *it, bool t)
 	p->practice("mechanics", 1);
 	g->add_msg_if_player(p,"You %s the %s.", action_name, door_name);
 
-//CAT-s:
-	playSound(60); //crowbar sound
-
 	g->m.ter(dirx, diry) = new_type;
-	if(noisy)
-		g->sound(dirx, diry, 8, "crunch!");
 
 	if( type == t_door_locked_alarm ) 
 	{
-		g->sound(p->posx, p->posy, 30, "An alarm sounds!");
+		g->sound(p->posx, p->posy, 50, "An alarm sounds!");
 //CAT-s:
 		playSound(58); //alarm1 sound
 
 		if(!g->event_queued(EVENT_WANTED))
 			g->add_event(EVENT_WANTED, int(g->turn) + 300, 0, g->levx, g->levy);
 	}
+	else
+	if( type == t_window_domestic || type == t_curtains )
+	{
+		//chance of breaking the glass if pry attempt fails
+		if (dice(4, difficulty) > dice(2, p->skillLevel("mechanics")) + dice(2, p->str_cur))
+		{
+		    g->add_msg_if_player(p,"You break the glass.");
+		    g->sound(dirx, diry, 17, "glass breaking!");
+		    g->m.ter(dirx, diry)= t_window_frame;
+		    playSound(25);
+		    return;			
+		}
+	}
+
+	if(noisy)
+	{
+//CAT-s:
+		playSound(60); //crowbar sound
+		g->sound(dirx, diry, 9, "crunch!");
+	}
  }
  else
-   g->add_msg_if_player(p,"You pry, but cannot %s the %s.", action_name, door_name);
-
+ {
 //CAT-s:
 	playSound(92); //noiseSwoosh sound
+	g->add_msg_if_player(p,"You pry, but cannot %s the %s.", action_name, door_name);
+ }
+
 }
 
 

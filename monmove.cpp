@@ -89,39 +89,40 @@ void monster::plan(game *g)
 //CAT-mgs: check this 
   if (has_effect(ME_DOCILE))
    closest = -1;
+
   if (closest >= 0)
    set_dest(g->z[closest].posx, g->z[closest].posy, stc);
   else if (friendly > 0 && one_in(3))	// Grow restless with no targets
    friendly--;
   else
-  if (friendly < 0 && g->sees_u(posx, posy, tc))
+  if(friendly < 0 && g->sees_u(posx, posy, tc)) 
   {
-//	if (rl_dist(posx, posy, g->u.posx, g->u.posy) > 2) 
+	if (rl_dist(posx, posy, g->u.posx, g->u.posy) > 2) 
 		set_dest(g->u.posx, g->u.posy, tc);
-
-//	else
-//		plans.clear();
+	else
+		plans.clear();
   }
 
   return;
  }
 
 
- if (is_fleeing(g->u) && can_see() && g->sees_u(posx, posy, tc)) {
+ if(is_fleeing(g->u) && can_see() && g->sees_u(posx, posy, tc)) {
   fleeing = true;
   wandx = posx * 2 - g->u.posx;
   wandy = posy * 2 - g->u.posy;
   wandf = 40;
   dist = rl_dist(posx, posy, g->u.posx, g->u.posy);
  }
+
 // If we can see, and we can see a character, start moving towards them
- if (!is_fleeing(g->u) && can_see() && g->sees_u(posx, posy, tc)) {
+ if(!is_fleeing(g->u)&& can_see() && g->sees_u(posx, posy, tc))
+ {
   dist = rl_dist(posx, posy, g->u.posx, g->u.posy);
   closest = -2;
   stc = tc;
  }
 
-//CAT-mgs: no NPCs
  for (int i = 0; i < g->active_npc.size(); i++) {
   npc *me = &(g->active_npc[i]);
   int medist = rl_dist(posx, posy, me->posx, me->posy);
@@ -143,8 +144,7 @@ void monster::plan(game *g)
   }
  }
 
-
- if (!fleeing) {
+ if(!fleeing) {
   fleeing = attitude() == MATT_FLEE;
   for (int i = 0; i < g->z.size(); i++) {
    monster *mon = &(g->z[i]);
@@ -164,16 +164,18 @@ void monster::plan(game *g)
   }
  }
 
- if (!fleeing) {
-  if (closest == -2)
-   set_dest(g->u.posx, g->u.posy, stc);
-  else if (closest <= -3)
-   set_dest(g->z[-3 - closest].posx, g->z[-3 - closest].posy, stc);
-  else if (closest >= 0 && g->active_npc[closest].posz == g->levz) 
-   set_dest(g->active_npc[closest].posx, g->active_npc[closest].posy, stc);
-
-//CAT-mgs: no NPCs -> && g->active_npc[closest].posz == g->levz
+ if(!fleeing)
+ {
+  if(closest == -2)
+	set_dest(g->u.posx, g->u.posy, stc);
+  else
+  if(closest <= -3)
+	set_dest(g->z[-3 - closest].posx, g->z[-3 - closest].posy, stc);
+  else 
+  if(closest >= 0 && g->active_npc[closest].posz == g->levz) 
+	set_dest(g->active_npc[closest].posx, g->active_npc[closest].posy, stc);
  }
+
 }
 
 
@@ -255,8 +257,8 @@ void monster::move(game *g)
 	next = plans[0];
 	moved = true;
 
-//   g->add_msg("I SEE");
- } 
+//	g->add_msg("I SEE");
+ }
  else
  if(has_flag(MF_SMELLS))
  {
@@ -266,10 +268,12 @@ void monster::move(game *g)
 	   next = tmp;
 	   moved = true;
 	}
-//   g->add_msg("I SMELL");
+ //  g->add_msg("I SMELL");
  }
 
 
+//CAT-mgs: make throwing radion ON more useful
+//... TODO: make noise more important than smell
  if(!moved && --wandf > 0)
  { 
 	point tmp = sound_move(g);
@@ -314,8 +318,8 @@ void monster::move(game *g)
  }
 
 // If we're close to our target, we get focused and don't stumble
- if( !moved || (has_flag(MF_STUMBLES) 
-		&& (plans.size() > 4 || plans.size() == 0)) )
+   if( !moved || plans.size() == 0 
+		|| (has_flag(MF_STUMBLES) && plans.size() > 4) )
 	stumble(g, moved);
 }
 
@@ -408,8 +412,10 @@ point monster::scent_move(game *g)
  std::vector<point> smoves;
 
  int maxsmell = 2; // Squares with smell 0 are not eligable targets
- if (has_flag(MF_KEENNOSE)) {
- int maxsmell = 1; }
+
+ if(has_flag(MF_KEENNOSE)) 
+	maxsmell = 1; 
+
  int minsmell = 9999;
  point pbuff, next(-1, -1);
  unsigned int smell;
@@ -438,10 +444,12 @@ point monster::scent_move(game *g)
    }
   }
  }
- if (smoves.size() > 0) {
+
+ if(smoves.size() > 0) {
   int nextsq = rng(0, smoves.size() - 1);
   next = smoves[nextsq];
  }
+
  return next;
 }
 

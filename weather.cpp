@@ -19,6 +19,10 @@ void weather_effect::glare(game *g)
 void weather_effect::wet(game *g)
 {
  if (!g->u.is_wearing(itm_coat_rain) && !g->u.has_trait(PF_FEATHERS) 
+		&& !g->u.is_wearing(itm_trenchcoat) 
+		&& !g->u.is_wearing(itm_trenchcoat_leather)
+		&& !g->u.is_wearing(itm_trenchcoat_fit)
+		&& !g->u.is_wearing(itm_trenchcoat_leather_fit)
 	&& g->u.warmth(bp_torso) < 40 && g->u.warmth(bp_head) < 30 
 	&& PLAYER_OUTSIDE && one_in(5))
   g->u.add_morale(MORALE_WET, -1, -40);
@@ -39,7 +43,11 @@ void weather_effect::wet(game *g)
 
 void weather_effect::very_wet(game *g)
 {
- if(one_in(4) && !g->u.is_wearing(itm_coat_rain) 
+ if(one_in(3) && !g->u.is_wearing(itm_coat_rain) 
+		&& !g->u.is_wearing(itm_trenchcoat) 
+		&& !g->u.is_wearing(itm_trenchcoat_leather)
+		&& !g->u.is_wearing(itm_trenchcoat_fit)
+		&& !g->u.is_wearing(itm_trenchcoat_leather_fit)
 		&& !g->u.has_trait(PF_FEATHERS) && PLAYER_OUTSIDE)
 	g->u.add_morale(MORALE_WET, -1, -70);
 

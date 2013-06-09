@@ -1045,9 +1045,9 @@ MELEE("rebar",		20,  75,'/', c_ltred,	IRON,	MNULL,
 A length of rebar, makes a nice melee weapon, and could be\n\
 handy in constructing tougher walls and such.");
 
-MELEE("log",                    20,  100,'/', c_brown,  WOOD,   MNULL,
+MELEE("tree trunk",                    20,  100,'/', c_brown,  WOOD,   MNULL,
          40, 20, 10, 0, -10, 0, "\
-A large log, cut from a tree. (a)ctivate a wood ax or wood\n\
+A large trunk cut from a tree. (a)ctivate a wood ax or wood\n\
 saw to cut it into planks");
 
 MELEE("splintered wood", 	60,  80,'/', c_ltred,	WOOD,	MNULL,

@@ -158,7 +158,7 @@ t_rock_red, t_rock_green, t_rock_blue, t_floor_red, t_floor_green, t_floor_blue,
  t_mutpoppy, //mutated poppy flower
 
 //CAT-mgs: aboveground
- t_air,
+ t_air, t_indoor_hole, t_bell,
 
 //CAT-mgs: from DDA.5
 t_indoor_plant,
@@ -386,7 +386,7 @@ const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
 	mfb(transparent)|mfb(bashable)|mfb(container)|mfb(flammable2)|mfb(thin_obstacle)},
 {"tree trunk",              '1', c_brown,   4, tr_null,
 	mfb(transparent)|mfb(flammable2)|mfb(diggable)},
-{"root wall",        '#', c_brown,   0, tr_null,
+{"root wall",        '#', c_green,   0, tr_null,
 	mfb(noitem)|mfb(supports_roof)},
 {"wax wall",         '#', c_yellow,  0, tr_null,
         mfb(flammable2)|mfb(noitem)|mfb(supports_roof)|mfb(place_item)},
@@ -595,8 +595,12 @@ const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
 
 
 //CAT-mgs:
-{"bunch of air",      '.', c_ltcyan,   2, tr_airhole,
-	mfb(transparent)},
+{"bunch of air",      '.', i_ltcyan,   2, tr_airhole,
+	mfb(transparent)|mfb(noitem)},
+{"indoor hole",      ' ', c_black,   2,  tr_ledge,
+	mfb(transparent)|mfb(noitem)},
+{"church bell",      '#', c_yellow,    2, tr_null,
+	mfb(noitem)},
 
 
 //CAT-mgs: from DDA.5

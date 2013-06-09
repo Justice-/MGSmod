@@ -122,6 +122,8 @@ enum oter_id {
 
 //CAT-mgs: aboveground
  ot_sky, ot_shelter_over, ot_shelter_over2,
+ ot_church_tower1, ot_church_tower2,
+
 
 //CAT: from DDA.5 *** vvv
 //CAT-mgs: from DDA.05
@@ -192,7 +194,7 @@ const oter_t oterlist[num_ter_types] = {
 {"road",          LINE_XXOX,	c_dkgray,	2, road_extras, false, false},
 {"road",          LINE_XOXX,	c_dkgray,	2, road_extras, false, false},
 {"road",          LINE_OXXX,	c_dkgray,	2, road_extras, false, false},
-{"road",          LINE_XXXX,	c_dkgray,	2, road_extras, false, false},
+{"crossroad",          LINE_XXXX,	c_dkgray,	2, road_extras, false, false},
 {"road, manhole", LINE_XXXX,	c_yellow,	2, road_extras, true, false},
 {"bridge",		'|',	c_dkgray,		2, road_extras, false, false},
 {"bridge",		'-',	c_dkgray,		2, road_extras, false, false},
@@ -211,14 +213,14 @@ const oter_t oterlist[num_ter_types] = {
 {"river bank",		'R',	c_ltblue,	1, no_extras, false, false},
 
 //CAT-mgs: false -> true?
-{"house",		'^',	c_green,		5, build_extras, false, false},
-{"house",		'>',	c_green,		5, build_extras, false, false},
-{"house",		'v',	c_green,		5, build_extras, false, false},
-{"house",		'<',	c_green,		5, build_extras, false, false},
-{"house",		'^',	c_green,		5, build_extras, false, false},
-{"house",		'>',	c_green,		5, build_extras, false, false},
-{"house",		'v',	c_green,		5, build_extras, false, false},
-{"house",		'<',	c_green,		5, build_extras, false, false},
+{"house",		'^',	c_ltgreen,		5, build_extras, false, false},
+{"house",		'>',	c_ltgreen,		5, build_extras, false, false},
+{"house",		'v',	c_ltgreen,		5, build_extras, false, false},
+{"house",		'<',	c_ltgreen,		5, build_extras, false, false},
+{"house",		'^',	c_ltgreen,		5, build_extras, false, false},
+{"house",		'>',	c_ltgreen,		5, build_extras, false, false},
+{"house",		'v',	c_ltgreen,		5, build_extras, false, false},
+{"house",		'<',	c_ltgreen,		5, build_extras, false, false},
 
 {"parking lot",	'O',	c_dkgray,	1, build_extras, false, false},
 {"park",		'O',	c_green,		2, build_extras, false, false},
@@ -230,10 +232,10 @@ const oter_t oterlist[num_ter_types] = {
 {"pharmacy",		'>',	c_ltred,	5, build_extras, false, false},
 {"pharmacy",		'v',	c_ltred,	5, build_extras, false, false},
 {"pharmacy",		'<',	c_ltred,	5, build_extras, false, false},
-{"grocery store",	'^',	c_ltgreen,		5, build_extras, false, false},
-{"grocery store",	'>',	c_ltgreen,		5, build_extras, false, false},
-{"grocery store",	'v',	c_ltgreen,		5, build_extras, false, false},
-{"grocery store",	'<',	c_ltgreen,		5, build_extras, false, false},
+{"grocery store",	'^',	i_green,		5, build_extras, false, false},
+{"grocery store",	'>',	i_green,		5, build_extras, false, false},
+{"grocery store",	'v',	i_green,		5, build_extras, false, false},
+{"grocery store",	'<',	i_green,		5, build_extras, false, false},
 {"hardware store",	'^',	c_cyan,	5, build_extras, false, false},
 {"hardware store",	'>',	c_cyan,	5, build_extras, false, false},
 {"hardware store",	'v',	c_cyan,	5, build_extras, false, false},
@@ -395,6 +397,9 @@ const oter_t oterlist[num_ter_types] = {
 {"evac shelter",	'+',	c_white,		2, no_extras, true, true},
 {"evac shelter",	'+',	c_white,		2, no_extras, true, false},
 
+{"church tower",	'c',	c_ltred,		2, no_extras, true, true},
+{"bell tower",	'c',	c_ltred,		2, no_extras, true, false},
+
 
 //CAT-mgs: from DDA.5 *** vvv
 {"doctor's office",  '^',    i_ltred,	5, build_extras, false, false},
@@ -407,10 +412,10 @@ const oter_t oterlist[num_ter_types] = {
 {"office",		'v',	c_ltgray,	5, build_extras, false, false},
 {"office",		'<',	c_ltgray,	5, build_extras, false, false},
 
-{"church",		'C',	c_ltred,	5, build_extras, false, false},
-{"church",		'C',	c_ltred,	5, build_extras, false, false},
-{"church",		'C',	c_ltred,	5, build_extras, false, false},
-{"church",		'C',	c_ltred,	5, build_extras, false, false}, 
+{"church",		'C',	c_ltred,	5, build_extras, false, true},
+{"church",		'C',	c_ltred,	5, build_extras, false, true},
+{"church",		'C',	c_ltred,	5, build_extras, false, true},
+{"church",		'C',	c_ltred,	5, build_extras, false, true}, 
 
 
 {"fast food",    '^', 	c_pink,	5, build_extras, false, false},
@@ -583,7 +588,7 @@ const overmap_special overmap_specials[NUM_OMSPECS] = {
  &omspec_place::forest, mfb(OMS_FLAG_3X3)},
 
 
-//CAT-mgs: these two are not spawnign at all?
+//CAT-mgs: 
 {ot_house_north,   3, 5,  10, -1, "GROUP_NULL", 0, 0, 0, 0,
  &omspec_place::by_highway, mfb(OMS_FLAG_ROTATE_ROAD) | mfb(OMS_FLAG_CLASSIC)},
 

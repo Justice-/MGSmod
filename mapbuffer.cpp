@@ -106,6 +106,7 @@ void mapbuffer::save()
     fout << int(sm->ter[i][j]) << " ";
    fout << std::endl;
   }
+
  // Dump the radiation
   for (int j = 0; j < SEEY; j++) {
    for (int i = 0; i < SEEX; i++)
@@ -215,23 +216,40 @@ void mapbuffer::load()
   int turndif = (master_game ? int(master_game->turn) - turn : 0);
   if (turndif < 0)
    turndif = 0;
+
+//CAT-mgs: from DDA.5
+  std::string buf;
+  getline (fin, buf); //chomp endl
+
 // Load terrain
   for (int j = 0; j < SEEY; j++) {
+
+   getline (fin, buf); 
+   char *n = &buf[0];
+
    for (int i = 0; i < SEEX; i++) {
-    int tmpter;
-    fin >> tmpter;
-    sm->ter[i][j] = ter_id(tmpter);
+//    int tmpter;
+//    fin >> tmpter;
+//    sm->ter[i][j] = ter_id(tmpter);
+
+    sm->ter[i][j] = ter_id(strtol(n,&n,10));
+
     sm->itm[i][j].clear();
     sm->trp[i][j] = tr_null;
     sm->fld[i][j] = field();
     sm->graf[i][j] = graffiti();
    }
   }
+
+//CAT-mgs: from DDA.5
 // Load irradiation
+  getline (fin, buf);
+  char *n = &buf[0];
   for (int j = 0; j < SEEY; j++) {
    for (int i = 0; i < SEEX; i++) {
-    int radtmp;
-    fin >> radtmp;
+//    int radtmp;
+//    fin >> radtmp;
+    int radtmp = strtol(n,&n,10);
     radtmp -= int(turndif / 100);	// Radiation slowly decays
     if (radtmp < 0)
      radtmp = 0;
