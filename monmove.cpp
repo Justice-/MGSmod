@@ -86,20 +86,26 @@ void monster::plan(game *g)
    }
   }
 
+//CAT-mgs: check this 
   if (has_effect(ME_DOCILE))
    closest = -1;
   if (closest >= 0)
    set_dest(g->z[closest].posx, g->z[closest].posy, stc);
   else if (friendly > 0 && one_in(3))	// Grow restless with no targets
    friendly--;
-  else if (friendly < 0 && g->sees_u(posx, posy, tc)) {
-   if (rl_dist(posx, posy, g->u.posx, g->u.posy) > 2)
-    set_dest(g->u.posx, g->u.posy, tc);
-   else
-    plans.clear();
+  else
+  if (friendly < 0 && g->sees_u(posx, posy, tc))
+  {
+//	if (rl_dist(posx, posy, g->u.posx, g->u.posy) > 2) 
+		set_dest(g->u.posx, g->u.posy, tc);
+
+//	else
+//		plans.clear();
   }
+
   return;
  }
+
 
  if (is_fleeing(g->u) && can_see() && g->sees_u(posx, posy, tc)) {
   fleeing = true;
@@ -165,6 +171,7 @@ void monster::plan(game *g)
    set_dest(g->z[-3 - closest].posx, g->z[-3 - closest].posy, stc);
   else if (closest >= 0 && g->active_npc[closest].posz == g->levz) 
    set_dest(g->active_npc[closest].posx, g->active_npc[closest].posy, stc);
+
 //CAT-mgs: no NPCs -> && g->active_npc[closest].posz == g->levz
  }
 }
@@ -271,10 +278,9 @@ void monster::move(game *g)
 	   next = tmp;
 	   moved = true;
 	}
-
 //CAT-mgs:
-//	g->add_msg("I HEAR: %d (%d,%d):(%d,%d)", 
-//			wandf, wandx, wandy, g->u.posx, g->u.posy);
+//	g->add_msg("I HEAR: %d (%d,%d):(%d,%d) - anger: %d", 
+//			wandf, wandx, wandy, g->u.posx, g->u.posy, anger);
  }
 
 

@@ -213,10 +213,46 @@ std::string dynamic_line(talk_topic topic, game *g, npc *p)
  case TALK_MISSION_REWARD:
   return "Sure, here you go!";
 
- case TALK_SHELTER:
-  switch (rng(1, 2)) {
+
+ case TALK_SHELTER: 
+
+  switch (rng(1, 3)) {
    case 1: return "Well, I guess it's just us.";
    case 2: return "At least we've got shelter.";
+   case 3:
+
+
+   int ch;
+   int lines= 0;
+   std::string tmp= "Well, I guess it's just us.";
+   std::ifstream fin;
+   fin.open("data/NPC_HINTS");
+
+   if(!fin.is_open())
+    return "At least we've got shelter.";
+
+
+   while(fin.good())
+   {
+    ch= fin.get();
+    if(ch == '%')
+     lines++;
+   }
+
+    fin.clear();
+    fin.seekg(0, std::ios::beg);
+    fin.clear();
+    int choice = rng(1, lines);
+
+    while(choice > 0)
+    {
+	getline(fin, tmp);
+	getline(fin, tmp);
+	choice--;
+    }
+   
+   return tmp;
+
   }
 
  case TALK_SHELTER_PLANS:

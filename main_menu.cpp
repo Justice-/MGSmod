@@ -14,10 +14,7 @@ void game::print_menu(WINDOW* w_open, int iSel, const int iMenuOffsetX, int iMen
 {
     werase(w_open);
 
-//    for (int i = 1; i < 79; i++)
-//        mvwputch(w_open, 23, i, c_white, LINE_OXOX);
-
-    mvwprintz(w_open, 23, 4, c_ltblue, "Cataclysm: Metal Gear Solid (rev.30) *** Forum: www.cataclysmdda.com/smf");
+    mvwprintz(w_open, 23, 4, c_ltblue, "Cataclysm: Metal Gear Solid (rev.34) *** Forum: www.cataclysmdda.com/smf");
 
     int iLine = 0;
     const int iOffsetX1 = 3;

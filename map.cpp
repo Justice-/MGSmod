@@ -1014,22 +1014,32 @@ bool map::is_destructable_ter_only(const int x, const int y)
          (move_cost_ter_only(x, y) == 0 && !has_flag(liquid, x, y)));
 }
 
+
 bool map::is_outside(const int x, const int y)
 {
  bool out = (ter(x, y) != t_bed && ter(x, y) != t_groundsheet && ter(x, y) != t_makeshift_bed);
 
+//CAT-mgs:
  for(int i = -1; out && i <= 1; i++)
+ {
   for(int j = -1; out && j <= 1; j++) {
+
    const ter_id terrain = ter( x + i, y + j );
-   out = (terrain != t_floor && terrain != t_rock_floor && terrain != t_floor_wax &&
-          terrain != t_fema_groundsheet && terrain != t_dirtfloor && terrain != t_skin_groundsheet);
+   out = (terrain != t_floor && terrain != t_rock_floor && terrain != t_skin_groundsheet 
+		&& terrain != t_fema_groundsheet && terrain != t_dirtfloor && terrain != t_floor_wax
+		&& terrain != t_elevator && terrain != t_table && terrain != t_chair && terrain != t_bench
+		&& terrain != t_desk && terrain != t_counter);
   }
- if (out) {
+ }
+
+ if(out)
+ {
   int vpart;
   vehicle *veh = veh_at (x, y, vpart);
   if (veh && veh->is_inside(vpart))
-   out = false;
+  out = false;
  }
+
  return out;
 }
 
@@ -2087,7 +2097,7 @@ void map::shoot(game *g, const int x, const int y, int &dam,
 	if(dam > 0)
 	{
 
-	   ter(x, y) = t_floor;
+	   ter(x, y) = t_window_frame;
 //CAT-s: 
 	   if(playWav)
 		playSound(25);
@@ -2413,7 +2423,7 @@ void map::translate(const ter_id from, const ter_id to)
 }
 
 
-//CAT-mgs: from DDA.05
+//CAT-mgs: from DDA.5
 //This function performs the translate function within a given radius of the player.
 void map::translate_radius(const ter_id from, const ter_id to, float radi, int uX, int uY)
 {
@@ -3070,16 +3080,21 @@ void map::draw(game *g, WINDOW* w, const point center)
   g->cat_lightning= false;
 
 
+
   int atx = getmaxx(w)/2 + g->u.posx - center.x;
   int aty = getmaxy(w)/2 + g->u.posy - center.y;
   if (atx >= 0 && atx < TERRAIN_WINDOW_WIDTH && aty >= 0 && aty < TERRAIN_WINDOW_HEIGHT)
   {
+
 	if( (g->u.is_wearing(itm_goggles_nv) && g->u.has_active_item(itm_UPS_on)) 
 		|| g->u.has_active_bionic(bio_night_vision) )
-
 	   mvwputch(w, aty, atx, c_ltgreen, '@');
 	else
 	   mvwputch(w, aty, atx, g->u.color(), '@');
+
+	if(g->run_mode == 2)
+	   mvwputch(w, aty-1, atx, c_white_red, '!');
+
   }
 
 
@@ -3568,14 +3583,15 @@ void map::load(game *g, const int wx, const int wy, const int wz, const bool upd
 {
  for (int gridx = 0; gridx < my_MAPSIZE; gridx++) {
   for (int gridy = 0; gridy < my_MAPSIZE; gridy++) {
-   if (!loadn(g, wx, wy, wz, gridx, gridy, update_vehicle))
-    loadn(g, wx, wy, wz, gridx, gridy, update_vehicle);
+	if(!loadn(g, wx, wy, wz, gridx, gridy, update_vehicle))
+		loadn(g, wx, wy, wz, gridx, gridy, update_vehicle);
   }
  }
 }
 
 void map::shift(game *g, const int wx, const int wy, const int wz, const int sx, const int sy)
 {
+
 
 // Special case of 0-shift; refresh the map
  if (sx == 0 && sy == 0) {
@@ -3668,6 +3684,7 @@ void map::shift(game *g, const int wx, const int wy, const int wz, const int sx,
    }
   }
  }
+
  reset_vehicle_cache();
 }
 
@@ -3680,11 +3697,8 @@ void map::shift(game *g, const int wx, const int wy, const int wz, const int sx,
 void map::saven(overmap *om, unsigned const int turn, const int worldx, const int worldy, const int worldz,
                 const int gridx, const int gridy)
 {
- dbg(D_INFO) << "map::saven(om[" << (void*)om << "], turn[" << turn <<"], worldx["<<worldx<<"], worldy["<<worldy<<"], gridx["<<gridx<<"], gridy["<<gridy<<"])";
 
  const int n = gridx + gridy * my_MAPSIZE;
-
- dbg(D_INFO) << "map::saven n: " << n;
 
  if ( !grid[n] || grid[n]->ter[0][0] == t_null)
  {
@@ -3693,8 +3707,6 @@ void map::saven(overmap *om, unsigned const int turn, const int worldx, const in
  }
  const int abs_x = om->pos().x * OMAPX * 2 + worldx + gridx,
            abs_y = om->pos().y * OMAPY * 2 + worldy + gridy;
-
- dbg(D_INFO) << "map::saven abs_x: " << abs_x << "  abs_y: " << abs_y;
 
  MAPBUFFER.add_submap(abs_x, abs_y, worldz, grid[n]);
 }
@@ -3707,14 +3719,14 @@ void map::saven(overmap *om, unsigned const int turn, const int worldx, const in
 bool map::loadn(game *g, const int worldx, const int worldy, const int worldz, const int gridx, const int gridy,
                 const bool update_vehicles)
 {
- dbg(D_INFO) << "map::loadn(game[" << g << "], worldx["<<worldx<<"], worldy["<<worldy<<"], gridx["<<gridx<<"], gridy["<<gridy<<"])";
 
+//CAT-mgs: is this called more than necessary?
+// g->add_msg("LOADN");
+ 
  const int absx = g->cur_om.pos().x * OMAPX * 2 + worldx + gridx,
            absy = g->cur_om.pos().y * OMAPY * 2 + worldy + gridy,
            gridn = gridx + gridy * my_MAPSIZE;
 
- dbg(D_INFO) << "map::loadn absx: " << absx << "  absy: " << absy
-            << "  gridn: " << gridn;
 
  submap *tmpsub = MAPBUFFER.lookup_submap(absx, absy, worldz);
  if (tmpsub) {
@@ -3734,14 +3746,17 @@ bool map::loadn(game *g, const int worldx, const int worldy, const int worldz, c
    }
   }
  } else { // It doesn't exist; we must generate it!
-  dbg(D_INFO|D_WARNING) << "map::loadn: Missing mapbuffer data. Regenerating.";
+//  dbg(D_INFO|D_WARNING) << "map::loadn: Missing mapbuffer data. Regenerating.";
+
+
   map tmp_map(itypes, mapitems, traps);
 // overx, overy is where in the overmap we need to pull data from
 // Each overmap square is two nonants; to prevent overlap, generate only at
 //  squares divisible by 2.
   int newmapx = worldx + gridx - ((worldx + gridx) % 2);
   int newmapy = worldy + gridy - ((worldy + gridy) % 2);
-  overmap* this_om = &(g->cur_om);
+
+ overmap* this_om = &(g->cur_om);
 
   // slightly out of bounds? to the east, south, or both?
   // cur_om is the one containing the upper-left corner of the map
@@ -3758,12 +3773,18 @@ bool map::loadn(game *g, const int worldx, const int worldy, const int worldz, c
      this_om = g->om_vert;
   }
 
+
   if (worldx + gridx < 0)
    newmapx = worldx + gridx;
   if (worldy + gridy < 0)
    newmapy = worldy + gridy;
+
+//  g->add_msg("LOADN-2");
   tmp_map.generate(g, this_om, newmapx, newmapy, worldz, int(g->turn));
+
+
   return false;
+
  }
  return true;
 }

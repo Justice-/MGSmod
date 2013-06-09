@@ -238,7 +238,7 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
 	else
 		p.recoil += recoil_add(p);
 
-
+	
 //CAT-mgs: *** vvv
   if (missed_by >= 1.0) {
 // We missed D:
@@ -513,6 +513,8 @@ void game::throw_item(player &p, int tarx, int tary, item &thrown,
     if (thrown.type->melee_cut > z[mon_at(tx, ty)].armor_cut())
      dam += (thrown.type->melee_cut - z[mon_at(tx, ty)].armor_cut());
    }
+
+
    if (thrown.made_of(GLASS) && !thrown.active && // active = molotov, etc.
        rng(0, thrown.volume() + 8) - rng(0, p.str_cur) < thrown.volume()) {
     if (u_see(tx, ty, tart))
@@ -523,8 +525,9 @@ void game::throw_item(player &p, int tarx, int tary, item &thrown,
     int glassdam = rng(0, thrown.volume() * 2);
     if (glassdam > z[mon_at(tx, ty)].armor_cut())
      dam += (glassdam - z[mon_at(tx, ty)].armor_cut());
-   } else
+   }else
     m.add_item(tx, ty, thrown);
+
    if (i < trajectory.size() - 1)
     goodhit = double(double(rand() / RAND_MAX) / 2);
    if (goodhit < .1 && !z[mon_at(tx, ty)].has_flag(MF_NOHEAD)) {
@@ -563,6 +566,7 @@ void game::throw_item(player &p, int tarx, int tary, item &thrown,
    i = trajectory.size();
   }
  }
+
  if (m.move_cost(tx, ty) == 0) {
   if (i > 1) {
    tx = trajectory[i - 2].x;
@@ -572,6 +576,13 @@ void game::throw_item(player &p, int tarx, int tary, item &thrown,
    ty = u.posy;
   }
  }
+
+
+//CAT-mgs: 
+ if(m.ter(tx,ty) == t_air)
+	return;
+
+
  if (thrown.made_of(GLASS) && !thrown.active && // active means molotov, etc
      rng(0, thrown.volume() + 8) - rng(0, p.str_cur) < thrown.volume()) {
   if (u_see(tx, ty, tart))
@@ -591,6 +602,7 @@ void game::throw_item(player &p, int tarx, int tary, item &thrown,
 	playSound(91);
  }
 }
+
 
 
 
@@ -644,7 +656,6 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 
  int ch;
  point center;
- bool bull= false;
 
  int cat_x= x-u.posx; 
  int cat_y= y-u.posy; 
@@ -672,24 +683,14 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 	u.view_offset_y= y-u.posy-cat_y;
 
 	cleanup_dead();
+
 	m.vehmove(this);
 	m.process_fields(this);
 	m.process_active_items(this);
 	m.step_in_field(u.posx, u.posy, this);
 
 	u.reset(this);
-	u.process_active_items(this);
 	u.suffer(this);
-	u.pause(this);
-
-	monmove();
-	update_stair_monsters();
-
-	if(bull)
-		u.recoil= 0;
-	else
-		u.recoil+= 3;
-
 
 	draw_HP();
 	write_msg();
@@ -775,7 +776,8 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 
 		if(!SNIPER || (SNIPER && s_d < 4))
 		{
-			if(u_see(active_npc[i].posx, active_npc[i].posy, tart))
+			if(active_npc[i].posz == levz 
+				&& u_see(active_npc[i].posx, active_npc[i].posy, tart))
 			    active_npc[i].draw(w_terrain, center.x, center.y, false, night_vision);
 		}
 	}
@@ -825,7 +827,7 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 		    mvwprintw(w_target, 5, 1, "There is a %s", veh->name.c_str());
 	}
 	else
-	   mvwprintw(w_target, 4, 1, "Range: %d   ", dist);
+	   mvwprintw(w_target, 4, 1, "Range: %d (Recoil: %d)         ", dist, u.recoil);
 
 
 //CAT: 
@@ -878,7 +880,6 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 
 		ltar_x= x;
 		ltar_y= y;
-		bull= false;
 
 	}
 	else
@@ -895,8 +896,48 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 	else
 	if(ch == 'f' || ch == 'F' || ch == '\n')
 	{
+
 		if(x != u.posx || y != u.posy)
+		{
+
+			lm.generate(this, center.x, center.y, natural_light_level(), u.active_light());
+			m.draw(this, w_terrain, center);
+
+	// Draw the Monsters
+	for(int i = 0; i < z.size(); i++)
+	{
+		int s_x= z[i].posx - x;
+		int s_y= z[i].posy - y;
+		int s_d= (int)sqrt(s_x*s_x + s_y*s_y);
+
+		if(!SNIPER || (SNIPER && s_d < 4))
+		{
+			if(u_see(&(z[i]), tart))
+			    z[i].draw(w_terrain, center.x, center.y, false, night_vision);
+		}
+	}
+
+	// Draw the NPCs
+	for(int i = 0; i < active_npc.size(); i++)
+	{
+		int s_x= active_npc[i].posx - x;
+		int s_y= active_npc[i].posy - y;
+		int s_d= (int)sqrt(s_x*s_x + s_y*s_y);
+
+		if(!SNIPER || (SNIPER && s_d < 4))
+		{
+			if(active_npc[i].posz == levz 
+				&& u_see(active_npc[i].posx, active_npc[i].posy, tart))
+			    active_npc[i].draw(w_terrain, center.x, center.y, false, night_vision);
+		}
+	}
+
+
+			u.moves= 0;
+			u.process_active_items(this);
+
 			return ret;
+		}
 		else
 		{
 //CAT-s: menuWrong
@@ -912,9 +953,23 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 	if(ch == '.' || ch == '5' || ch == ' ')
 	{
 //CAT-s:
-		playSound(6);
-		bull= true;
+		if(u.recoil > 0)
+		{
+			u.recoil= 0;
+			playSound(6);
+			add_msg("You pause to concentrate... ");
+		}
 	}
+
+	if(u.recoil > 3)
+		u.recoil= int(u.recoil/2);
+
+	if(u.recoil > 0 && u.recoil < 3)
+		u.recoil= 3;
+
+
+	monmove();
+	update_stair_monsters();
 
  } while (true);
 
@@ -1135,6 +1190,7 @@ int recoil_add(player &p)
  int ret = p.weapon.recoil();
  ret -= rng(p.str_cur / 2, p.str_cur);
  ret -= rng(0, p.skillLevel(firing->skill_used) / 2);
+
  if (ret > 0)
   return ret;
  return 0;

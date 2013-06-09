@@ -62,12 +62,14 @@ bool is_wall_material(oter_id ter)
  return false;
 }
 
+
+//CAT-mgs: from DDA.5
 oter_id shop(int dir)
 {
+
  oter_id ret = ot_s_lot;
- int type = rng(0, 17);
- if (one_in(20))
-  type = 18;
+ int type = rng(0, 26);
+
  switch (type) {
   case  0: ret = ot_s_lot;	         break;
   case  1: ret = ot_s_gas_north;         break;
@@ -87,8 +89,20 @@ oter_id shop(int dir)
   case 15: ret = ot_pawn_north;          break;
   case 16: ret = ot_mil_surplus_north;   break;
   case 17: ret = ot_s_garage_north;      break;
-  case 18: ret = ot_police_north;        break;
+
+  case 18: ret = ot_s_restaurant_fast_north;  	break;
+  case 19: ret = ot_office_cubical_north;       break;
+  case 20: ret = ot_church_north;        		break;
+  case 21: ret = ot_office_doctor_north; 		break;
+  case 22: ret = ot_s_restaurant_coffee_north;  break;
+  case 23: ret = ot_station_radio_north; 		break;
+
+  case 24: ret = ot_furniture_north;     break;
+  case 25: ret = ot_abstorefront_north;  break;
+
+  case 26: ret = ot_police_north;        		break;
  }
+
  if (ret == ot_s_lot)
   return ret;
  if (dir < 0) dir += 4;
@@ -101,6 +115,8 @@ oter_id shop(int dir)
  }
  return ret;
 }
+ 
+
 
 oter_id house(int dir)
 {
@@ -127,9 +143,8 @@ overmap::overmap()
  , nullbool(false)
  , nullstr("")
 {
-// debugmsg("Warning - null overmap!");
- if (num_ter_types > 256 - 32)
-  debugmsg("More than 256 - 32 oterid!  Saving won't work!");
+//CAT-mgs:
+
 }
 
 overmap::overmap(game *g, int x, int y)
@@ -194,7 +209,7 @@ void overmap::init_layers()
 	layer = new map_layer[OVERMAP_LAYERS];
 	for(int z = 0; z < OVERMAP_LAYERS; ++z) {
 
-//CAT: abaraba abovelevel
+//CAT-mgs:
 		oter_id default_type = (z < OVERMAP_DEPTH) ? ot_rock : ot_field;
 
 		if(z > OVERMAP_DEPTH)
@@ -389,8 +404,11 @@ point overmap::display_notes(game* g, int const z) const
 void overmap::generate(game *g, overmap* north, overmap* east, overmap* south,
                        overmap* west)
 {
- erase();
- clear();
+
+//CAT-mgs:
+// erase();
+// clear();
+
  move(0, 0);
  std::vector<city> road_points;	// cities and roads_out together
  std::vector<point> river_start;// West/North endpoints of rivers
@@ -606,6 +624,7 @@ void overmap::generate(game *g, overmap* north, overmap* east, overmap* south,
 // Place the monsters, now that the terrain is laid out
  place_mongroups();
  place_radios();
+
 }
 
 bool overmap::generate_sub(int const z)
@@ -623,6 +642,10 @@ bool overmap::generate_sub(int const z)
  std::vector<point> lmoe_points;
  std::vector<point> triffid_points;
  std::vector<point> temple_points;
+
+//CAT-mgs: from DDA.5
+ std::vector<point> office_entrance_points;
+ std::vector<point> office_points; 
 
 
 //CAT-mgs: *** vvv
@@ -721,6 +744,11 @@ bool overmap::generate_sub(int const z)
      requires_sub = true;
     }
    }
+   else if (ter(i, j, z + 1) == ot_office_tower_1_entrance)
+    office_entrance_points.push_back( point(i, j) );
+   else if (ter(i, j, z + 1) == ot_office_tower_1)
+    office_points.push_back( point(i, j) ); 
+
 
   }
  }
@@ -759,7 +787,7 @@ bool overmap::generate_sub(int const z)
   for (int j = 0; j < OMAPY; j++) {
 
    if(ter(i, j, z + 1) >= ot_house_base_north 
-		&&ter(i, j, z + 1) <= ot_house_base_west)
+		&& ter(i, j, z + 1) <= ot_house_base_west)
 	ter(i, j, z) = ot_basement;
   }
  }
@@ -812,6 +840,15 @@ bool overmap::generate_sub(int const z)
    requires_sub = true;
   }
  }
+
+
+//CAT-mgs: from DDA.5
+ for (int i = 0; i < office_entrance_points.size(); i++)
+  ter(office_entrance_points[i].x, office_entrance_points[i].y, z) = ot_office_tower_b_entrance;
+ for (int i = 0; i < office_points.size(); i++)
+  ter(office_points[i].x, office_points[i].y, z) = ot_office_tower_b; 
+
+
 
  return requires_sub;
 }
@@ -888,7 +925,7 @@ std::vector<point> overmap::find_terrain(std::string term, int cursx, int cursy,
  std::vector<point> found;
  for (int x = 0; x < OMAPX; x++) {
   for (int y = 0; y < OMAPY; y++) {
-   if (seen(x, y, zlevel) && oterlist[ter(x, y, zlevel)].name.find(term) != std::string::npos)
+   if(seen(x, y, zlevel) && oterlist[ter(x, y, zlevel)].name.find(term) != std::string::npos)
     found.push_back( point(x, y) );
   }
  }
@@ -1265,12 +1302,14 @@ point overmap::choose_point(game *g, int const zlevel)
    int tmpx = cursx, tmpy = cursy;
    std::string term = string_input_popup("Search term:");
 
-   draw(w_map, g, zlevel, cursx, cursy, origx, origy, ch, blink);
-
+//   draw(w_map, g, zlevel, cursx, cursy, origx, origy, ch, blink);
    point found = find_note(cursx, cursy, zlevel, term);
+
    if (found.x == -1) {	// Didn't find a note
     std::vector<point> terlist;
+
     terlist = find_terrain(term, origx, origy, zlevel);
+
     if (terlist.size() != 0){
      int i = 0;
      //Navigate through results
@@ -2432,6 +2471,90 @@ void overmap::place_special(overmap_special special, tripoint p)
   make_hiway(p.x, p.y, cities[closest].x, cities[closest].y, p.z, ot_road_null);
  }
 
+
+//CAT-mgs: from DDA.5
+ if (special.flags & mfb(OMS_FLAG_3X3_FIXED)) {
+  int startx = p.x - 1, starty = p.y;
+  if (is_road(p.x, p.y - 1, p.z)) { // Road to north
+   ter(p.x+1, p.y, p.z) = oter_id(special.ter - 1);//1
+   ter(p.x, p.y, p.z) = special.ter;//2
+   ter(p.x-1, p.y, p.z) = oter_id(special.ter + 1);//3
+   ter(p.x+1, p.y+1, p.z) = oter_id(special.ter + 2);//4
+   ter(p.x, p.y+1, p.z) = oter_id(special.ter + 3);//5
+   ter(p.x-1, p.y+1, p.z) = oter_id(special.ter + 4);//6
+   ter(p.x+1, p.y+2, p.z) = oter_id(special.ter + 5);//7
+   ter(p.x, p.y+2, p.z) = oter_id(special.ter + 6);//8
+   ter(p.x-1, p.y+2, p.z) = oter_id(special.ter + 7);//9
+   if (special.ter == ot_school_2)
+    make_hiway(p.x, p.y-1, p.x-1, p.y-1, p.z, ot_road_null);
+  } else if (is_road(p.x + 1, p.y, p.z)) { // Road to east
+   ter(p.x, p.y+1, p.z) = oter_id(special.ter - 1);//1
+   ter(p.x, p.y, p.z) = special.ter;//2
+   ter(p.x, p.y-1, p.z) = oter_id(special.ter + 1);//3
+   ter(p.x-1, p.y+1, p.z) = oter_id(special.ter + 2);//4
+   ter(p.x-1, p.y, p.z) = oter_id(special.ter + 3);//5
+   ter(p.x-1, p.y-1, p.z) = oter_id(special.ter + 4);//6
+   ter(p.x-2, p.y+1, p.z) = oter_id(special.ter + 5);//7
+   ter(p.x-2, p.y, p.z) = oter_id(special.ter + 6);//8
+   ter(p.x-2, p.y-1, p.z) = oter_id(special.ter + 7);//9
+   if (special.ter == ot_school_2)
+    make_hiway(p.x+1, p.y, p.x+1, p.y-1, p.z, ot_road_null);
+  } else if (is_road(p.x, p.y + 1, p.z)) { // Road to south
+   ter(p.x-1, p.y, p.z) = oter_id(special.ter - 1);//1
+   ter(p.x, p.y, p.z) = special.ter;//2
+   ter(p.x+1, p.y, p.z) = oter_id(special.ter + 1);//3
+   ter(p.x-1, p.y-1, p.z) = oter_id(special.ter + 2);//4
+   ter(p.x, p.y-1, p.z) = oter_id(special.ter + 3);//5
+   ter(p.x+1, p.y-1, p.z) = oter_id(special.ter + 4);//6
+   ter(p.x-1, p.y-2, p.z) = oter_id(special.ter + 5);//7
+   ter(p.x, p.y-2, p.z) = oter_id(special.ter + 6);//8
+   ter(p.x+1, p.y-2, p.z) = oter_id(special.ter + 7);//9
+   if (special.ter == ot_school_2)
+    make_hiway(p.x, p.y+1, p.x+1, p.y+1, p.z, ot_road_null);
+  } else if (is_road(p.x - 1, p.y, p.z)) { // Road to west
+   ter(p.x, p.y-1, p.z) = oter_id(special.ter - 1);//1
+   ter(p.x, p.y, p.z) = special.ter;//2
+   ter(p.x, p.y+1, p.z) = oter_id(special.ter + 1);//3
+   ter(p.x+1, p.y-1, p.z) = oter_id(special.ter + 2);//4
+   ter(p.x+1, p.y, p.z) = oter_id(special.ter + 3);//5
+   ter(p.x+1, p.y+1, p.z) = oter_id(special.ter + 4);//6
+   ter(p.x+2, p.y-1, p.z) = oter_id(special.ter + 5);//7
+   ter(p.x+2, p.y, p.z) = oter_id(special.ter + 6);//8
+   ter(p.x+2, p.y+1, p.z) = oter_id(special.ter + 7);//9
+   if (special.ter == ot_school_2)
+    make_hiway(p.x-1, p.y, p.x-1, p.y+1, p.z, ot_road_null);
+  }
+ }
+ 
+ //Buildings should be designed with the entrance at the southwest corner and open to the street on the south.
+ if (special.flags & mfb(OMS_FLAG_2X2_SECOND)) {
+  int startx = p.x-3, starty = p.y-3; // Acts as an error message, way offset from ideal
+  if (is_road(p.x, p.y - 1, p.z)) { // Road to north
+   startx = p.x - 1;
+   starty = p.y;
+  } else if (is_road(p.x + 1, p.y, p.z)) { // Road to east
+   startx = p.x - 1;
+   starty = p.y-1;
+  } else if (is_road(p.x, p.y + 1, p.z)) { // Road to south
+   startx = p.x;
+   starty = p.y - 1;
+  } else if (is_road(p.x - 1, p.y, p.z)) { // Road to west
+   startx = p.x;
+   starty = p.y;
+  }
+  if (startx != -1) {
+   for (int x = startx; x <= startx+1; x++) {
+    for (int y = starty; y <= starty+1; y++)
+     ter(x, y, p.z) = oter_id(special.ter+1);
+   }
+   ter(p.x, p.y, p.z) = oter_id(special.ter);
+  }
+ }
+ 
+
+
+
+
  if (special.flags & mfb(OMS_FLAG_PARKING_LOT)) {
   int closest = -1, distance = 999;
   for (int i = 0; i < cities.size(); i++) {
@@ -2572,13 +2695,15 @@ void overmap::place_radios()
 
 void overmap::save()
 {
+
  std::ofstream fout;
  std::string const plrfilename = player_filename(loc.x, loc.y);
  std::string const terfilename = terrain_filename(loc.x, loc.y);
 
  // Player specific data
  fout.open(plrfilename.c_str());
- for (int z = 0; z < OVERMAP_LAYERS; ++z) {
+ for (int z = 0; z < OVERMAP_LAYERS; ++z) 
+ {
   fout << "L " << z << std::endl;
   for (int j = 0; j < OMAPY; j++) {
    for (int i = 0; i < OMAPX; i++) {
@@ -2596,11 +2721,13 @@ void overmap::save()
 
  // World terrain data
  fout.open(terfilename.c_str(), std::ios_base::trunc);
- for (int z = 0; z < OVERMAP_LAYERS; ++z) {
+ for (int z = 0; z < OVERMAP_LAYERS; ++z)
+ {
   fout << "L " << z << std::endl;
   for (int j = 0; j < OMAPY; j++) {
    for (int i = 0; i < OMAPX; i++) {
-    fout << char(int(layer[z].terrain[i][j]) + 32);
+//    fout << char(int(layer[z].terrain[i][j]) + 32);
+    fout << int(layer[z].terrain[i][j]) << " ";
    }
    fout << std::endl;
   }
@@ -2626,8 +2753,12 @@ void overmap::save()
  fout.close();
 }
 
+
 void overmap::open(game *g)
 {
+//CAT-mgs: 
+//g->add_msg("OPEN");
+
  std::string const plrfilename = player_filename(loc.x, loc.y);
  std::string const terfilename = terrain_filename(loc.x, loc.y);
  std::ifstream fin;
@@ -2643,28 +2774,39 @@ void overmap::open(game *g)
  int nummg = 0;
  if (fin.is_open()) {
   int z = 0; // assumption
-  while (fin >> datatype) {
+  while (fin >> datatype) 
+  {
 
-   if (datatype == 'L') { 	// Load layer data, and switch to layer
+   if(datatype == 'L') { 	// Load layer data, and switch to layer
     fin >> z;
 
-    std::string dataline;
-    getline(fin, dataline);	// Chomp endl
+//    std::string dataline;
+//    getline(fin, dataline);	// Chomp endl 
 
-    for (int j = 0; j < OMAPY; j++) {
-     getline(fin, dataline);
-     if (z >= 0 && z < OVERMAP_LAYERS) {
+    int tmp_ter;
+
+    if (z >= 0 && z < OVERMAP_LAYERS) 
+    {
+     for (int j = 0; j < OMAPY; j++) {
+//      getline(fin, dataline);
       for (int i = 0; i < OMAPX; i++) {
-       layer[z].terrain[i][j] = oter_id((unsigned char)dataline[i] - 32);
+
+  	 fin >> tmp_ter;
+	 layer[z].terrain[i][j] = oter_id(tmp_ter);
        layer[z].visible[i][j] = false;
-       if (layer[z].terrain[i][j] < 0 || layer[z].terrain[i][j] > num_ter_types)
-        debugmsg("Loaded bad ter!  %s; ter %d", terfilename.c_str(), layer[z].terrain[i][j]);
+
+//	 layer[z].terrain[i][j] = oter_id((unsigned char)dataline[i] - 32);
+
+       if(layer[z].terrain[i][j] < 0 || layer[z].terrain[i][j] > num_ter_types)
+        g->add_msg("Loaded bad ter!  %s; ter %d", terfilename.c_str(), layer[z].terrain[i][j]);
       }
      }
     }
    }
    else
-   if (datatype == 'Z') {	// Monster group
+   if (datatype == 'Z')
+   {
+	// Monster group
     fin >> cstr >> cx >> cy >> cz >> cs >> cp >> cd;
     zg.push_back(mongroup(cstr, cx, cy, cz, cs, cp));
     zg.back().diffuse = cd;

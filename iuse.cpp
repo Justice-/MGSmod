@@ -1307,7 +1307,7 @@ void iuse::roadmap_a_target(game *g, player *p, item *it, bool t, int target)
   point place = g->cur_om.find_closest(g->om_location(), (oter_id)target, 1, dist, false);
 
   if(place.x >= 0 && place.y >= 0)
-	g->add_msg_if_player(p, "You note %s at location %d:%d",
+	g->add_msg_if_player(p, "You note %s at location: %d,%d",
 				oterlist[target].name.c_str(), place.x, place.y);
 
 }

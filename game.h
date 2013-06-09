@@ -270,6 +270,8 @@ class game
   bool CARJUMPED;	
   bool cat_lightning;
   int ltar_x, ltar_y;
+  char run_mode; // 0 - Normal run always; 1 - Running allowed, but if a new
+		 //  monsters spawns, go to 2 - No movement allowed
 
 //CAT-g:
 //  std::map<int, std::map<int, bool> > mapRain;
@@ -431,9 +433,6 @@ class game
 
   signed char last_target;// The last monster targeted
 
-
-  char run_mode; // 0 - Normal run always; 1 - Running allowed, but if a new
-		 //  monsters spawns, go to 2 - No movement allowed
   int mostseen;	 // # of mons seen last turn; if this increases, run_mode++
   bool autosafemode; // is autosafemode enabled?
   int turnssincelastmon; // needed for auto run mode

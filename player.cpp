@@ -1289,7 +1289,7 @@ Strength - 4;    Dexterity - 4;    Intelligence - 4;    Dexterity - 4");
  wrefresh(w_skills);
 
 // Finally, draw speed.
- mvwprintz(w_speed, 0, 11, c_ltgray, "SPEED");
+ mvwprintz(w_speed, 0, 8, c_ltgray, "CONDITION");
  mvwprintz(w_speed, 1,  1, c_ltgray, "Base Move Cost:");
  mvwprintz(w_speed, 2,  1, c_ltgray, "Current Speed:");
  int newmoves = current_speed(g);
@@ -1366,6 +1366,7 @@ Strength - 4;    Dexterity - 4;    Intelligence - 4;    Dexterity - 4");
    pen = int( (65 - g->temperature) / 3);
   else
    pen = int( (65 - g->temperature) / 2);
+
   mvwprintz(w_speed, line, 1, c_red, "Cold-Blooded        -%s%d%%%%",
             (pen < 10 ? " " : ""), pen);
   line++;
@@ -1375,13 +1376,16 @@ Strength - 4;    Dexterity - 4;    Intelligence - 4;    Dexterity - 4");
   int move_adjust = disease_speed_boost(illness[i]);
   if (move_adjust != 0) {
    nc_color col = (move_adjust > 0 ? c_green : c_red);
-   mvwprintz(w_speed, line,  1, col, dis_name(illness[i]).c_str());
+
+//CAT-mgs:
+   mvwprintz(w_speed, line,  1, col, "Cold");
    mvwprintz(w_speed, line, 21, col, (move_adjust > 0 ? "+" : "-"));
    move_adjust = abs(move_adjust);
    mvwprintz(w_speed, line, (move_adjust >= 10 ? 22 : 23), col, "%d%%%%",
              move_adjust);
   }
  }
+
  if (has_trait(PF_QUICK)) {
   pen = int(newmoves * .1);
   mvwprintz(w_speed, line, 1, c_green, "Quick               +%s%d%%%%",
@@ -1869,7 +1873,7 @@ void player::disp_status(WINDOW *w, game *g)
   else if (adj_recoil > 0)
    mvwprintz(w, 0, 34, c_ltgray, "Recoil");
   else
-   mvwprintz(w, 0, 34, c_ltgreen, "BULLS ");
+   mvwprintz(w, 0, 34, c_green,  "++NR++");
  }
 
 //CAT-mgs:
@@ -2240,7 +2244,7 @@ void player::pause(game *g)
 	else
 	{
 	   recoil -= str_cur + skillLevel("gun");
-	   recoil = int(recoil / 1.5);
+	   recoil = int(recoil / 2);
 	}
  }
 

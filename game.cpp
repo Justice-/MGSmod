@@ -252,6 +252,7 @@ void game::start_game()
   for (int j = -15; j <= 15; j++)
    cur_om.seen(levx + i, levy + j, 0) = true;
  }
+
 // Convert the overmap coordinates to submap coordinates
  levx = levx * 2 - 1;
  levy = levy * 2 - 1;
@@ -2691,24 +2692,24 @@ void game::draw()
  oter_id cur_ter = cur_om.ter((levx + int(MAPSIZE / 2)) / 2,
                               (levy + int(MAPSIZE / 2)) / 2, levz);
  std::string tername = oterlist[cur_ter].name;
- if (tername.length() > 14)
-  tername = tername.substr(0, 14);
+ if (tername.length() > 17)
+  tername = tername.substr(0, 17);
  werase(w_location);
  mvwprintz(w_location, 0,  0, oterlist[cur_ter].color, tername.c_str());
 
 
 //CAT: *** vvv
  if(levz < 0)
-  mvwprintz(w_location, 0, 18, c_ltgray, "Underground: %d", levz);
+  mvwprintz(w_location, 0, 19, c_ltgray, "Underground: %d", levz);
  else
  if (levz > 0)
-  mvwprintz(w_location, 0, 18, c_white, "Aboveground: +%d", levz);
+  mvwprintz(w_location, 0, 19, c_white, "Aboveground: +%d", levz);
  else
  {
 	if(weather == WEATHER_SUNNY && turn.is_night())
 		weather= WEATHER_CLEAR;
 
-	mvwprintz(w_location, 0, 18, 
+	mvwprintz(w_location, 0, 19, 
 		weather_data[weather].color, weather_data[weather].name.c_str());
 
 	nc_color col_temp = c_blue;
@@ -3897,16 +3898,17 @@ void game::monmove()
 //CAT-mgs: *** vvv
 void game::sound(int x, int y, int vol, std::string description)
 {
+
 //CAT-mgs: 
-   if(abs(x-u.posx) < 10 && abs(y-u.posy) < 10)
+   if(abs(x-u.posx) < 5 && abs(y-u.posy) < 5)
    {
 	x= u.posx;
 	y= u.posy;
 
-//	vol= vol*2;
+	vol= vol+5;
    }
    else
-      vol= (int)(vol/2); 
+      vol= (int)(vol/3); 
 
 	// First, alert all monsters (that can hear) to the sound
 	 for (int i = 0; i < z.size(); i++) {
@@ -3920,7 +3922,7 @@ void game::sound(int x, int y, int vol, std::string description)
 
 //CAT-mgs: it's getting accumulated?
 	   z[i].wander_to(x, y, volume);
-	   z[i].process_trigger(MTRIG_SOUND, volume);
+	   z[i].process_trigger(MTRIG_SOUND, volume*3);
 	  }
 	 }
 
@@ -5346,13 +5348,19 @@ void game::examine()
  } else if (m.ter(examx, examy) == t_chainfence_v && query_yn("Climb fence?") ||
             m.ter(examx, examy) == t_chainfence_h && query_yn("Climb fence?")) {
    u.moves -= 400;
-  if (one_in(u.dex_cur)) {
+
+  if (one_in(u.dex_cur))
    add_msg("You slip whilst climbing and fall down again");
- } else {
+  else
+  {
    u.moves += u.dex_cur * 10;
    u.posx = examx;
    u.posy = examy;
+
+//CAT-s: hoya!
+	playSound(38);
   }
+
  } else if (m.ter(examx, examy) == t_groundsheet && query_yn("Take down tent?")) {
    u.moves -= 200;
    for (int i = -1; i <= 1; i++)
@@ -7240,6 +7248,8 @@ void game::plfire(bool burst)
  ltar_x= u.posx;
  ltar_y= u.posy;
 
+ if(u.recoil < 30)
+	u.recoil= 30;
  do
  {
 	 SNIPER= false;
@@ -7396,8 +7406,8 @@ void game::plfire(bool burst)
 				x0, y0, x1, y1, mon_targets, passtarget, &u.weapon);
 
 
-//	 draw_ter(); // Recenter our view
 
+//	 draw_ter(); 
 	 wrefresh(w_terrain);
 
 	 if(trajectory.size() == 0) {
@@ -7436,6 +7446,10 @@ void game::plfire(bool burst)
 	   u.practice("gun", 5);
 
 	 fire(u, x, y, trajectory, burst);
+
+
+	monmove();
+	update_stair_monsters();
 
  }while(true);
 }
@@ -8045,7 +8059,7 @@ void game::pldrive(int x, int y) {
  {
 	int mskill= u.skillLevel("mechanics");
 	int eskill= u.skillLevel("electronics");
-	if(mskill < 3 && eskill < 3)
+	if(mskill < 3 || eskill < 3)
 	{
 		playSound(3);
 		add_msg("You need at least skill 3 in mechanics and electronics to hot-wire the vehicle.");
@@ -8125,6 +8139,8 @@ void game::plmove(int x, int y)
 //CAT-s:
 	playSound(10);
  	playMusic(0);
+
+
 
   return;
  }
@@ -8543,7 +8559,7 @@ void game::plmove(int x, int y)
 		std::string junk;
 		m.bash(x, y, 20+u.str_cur, junk);
 
-		add_msg("STR_CUR: %d", u.str_cur);
+//		add_msg("STR_CUR: %d", u.str_cur);
 	}
 
 	if (u.has_disease(DI_BLIND) || u.has_disease(DI_STUNNED))
@@ -8990,6 +9006,7 @@ void game::update_map(int &x, int &y)
 
  int shiftx = 0, shifty = 0;
 
+
  while (x < SEEX * int(MAPSIZE / 2)) {
   x += SEEX;
   shiftx--;
@@ -9007,6 +9024,7 @@ void game::update_map(int &x, int &y)
   shifty++;
  }
 
+
 //CAT-mgs:
  if(!shiftx && !shifty)
 	return;
@@ -9016,31 +9034,37 @@ void game::update_map(int &x, int &y)
  levx += shiftx;
  levy += shifty;
 
+//add_msg("levx: %d, levy: %d", levx, levy);
+
+
  if (levx < 0) {
   levx += OMAPX * 2;
   olevx = -1;
- } else if (levx > OMAPX * 2 - 1) {
+ } else if (levx > (OMAPX*2 - 1)) {
   levx -= OMAPX * 2;
   olevx = 1;
  }
+
  if (levy < 0) {
   levy += OMAPY * 2;
   olevy = -1;
- } else if (levy > OMAPY * 2 - 1) {
+ } else if (levy > (OMAPY*2 - 1)) {
   levy -= OMAPY * 2;
   olevy = 1;
  }
 
- if (olevx != 0 || olevy != 0) {
-  cur_om.save();
-  cur_om = overmap(this, cur_om.pos().x + olevx, cur_om.pos().y + olevy);
+ if(olevx != 0 || olevy != 0)
+ {
+	cur_om.save();
+	cur_om = overmap(this, cur_om.pos().x + olevx, cur_om.pos().y + olevy);
 
-  add_msg("CROSSING REGION BORDER...");
+//CAT-mgs: moved here from below
+//	update_overmap_seen();
+	add_msg("CROSSING REGION BORDER...");
  }
 
-
-  set_adjacent_overmaps();
   despawn_monsters(false, shiftx, shifty);
+  set_adjacent_overmaps();
 
 //CAT-mgs: *** vvv
 //CAT-mgs: no NPCs
@@ -9128,13 +9152,12 @@ void game::update_map(int &x, int &y)
    scent(i, j) = newscent[i][j];
  }
 
-// Update what parts of the world map we can see
+//CAT-mgs: moved above
  update_overmap_seen();
 
 //CAT-g:
 // draw_minimap();
 }
-
 
 
 //CAT-mgs: *** vvv
@@ -9148,6 +9171,7 @@ void game::set_adjacent_overmaps(bool from_scratch)
  if(hori_disp == 0 && vert_disp == 0)
 	return;
 
+
  int diag_posx = cur_om.pos().x + hori_disp;
  int diag_posy = cur_om.pos().y + vert_disp;
 
@@ -9156,25 +9180,24 @@ void game::set_adjacent_overmaps(bool from_scratch)
   delete om_hori;
   om_hori = new overmap(this, diag_posx, cur_om.pos().y);
  }
- else
+
  if(!om_vert || om_vert->pos().x != cur_om.pos().x || om_vert->pos().y != diag_posy || from_scratch)
  {
   delete om_vert;
   om_vert = new overmap(this, cur_om.pos().x, diag_posy);
  }
- else
+
  if(!om_diag || om_diag->pos().x != diag_posx || om_diag->pos().y != diag_posy || from_scratch)
  {
   delete om_diag;
   om_diag = new overmap(this, diag_posx, diag_posy);
  }
 
-
 }
+
 
 void game::update_overmap_seen()
 {
-
  int omx = (levx + int(MAPSIZE / 2)) / 2, omy = (levy + int(MAPSIZE / 2)) / 2;
  int dist = u.overmap_sight_range(light_level());
  cur_om.seen(omx, omy, levz) = true; // We can always see where we're standing
@@ -9184,6 +9207,7 @@ void game::update_overmap_seen()
  bool altered_om_vert = false, altered_om_diag = false, altered_om_hori = false;
  for (int x = omx - dist; x <= omx + dist; x++) {
   for (int y = omy - dist; y <= omy + dist; y++) {
+
    std::vector<point> line = line_to(omx, omy, x, y, 0);
    int sight_points = dist;
    int cost = 0;
@@ -9208,38 +9232,61 @@ void game::update_overmap_seen()
     }
     sight_points -= cost;
    }
-   if (sight_points >= 0) {
-    int tmpx = x, tmpy = y;
-    if (tmpx >= 0 && tmpx < OMAPX && tmpy >= 0 && tmpy < OMAPY)
-     cur_om.seen(tmpx, tmpy, levz) = true;
-    else if ((tmpx < 0 || tmpx >= OMAPX) && (tmpy < 0 || tmpy >= OMAPY)) {
-     if (tmpx < 0) tmpx += OMAPX;
-     else          tmpx -= OMAPX;
-     if (tmpy < 0) tmpy += OMAPY;
-     else          tmpy -= OMAPY;
-     om_diag->seen(tmpx, tmpy, levz) = true;
-     altered_om_diag = true;
-    } else if (tmpx < 0 || tmpx >= OMAPX) {
-     if (tmpx < 0) tmpx += OMAPX;
-     else          tmpx -= OMAPX;
-     om_hori->seen(tmpx, tmpy, levz) = true;
-     altered_om_hori = true;
-    } else if (tmpy < 0 || tmpy >= OMAPY) {
-     if (tmpy < 0) tmpy += OMAPY;
-     else          tmpy -= OMAPY;
-     om_vert->seen(tmpx, tmpy, levz) = true;
-     altered_om_vert = true;
-    }
+
+
+   if (sight_points >= 0)
+   {
+	    int tmpx = x, tmpy = y;
+	    if (tmpx >= 0 && tmpx < OMAPX && tmpy >= 0 && tmpy < OMAPY)
+	     cur_om.seen(tmpx, tmpy, levz) = true;
+	    else
+	    if ((tmpx < 0 || tmpx >= OMAPX) && (tmpy < 0 || tmpy >= OMAPY)) {
+	     if (tmpx < 0) tmpx += OMAPX;
+	     else          tmpx -= OMAPX;
+	     if (tmpy < 0) tmpy += OMAPY;
+	     else          tmpy -= OMAPY;
+	     om_diag->seen(tmpx, tmpy, levz) = true;
+	     altered_om_diag = true;
+	    } else if (tmpx < 0 || tmpx >= OMAPX) {
+	     if (tmpx < 0) tmpx += OMAPX;
+	     else          tmpx -= OMAPX;
+	     om_hori->seen(tmpx, tmpy, levz) = true;
+	     altered_om_hori = true;
+	    } else if (tmpy < 0 || tmpy >= OMAPY) {
+	     if (tmpy < 0) tmpy += OMAPY;
+	     else          tmpy -= OMAPY;
+	     om_vert->seen(tmpx, tmpy, levz) = true;
+	     altered_om_vert = true;
+	    }
    }
+
   }
  }
- if (altered_om_vert)
-  om_vert->save();
- if (altered_om_hori)
-  om_hori->save();
- if (altered_om_diag)
-  om_diag->save();
+
+
+//CAT-mgs:
+ if((omx < 3 || omx > OMAPX+3) && (omy < 3 || omy > OMAPY+3)) 
+ {
+	om_vert->save();
+//	add_msg("SAVE_VERT");
+ }
+
+ if(omx < 3 || omx >= OMAPX+3) 
+ {
+	om_hori->save();
+//	add_msg("SAVE_HORI");
+ }
+ 
+ if(omy < 3 || omy >= OMAPY+3) 
+ {
+	om_diag->save();
+//	add_msg("SAVE_DIAG");
+ }
+
+// add_msg("omx: %d, omy: %d", omx,omy);
 }
+
+
 
 point game::om_location()
 {

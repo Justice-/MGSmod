@@ -112,7 +112,7 @@ class overmap
   std::string prefix;
   std::string name;
 
-  //map_layer layer[OVERMAP_LAYERS];
+//  map_layer layer[OVERMAP_LAYERS];
   map_layer *layer;
 
   oter_id nullret;

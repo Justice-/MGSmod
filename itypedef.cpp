@@ -3351,6 +3351,28 @@ Will you be able to place the arrow right into bull's eye?\n\
 It is not that easy, but once you know how it's done,\n\
 you will have a lot of fun with archery.");
 
+
+
+//CAT-mgs: from DDA.5
+BOOK("comic book",			20,  30,c_pink,		PAPER,	MNULL,
+// VOL WGT DAM HIT	TYPE		LEV REQ FUN INT TIME
+    1,  1, -3,  1,	NULL,	 0,  0,  3,  0,  7, "\
+A super-hero comic.");
+
+BOOK("fantasy novel",		20,  55,c_ltblue,	PAPER,	MNULL,
+    4,  1, -2,  0,	NULL,	 0,  0,  4,  7, 20, "\
+Basic Sword & Sorcery.");
+
+BOOK("mystery novel",		25,  55,c_ltblue,	PAPER,	MNULL,
+    4,  1, -2,  0,	NULL,	 0,  0,  4,  7, 18, "\
+A detective investigates an unusual murder in a secluded location.");
+
+BOOK("horror novel",		18,  55,c_ltblue,	PAPER,	MNULL,
+    4,  1, -2,  0,	NULL,	 0,  0,  1,  7, 18, "\
+Maybe not the best reading material considering the situation.");
+
+
+
 BOOK("romance novel",		30,  55,c_ltblue,	PAPER,	MNULL,
     4,  1, -2,  0,	NULL,	 0,  0,  2,  4, 15, "\
 Drama and mild smut.");

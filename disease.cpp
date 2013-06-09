@@ -1180,32 +1180,32 @@ std::string dis_name(disease dis)
  case DI_COLD_HEAD:
   switch (dis.intensity) {
    case 1: return "Cold head";
-   case 2: return "Cold head!";
+   case 2: return "Very cold head!";
    case 3: return "Freezing head!!";}
  case DI_COLD_TORSO:
   switch (dis.intensity) {
    case 1: return "Cold torso";
-   case 2: return "Cold torso!";
+   case 2: return "Very cold torso!";
    case 3: return "Freezing torso!!";}
  case DI_COLD_ARMS:
   switch (dis.intensity) {
    case 1: return "Cold arms";
-   case 2: return "Cold arms!";
+   case 2: return "Very cold arms!";
    case 3: return "Freezing arms!!";}
  case DI_COLD_HANDS:
   switch (dis.intensity) {
    case 1: return "Cold hands";
-   case 2: return "Cold hands!";
+   case 2: return "Very cold hands!";
    case 3: return "Freezing hands!!";}
  case DI_COLD_LEGS:
   switch (dis.intensity) {
    case 1: return "Cold legs";
-   case 2: return "Cold legs!";
+   case 2: return "Very cold legs!";
    case 3: return "Freezing legs!!";}
  case DI_COLD_FEET:
   switch (dis.intensity) {
    case 1: return "Cold feet";
-   case 2: return "Cold feet!";
+   case 2: return "Very cold feet!";
    case 3: return "Freezing feet!!";}
  case DI_FROSTBITE_HANDS:
   switch (dis.intensity) {
@@ -1222,32 +1222,32 @@ std::string dis_name(disease dis)
  case DI_HOT_HEAD:
   switch (dis.intensity) {
    case 1: return "Hot head";
-   case 2: return "Hot head!";
+   case 2: return "Very hot head!";
    case 3: return "Scorching head!!";}
  case DI_HOT_TORSO:
   switch (dis.intensity) {
    case 1: return "Hot torso";
-   case 2: return "Hot torso!";
+   case 2: return "Very hot torso!";
    case 3: return "Scorching torso!!";}
  case DI_HOT_ARMS:
   switch (dis.intensity) {
    case 1: return "Hot arms";
-   case 2: return "Hot arms!";
+   case 2: return "Very hot arms!";
    case 3: return "Scorching arms!!";}
  case DI_HOT_HANDS:
   switch (dis.intensity) {
    case 1: return "Hot hands";
-   case 2: return "Hot hands!";
+   case 2: return "Very hot hands!";
    case 3: return "Scorching hands!!";}
  case DI_HOT_LEGS:
   switch (dis.intensity) {
    case 1: return "Hot legs";
-   case 2: return "Hot legs!";
+   case 2: return "Very hot legs!";
    case 3: return "Scorching legs!!";}
  case DI_HOT_FEET:
   switch (dis.intensity) {
    case 1: return "Hot feet";
-   case 2: return "Hot feet!";
+   case 2: return "Very hot feet!";
    case 3: return "Scorching feet!!";}
  case DI_BLISTERS_MOUTH: return "Blisters - face";
  case DI_BLISTERS_TORSO: return "Blisters - torso";

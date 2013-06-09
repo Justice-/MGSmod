@@ -49,6 +49,12 @@ enum items_location {
 // Shopkeeps &c
  mi_npc_hacker,
  mi_trader_avoid,
+
+//CAT-mgs: from DDA.5
+mi_fast_food, mi_coffee_shop,
+mi_cubical_office, mi_school, mi_church,
+mi_construction_worker,
+
  num_itloc
 };
 

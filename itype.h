@@ -184,7 +184,15 @@ itm_silencer, itm_grip, itm_barrel_big, itm_barrel_small, itm_barrel_rifled,
 // Books
  itm_mag_porn, itm_mag_tv, itm_mag_news, itm_mag_cars, itm_mag_cooking,
  itm_mag_carpentry,
- itm_mag_guns, itm_mag_archery, itm_novel_romance, itm_novel_spy, itm_novel_scifi,
+ itm_mag_guns, itm_mag_archery, 
+
+
+//CAT-mgs: from DDA.5
+ itm_mag_comic, 
+ itm_novel_fantasy, itm_novel_mystery,  itm_novel_horror,
+
+
+ itm_novel_romance, itm_novel_spy, itm_novel_scifi,
  itm_novel_drama, itm_manual_brawl, itm_manual_knives, itm_manual_mechanics, itm_manual_survival,
  itm_manual_speech, itm_manual_business, itm_manual_first_aid,
  itm_manual_computers, itm_cookbook, itm_manual_electronics,

@@ -139,7 +139,7 @@ std::string monster::name_with_armor()
 }
 
 
-//CAT-g: smalle targeting info window
+//CAT-g: small targeting info window
 void monster::print_info(game *g, WINDOW* w)
 {
 // First line of w is the border; the next two are terrain info, and after that
@@ -372,7 +372,7 @@ monster_attitude monster::attitude(player *u)
 
 //CAT-mgs: make the game easier
 //...connect with character loudness: done
-      effective_anger -= rl_dist(posx, posy, u->posx, u->posy)*3;
+      effective_anger -= rl_dist(posx, posy, u->posx, u->posy)*5;
  }
 
  if(effective_morale < 0)

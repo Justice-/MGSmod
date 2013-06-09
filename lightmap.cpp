@@ -77,18 +77,21 @@ void light_map::generate(game* g, int x, int y, float natural_light, float lumin
    }
 
 
-   if (items.size() == 1 &&
-       items[0].type->id == itm_flashlight_on)
-    apply_light_source(sx, sy, x, y, 20); 
-
 //CAT-g:
-   if(items.size() == 1 &&
-       items[0].type->id == itm_torch_lit)
-    apply_light_source(sx, sy, x, y, 9);
+   if(items.size() > 0)
+   {
+	   if(items[0].type->id == itm_flashlight_on
+			|| items[items.size()-1].type->id == itm_flashlight_on)
+		apply_light_source(sx, sy, x, y, 48); 
 
-   if (items.size() == 1 &&
-       items[0].type->id == itm_candle_lit)
-    apply_light_source(sx, sy, x, y, 4); 
+	   if(items[0].type->id == itm_torch_lit
+			|| items[items.size()-1].type->id == itm_torch_lit)
+		apply_light_source(sx, sy, x, y, 20);
+
+	   if(items[0].type->id == itm_candle_lit
+			|| items[items.size()-1].type->id == itm_candle_lit)
+		apply_light_source(sx, sy, x, y, 9); 
+   }
 
 
    if(terrain == t_lava)
@@ -106,21 +109,21 @@ void light_map::generate(game* g, int x, int y, float natural_light, float lumin
    switch(current_field.type) {
     case fd_fire:
      if (3 == current_field.density)
-      apply_light_source(sx, sy, x, y, 160);
+      apply_light_source(sx, sy, x, y, 90);
      else if (2 == current_field.density)
-      apply_light_source(sx, sy, x, y, 60);
+      apply_light_source(sx, sy, x, y, 48);
      else
-      apply_light_source(sx, sy, x, y, 16);
+      apply_light_source(sx, sy, x, y, 20);
      break;
     case fd_fire_vent:
     case fd_flame_burst:
-     apply_light_source(sx, sy, x, y, 8);
+     apply_light_source(sx, sy, x, y, 9);
      break;
     case fd_electricity:
      if (3 == current_field.density)
       apply_light_source(sx, sy, x, y, 8);
      else if (2 == current_field.density)
-      apply_light_source(sx, sy, x, y, 1);
+      apply_light_source(sx, sy, x, y, 3);
      else
       apply_light_source(sx, sy, x, y, LIGHT_SOURCE_LOCAL);  // kinda a hack as the square will still get marked
      break;
@@ -427,16 +430,25 @@ void light_map::build_outside_cache(map *m, const int x, const int y, const int 
 {
  const ter_id terrain = m->ter(sx, sy);
 
- if( terrain == t_floor || terrain == t_rock_floor || terrain == t_floor_wax ||
-     terrain == t_fema_groundsheet || terrain == t_dirtfloor) {
-  for( int dx = -1; dx <= 1; dx++ ) {
-   for( int dy = -1; dy <= 1; dy++ ) {
-    outside_cache[x + dx][y + dy] = false;
-   }
-  }
- } else if(terrain == t_bed || terrain == t_groundsheet || terrain == t_makeshift_bed) {
-  outside_cache[x][y] = false;
+ if( terrain == t_floor || terrain == t_rock_floor || terrain == t_floor_wax 
+	|| terrain == t_fema_groundsheet || terrain == t_dirtfloor
+	|| terrain == t_elevator || terrain == t_table || terrain == t_chair 
+	|| terrain == t_bench || terrain == t_desk || terrain == t_counter )
+ {
+
+	for( int dx = -1; dx <= 1; dx++ )
+	{
+	   for( int dy = -1; dy <= 1; dy++ )
+	    outside_cache[x + dx][y + dy] = false;
+	}
  }
+
+/*
+ else
+ if(terrain == t_bed || terrain == t_groundsheet || terrain == t_makeshift_bed)
+  outside_cache[x][y] = false;
+*/
+ 
 }
 
 // We only do this once now so we don't make 100k calls to is_outside for each

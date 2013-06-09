@@ -5,7 +5,9 @@
 //#define VC_EXTRALEAN
 #include <windows.h>
 #include <stdio.h>
-typedef int	chtype;
+
+//CAT-mgs: uh, should be char
+typedef int chtype;
 typedef unsigned short	attr_t;
 typedef unsigned int u_int32_t;
 
@@ -47,6 +49,8 @@ char *FG;
 char *BG;
 //cursechar chars [80];
 } curseline;
+
+
 //The curses window struct
 typedef struct {
   int x;//left side of window

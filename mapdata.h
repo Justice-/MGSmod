@@ -160,6 +160,11 @@ t_rock_red, t_rock_green, t_rock_blue, t_floor_red, t_floor_green, t_floor_blue,
 //CAT-mgs: aboveground
  t_air,
 
+//CAT-mgs: from DDA.5
+t_indoor_plant,
+t_window_stained_green, t_window_stained_red, t_window_stained_blue,
+
+
 num_terrain_types
 };
 
@@ -357,7 +362,7 @@ const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
 {"window frame",     '0', c_ltcyan,  8, tr_null,
 	mfb(transparent)|mfb(sharp)|mfb(flammable)|mfb(noitem)|
         mfb(supports_roof)},
-{"boarded up window",'#', c_brown,   0, tr_null,
+{"boarded up window",'"', c_brown,   0, tr_null,
 	mfb(bashable)|mfb(flammable)|mfb(noitem)|mfb(supports_roof)},
 {"solid rock",       '#', c_white,   0, tr_null,
 	mfb(noitem)|mfb(supports_roof)},
@@ -560,7 +565,7 @@ const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
 {"powerless controls",'6',c_ltgray,  0, tr_null,
 	mfb(noitem)},
 {"elevator",         '.', c_magenta, 2, tr_null,
-	0},
+	mfb(transparent)},
 {"dark pedestal",    '&', c_dkgray,  0, tr_null,
 	mfb(transparent)},
 {"light pedestal",   '&', c_white,   0, tr_null,
@@ -588,9 +593,23 @@ const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
 {"mutated poppy flower", 'f', c_red, 3, tr_null,
         mfb(transparent)},
 
+
 //CAT-mgs:
 {"bunch of air",      '.', c_ltcyan,   2, tr_airhole,
-	mfb(transparent)}
+	mfb(transparent)},
+
+
+//CAT-mgs: from DDA.5
+{"indoor plant",            '^', c_green,   4,   tr_null,
+    mfb(container)|mfb(collapses)|mfb(bashable)|mfb(place_item)}, 
+
+{"high stained glass window",'"', c_ltgreen,   0, tr_null,
+    mfb(transparent)|mfb(noitem)|mfb(supports_roof)},
+{"high stained glass window",'"', c_ltred,   0, tr_null,
+    mfb(transparent)|mfb(noitem)|mfb(supports_roof)},
+{"high stained glass window",'"', c_ltblue,   0, tr_null,
+    mfb(transparent)|mfb(noitem)|mfb(supports_roof)}, 
+
 };
 
 enum map_extra {

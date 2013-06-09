@@ -287,12 +287,16 @@ void stopMusic(int delay)
 
 void playSound(int ID) 
 {
-//CAT:   || ID== 27 || ID== 40
+//CAT:   || ID== 67 || ID== 72
 //...stack in a single channel?
    if(ID == 0) 
 	currentChannel= 6;	
    else
+   if(ID > 67 && ID < 72)	
+	currentChannel= 5;
+   else
 	currentChannel= -1;
+
 
    Mix_Volume(-1, 120);
    Mix_PlayChannel(currentChannel, sound[ID], 0);
@@ -471,6 +475,8 @@ inline void FillRectDIB(int x, int y, int width, int height, unsigned char color
 void DrawWindow(WINDOW *win)
 {
     int i,j,drawx,drawy;
+//CAT-mgs: for unicode chars
+//    wchar_t tmp;
     char tmp;
     for (j=0; j<win->height; j++){
         if (win->line[j].touched)
@@ -479,18 +485,23 @@ void DrawWindow(WINDOW *win)
                 drawx=((win->x+i)*fontwidth);
                 drawy=((win->y+j)*fontheight);//-j;
                 if (((drawx+fontwidth)<=WindowWidth) && ((drawy+fontheight)<=WindowHeight)){
+
                 tmp = win->line[j].chars[i];
                 int FG = win->line[j].FG[i];
                 int BG = win->line[j].BG[i];
                 FillRectDIB(drawx,drawy,fontwidth,fontheight,BG);
 
-                if ( tmp > 0){
-                //if (tmp==95){//If your font doesnt draw underscores..uncomment
-                //        HorzLineDIB(drawx,drawy+fontheight-2,drawx+fontwidth,1,FG);
-                //    } else { // all the wa to here
-                    int color = RGB(windowsPalette[FG].rgbRed,windowsPalette[FG].rgbGreen,windowsPalette[FG].rgbBlue);
-                    SetTextColor(backbuffer,color);
-                    ExtTextOut(backbuffer,drawx,drawy,0,NULL,&tmp,1,NULL);
+                if(tmp > 0)
+		    {
+			int color = RGB(windowsPalette[FG].rgbRed,windowsPalette[FG].rgbGreen,windowsPalette[FG].rgbBlue);
+
+			SetTextColor(backbuffer,color);
+//                    ExtTextOut(backbuffer,drawx,drawy,0,NULL,&tmp,1,NULL);
+			TextOut(backbuffer,drawx,drawy,&tmp,1);
+
+//CAT-msg: for unicode chars
+//			ExtTextOutW(backbuffer,drawx,drawy,0,NULL,&tmp,1,NULL);
+
                 //    }     //and this line too.
                 } else if (  tmp < 0 ) {
                     switch (tmp) {
@@ -622,7 +633,8 @@ fin.open("data\\FONTDATA");
     backbit = CreateDIBSection(0, &bmi, DIB_RGB_COLORS, (void**)&dcbits, NULL, 0);
     DeleteObject(SelectObject(backbuffer, backbit));//load the buffer into DC
 
- int nResults = AddFontResourceExA("data\\termfont",FR_PRIVATE,NULL);
+/*
+   int nResults = AddFontResourceExA("data\\termfont",FR_PRIVATE,NULL);
    if (nResults>0){
     font = CreateFont(fontheight, fontwidth, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
                       ANSI_CHARSET, OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,
@@ -635,6 +647,14 @@ fin.open("data\\FONTDATA");
                       ANSI_CHARSET, OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,
                       PROOF_QUALITY, FF_MODERN, "FixedSys");   //Create our font
    }
+
+*/
+
+	font = CreateFont(fontheight, fontwidth, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+                      ANSI_CHARSET, OUT_RASTER_PRECIS, CLIP_DEFAULT_PRECIS,
+                      NONANTIALIASED_QUALITY, FF_MODERN, typeface_c);   //Create our font
+
+
     //FixedSys will be user-changable at some point in time??
     SetBkMode(backbuffer, TRANSPARENT);//Transparent font backgrounds
     SelectObject(backbuffer, font);//Load our font into the DC
@@ -1106,20 +1126,17 @@ int waddch(WINDOW *win, const chtype ch)
         }
 
 
+
 int curx=win->cursorx;
 int cury=win->cursory;
 
-//if (win2 > -1){
-   win->line[cury].chars[curx]=charcode;
+   win->line[cury].chars[curx]= charcode;
    win->line[cury].FG[curx]=win->FG;
    win->line[cury].BG[curx]=win->BG;
 
-
-    win->draw=true;
-    addedchar(win);
-    return 1;
-  //  else{
-  //  win2=win2+1;
+   win->draw=true;
+   addedchar(win);
+   return 1;
 
 };
 
