@@ -1255,7 +1255,7 @@ std::vector<mon_id> defense_game::pick_monster_wave(game *g)
   valid.push_back("GROUP_NETHER");
 
  if (valid.empty())
-  debugmsg("Couldn't find a valid monster group for defense!");
+  g->add_msg("Couldn't find a valid monster group for defense!");
  else
   ret = MonsterGroupManager::GetMonstersFromGroup(valid[rng(0, valid.size() - 1)]);
 

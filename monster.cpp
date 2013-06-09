@@ -113,10 +113,9 @@ void monster::spawn(int x, int y)
 
 std::string monster::name()
 {
- if (!type) {
-  debugmsg ("monster::name empty type!");
+ if(!type)
   return std::string();
- }
+
  if (unique_name != "")
   return type->name + ": " + unique_name;
  return type->name;
@@ -310,8 +309,7 @@ void monster::debug(player &u)
 	return;	
 
  char buff[2];
- debugmsg("%s has %d steps planned.", name().c_str(), plans.size());
- debugmsg("%s Moves %d Speed %d HP %d",name().c_str(), moves, speed, hp);
+
  for (int i = 0; i < plans.size(); i++) {
   sprintf(buff, "%d", i);
   if (i < 10) mvaddch(plans[i].y - SEEY + u.posy, plans[i].x - SEEX + u.posx,
@@ -335,9 +333,10 @@ bool monster::is_fleeing(player &u)
 {
  if (has_effect(ME_RUN))
   return true;
+
  monster_attitude att = attitude(&u);
- return (att == MATT_FLEE ||
-         (att == MATT_FOLLOW && rl_dist(posx, posy, u.posx, u.posy) <= 4));
+ return (att == MATT_FLEE || 
+         (att == MATT_FOLLOW && rl_dist(posx, posy, u.posx, u.posy) < 5));
 }
 
 //CAT-mgs: ***
@@ -374,11 +373,21 @@ monster_attitude monster::attitude(player *u)
 	}
 
 
-//CAT-mgs: make the game easier
-//...connect with character loudness: done
-      effective_anger -= int(rl_dist(posx, posy, u->posx, u->posy)*3);
-	
+//CAT-mgs: get closer to monsters without them noticing you
+//... perhaps better to adjust kist morale?
+	int dst= rl_dist(posx, posy, u->posx, u->posy);
+	if(dst > 7)
+	      effective_anger-= int((type->hp-hp) + dst*3);
+
+	if(anger > 10 && hp > type->hp*0.3 
+			&& morale < 0 && one_in(9))
+		morale++;
+	else	
+	if(hp < type->hp*0.3) 
+		anger-= (type->hp - hp)/2;
+
  }
+
 
  if(effective_morale < 0)
  {
@@ -403,7 +412,7 @@ void monster::process_triggers(game *g)
  anger += trigger_sum(g, &(type->anger));
  anger -= trigger_sum(g, &(type->placate));
  if (morale < 0) {
-  if (morale < type->morale && one_in(20))
+  if (morale < type->morale && one_in(10))
   morale++;
  } else
   morale -= trigger_sum(g, &(type->fear));
@@ -644,19 +653,19 @@ int monster::fall_damage()
  return 0;
 }
 
+
 void monster::die(game *g)
 {
- if (!dead)
+
+// g->add_msg("Monster die");
+
+ if(!dead)
   dead = true;
 
-//CAT-s: monsterDie sound
+//CAT-s: monsterDie
 	playSound(96);
-//CAT-s: actionDrop sound
+//CAT-s: actionDrop
 	playSound(5);
-
-//CAT-s: monster sound, play or not?
-// not while rabbits are monsters
-//			playSound(rng(13,22));
 
 
 // Drop goodies
@@ -666,7 +675,7 @@ void monster::die(game *g)
  std::vector<items_location_and_chance> it = g->monitems[type->id];
  std::vector<itype_id> mapit;
  if (type->item_chance != 0 && it.size() == 0)
-  debugmsg("Type %s has item_chance %d but no items assigned!",
+  g->add_msg("Type %s has item_chance %d but no items assigned!",
            type->name.c_str(), type->item_chance);
  else {
   for (int i = 0; i < it.size(); i++)
@@ -793,14 +802,10 @@ void monster::process_effects(game *g)
    break;
 
   }
-  if (effects[i].duration > 0) {
+  if (effects[i].duration > 0)
    effects[i].duration--;
-   if (g->debugmon)
-    debugmsg("Duration %d", effects[i].duration);
-  }
+
   if (effects[i].duration == 0) {
-   if (g->debugmon)
-    debugmsg("Deleting");
    effects.erase(effects.begin() + i);
    i--;
   }

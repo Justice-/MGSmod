@@ -1100,7 +1100,7 @@ bool npc::wield(game *g, int index)
  if (index < 0) { // Wielding a style
   index = 0 - index - 1;
   if (index >= styles.size()) {
-   debugmsg("npc::wield(%d) [styles.size() = %d]", index, styles.size());
+   g->add_msg("npc::wield(%d) [styles.size() = %d]", index, styles.size());
    return false;
   }
   if (volume_carried() + weapon.volume() <= volume_capacity()) {
@@ -1117,7 +1117,7 @@ bool npc::wield(game *g, int index)
  }
 
  if (index >= inv.size()) {
-  debugmsg("npc::wield(%d) [inv.size() = %d]", index, inv.size());
+  g->add_msg("npc::wield(%d) [inv.size() = %d]", index, inv.size());
   return false;
  }
  if (volume_carried() + weapon.volume() <= volume_capacity()) {
@@ -1781,9 +1781,10 @@ void npc::told_to_help(game *g)
 void npc::told_to_wait(game *g)
 {
  if (!is_following()) {
-  debugmsg("%s told to wait, but isn't following", name.c_str());
+  g->add_msg("%s told to wait, but isn't following", name.c_str());
   return;
  }
+
  if (5 + op_of_u.value + op_of_u.trust + personality.bravery * 2 >
      danger_assessment(g)) {
   say(g, "Alright, I'll wait here.");
@@ -1800,7 +1801,7 @@ void npc::told_to_wait(game *g)
 void npc::told_to_leave(game *g)
 {
  if (!is_following()) {
-  debugmsg("%s told to leave, but isn't following", name.c_str());
+  g->add_msg("%s told to leave, but isn't following", name.c_str());
   return;
  }
  if (danger_assessment(g) - personality.bravery > op_of_u.value) {

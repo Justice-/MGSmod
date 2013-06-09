@@ -1,20 +1,18 @@
 #include "game.h"
 #include "input.h"
 #include "keypress.h"
-#include "debug.h"
 #include "mapbuffer.h"
 #include "cursesdef.h"
 
 #include <sys/stat.h>
 #include <dirent.h>
 
-#define dbg(x) dout((DebugLevel)(x),D_GAME) << __FILE__ << ":" << __LINE__ << ": "
 
 void game::print_menu(WINDOW* w_open, int iSel, const int iMenuOffsetX, int iMenuOffsetY, bool bShowDDA)
 {
     werase(w_open);
 
-    mvwprintz(w_open, 23, 4, c_ltblue, "Cataclysm: Metal Gear Solid (rev.41) *** Forum: www.cataclysmdda.com/smf");
+    mvwprintz(w_open, 23, 4, c_ltblue, "Cataclysm: Metal Gear Solid (rev.44) *** Forum: www.cataclysmdda.com/smf");
 
     int iLine = 0;
     const int iOffsetX1 = 3;
@@ -106,8 +104,6 @@ bool game::opening_screen()
   dir = opendir("save");
  }
  if (!dir) {
-  dbg(D_ERROR) << "game:opening_screen: Unable to make save directory.";
-  debugmsg("Could not make './save' directory");
   endwin();
   exit(1);
  }

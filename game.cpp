@@ -10,11 +10,9 @@
 #include "veh_interact.h"
 #include "options.h"
 #include "mapbuffer.h"
-#include "debug.h"
 #include "bodypart.h"
 #include "map.h"
 #include "output.h"
-
 #include <map>
 #include <algorithm>
 #include <string>
@@ -24,15 +22,12 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>
-#include "debug.h"
 
 #if (defined _WIN32 || defined __WIN32__)
 #include <windows.h>
 #include <tchar.h>
 #endif
 
-#define MAX_MONSTERS_MOVING 40 // Efficiency!
-#define dbg(x) dout((DebugLevel)(x),D_GAME) << __FILE__ << ":" << __LINE__ << ": "
 
 //CAT-s:
 int closeMonster= 99;
@@ -58,7 +53,7 @@ game::game() :
  om_diag(NULL),
  gamemode(NULL)
 {
- dout() << "Game initialized.";
+// dout() << "Game initialized.";
 // Gee, it sure is init-y around here!
  init_itypes();	      // Set up item types                (SEE itypedef.cpp)
  init_mtypes();	      // Set up monster types             (SEE mtypedef.cpp)
@@ -98,17 +93,32 @@ void game::init_ui(){
     clear();	// Clear the screen
     intro();	// Print an intro screen, make sure we're at least 80x25
 
+
     #if (defined _WIN32 || defined __WIN32__)
+
+int viewX= 12;
+int viewY= 12;
+/*
         TERMX = 55 + (OPTIONS[OPT_VIEWPORT_X] * 2 + 1);
         TERMY = OPTIONS[OPT_VIEWPORT_Y] * 2 + 1;
         VIEWX = (OPTIONS[OPT_VIEWPORT_X] > 60) ? 60 : OPTIONS[OPT_VIEWPORT_X];
         VIEWY = (OPTIONS[OPT_VIEWPORT_Y] > 60) ? 60 : OPTIONS[OPT_VIEWPORT_Y];
         VIEW_OFFSET_X = (OPTIONS[OPT_VIEWPORT_X] > 60) ? OPTIONS[OPT_VIEWPORT_X]-60 : 0;
         VIEW_OFFSET_Y = (OPTIONS[OPT_VIEWPORT_Y] > 60) ? OPTIONS[OPT_VIEWPORT_Y]-60 : 0;
+*/
+        TERMX = 55 + (viewX * 2 + 1);
+        TERMY = viewY * 2 + 1;
+        VIEWX = (viewX > 60) ? 60 : viewX;
+        VIEWY = (viewY > 60) ? 60 : viewY;
+        VIEW_OFFSET_X = (viewX > 60) ? viewX-60 : 0;
+        VIEW_OFFSET_Y = (viewY > 60) ? viewY-60 : 0;
+
+
         TERRAIN_WINDOW_WIDTH = (VIEWX * 2) + 1;
         TERRAIN_WINDOW_HEIGHT = (VIEWY * 2) + 1;
     #else
         getmaxyx(stdscr, TERMY, TERMX);
+
 
         //make sure TERRAIN_WINDOW_WIDTH and TERRAIN_WINDOW_HEIGHT are uneven
         if (TERMX%2 == 1) {
@@ -1454,7 +1464,7 @@ bool game::handle_action()
   case ACTION_FIRE_BURST:
 //CAT-mgs: it's now runJump or Kick
 	playSound(1);
-	runJump();
+	runJump(false);
 
 /*
    plfire(true);
@@ -2348,11 +2358,15 @@ void game::mondebug()
  int tc;
  for (int i = 0; i < z.size(); i++) {
   z[i].debug(u);
+
+/*
   if (z[i].has_flag(MF_SEES) &&
       m.sees(z[i].posx, z[i].posy, u.posx, u.posy, -1, tc))
    debugmsg("The %s can see you.", z[i].name().c_str());
   else
    debugmsg("The %s can't see you...", z[i].name().c_str());
+*/
+
  }
 }
 
@@ -3333,7 +3347,6 @@ unsigned char game::light_level()
  if (levz >= 0)	
  {
 	ret = turn.sunlight();
-	ret += weather_data[weather].light_modifier;
 	ret -= weather_data[weather].sight_penalty;
  }
 
@@ -3368,14 +3381,17 @@ unsigned char game::light_level()
  if (ret < 8 && event_queued(EVENT_ARTIFACT_LIGHT))
   ret = 8;
  else
- if (ret < 6 && u.has_amount(itm_torch_lit, 1) || ret < 6 && u.has_amount(itm_pda_flashlight, 1))
+ if(ret < 7 && u.has_amount(itm_torch_lit, 1)) 
+  ret = 7;
+ else
+ if(ret < 6 && u.has_amount(itm_pda_flashlight, 1)) 
   ret = 6;
+ else
+ if(ret < 5 && u.has_amount(itm_candle_lit, 1))
+  ret = 5;
  else
  if (ret < 4 && u.has_artifact_with(AEP_GLOW))
   ret = 4;
- else
- if (ret < 3 && u.has_amount(itm_candle_lit, 1))
-  ret = 3;
  else
  if (ret < 1)
   ret = 1;
@@ -3385,6 +3401,7 @@ unsigned char game::light_level()
 
  return ret;
 }
+
 
 void game::reset_light_level()
 {
@@ -3841,10 +3858,17 @@ void game::mon_info()
 
 }
 
+
 void game::cleanup_dead()
 {
  for (int i = 0; i < z.size(); i++) {
-  if (z[i].dead || z[i].hp <= 0) {
+  if(z[i].dead || z[i].hp <= 0) {
+   
+   if(!z[i].dead)
+	z[i].die(this);
+
+//   add_msg("Erase monster");
+
    z.erase(z.begin() + i);
    i--;
   }
@@ -3908,8 +3932,12 @@ void game::monmove()
 
 		if(z[i].hurt(0))
 		{	// Maybe we died...
-			kill_mon(i, false);
-			z[i].dead = true;
+			if(z[i].has_effect(ME_ONFIRE))
+				kill_mon(i, true);
+			else
+				kill_mon(i, false);
+
+//			z[i].dead = true;
 		}
 		else
 		{
@@ -4150,7 +4178,7 @@ void game::explosion(int x, int y, int power, int shrapnel, bool fire)
     if (z[mon_hit].hp < 0 - 1.5 * z[mon_hit].type->hp)
      explode_mon(mon_hit); // Explode them if it was big overkill
     else
-     kill_mon(mon_hit); // TODO: player's fault?
+     kill_mon(mon_hit, true); // TODO: player's fault?
 
     int vpart;
     vehicle *veh = m.veh_at(i, j, vpart);
@@ -4266,7 +4294,7 @@ void game::explosion(int x, int y, int power, int shrapnel, bool fire)
    if (mon_at(tx, ty) != -1) {
     dam -= z[mon_at(tx, ty)].armor_cut();
     if (z[mon_at(tx, ty)].hurt(dam))
-     kill_mon(mon_at(tx, ty));
+     kill_mon(mon_at(tx, ty), true);
    } else if (npc_at(tx, ty) != -1) {
     body_part hit = random_body_part();
     if (hit == bp_eyes || hit == bp_mouth || hit == bp_head)
@@ -4464,7 +4492,7 @@ void game::emp_blast(int x, int y)
    add_msg("The EMP blast fries the %s!", z[mondex].name().c_str());
    int dam = dice(10, 10);
    if (z[mondex].hurt(dam))
-    kill_mon(mondex); // TODO: Player's fault?
+    kill_mon(mondex, true); // TODO: Player's fault?
    else if (one_in(6))
     z[mondex].make_friendly();
   } else
@@ -4533,31 +4561,60 @@ bool game::is_in_sunlight(int x, int y)
          (weather == WEATHER_CLEAR || weather == WEATHER_SUNNY));
 }
 
+
+
+int cat_lastTurn= 0;
+int cat_killBonus= 0;
 void game::kill_mon(int index, bool u_did_it)
 {
- if (index < 0 || index >= z.size()) {
-/*
-  dbg(D_ERROR) << "game:kill_mon: Tried to kill monster " << index
-               << "! (" << z.size() << " in play)";
-  debugmsg("Tried to kill monster %d! (%d in play)", index, z.size());
-*/
-  return;
- }
- if (!z[index].dead) {
-  z[index].dead = true;
-  if (u_did_it) {
-   if (z[index].has_flag(MF_GUILT)) {
-    mdeath tmpdeath;
-    tmpdeath.guilt(this, &(z[index]));
-   }
-   if (z[index].type->species != species_hallu)
-    kills[z[index].type->id]++;	// Increment our kill counter
+
+  if(index < 0 || index >= z.size())
+  {
+	add_msg("Tried to kill monster %d! (%d in play)", index, z.size());
+	return;
   }
+
+  if (u_did_it)
+  {
+	add_msg("You killed...");
+	if (z[index].has_flag(MF_GUILT))
+	{
+		mdeath tmpdeath;
+		tmpdeath.guilt(this, &(z[index]));
+		cat_killBonus= 0;
+	}
+	else
+	{
+		if(cat_lastTurn > 10)
+		{
+			int diff= int(turn) - cat_lastTurn;
+			if(diff >= 0 && diff < 3 && cat_killBonus < 10)
+				cat_killBonus++;
+			else
+				cat_killBonus= 1;
+
+			if(cat_killBonus > 1)
+			{
+				playSound(6); //actionUse
+				u.add_morale(MORALE_FEELING_GOOD, z[index].type->size*cat_killBonus, 200);
+				add_msg("You're glad those monsters are dead (x%d).", cat_killBonus);  
+			}
+		}
+
+		cat_lastTurn= int(turn);
+	}
+
+	if(z[index].type->species != species_hallu)
+		kills[z[index].type->id]++;	// Increment our kill counter
+  }
+
+//CAT-mgs: doesn't monster::die drop items already?
   for (int i = 0; i < z[index].inv.size(); i++)
-   m.add_item(z[index].posx, z[index].posy, z[index].inv[i]);
+	m.add_item(z[index].posx, z[index].posy, z[index].inv[i]);
+
   z[index].die(this);
- }
 }
+
 
 void game::explode_mon(int index)
 {
@@ -5804,10 +5861,17 @@ shape, but with long, twisted, distended limbs.");
 
 
 
+
 //CAT-mgs: *** vvv
-void game::runJump()
+void game::runJump(bool just_kick)
 {
- if(query_yn("Y: Kick, N: Jump"))
+
+ bool cat_toggle= false;
+ 
+ if(!just_kick)
+	cat_toggle= query_yn("Y: Kick, N: Jump");
+
+ if(cat_toggle || just_kick)
  {
 
 //CAT-mgs: KICK ********************************* vvv
@@ -5828,10 +5892,12 @@ void game::runJump()
    int x = dirx + u.posx;
    int y = diry + u.posy;
 
-//CAT-mgs: any furnoture to kick?
+//CAT-mgs: any furniture to kick?
    int required_str = 0;
-   int mle= u.str_cur + rng(5+int(u.skillLevel("melee")/2), 10+u.skillLevel("melee"));
-
+   int mle= u.str_cur + rng(7+int(u.skillLevel("melee")/2), 9+u.skillLevel("melee"));
+   if(mle > 40)
+	mle= 40;
+  
    switch(m.ter(x, y))
    {
 	  case t_fridge:
@@ -5847,6 +5913,8 @@ void game::runJump()
 	  case t_chair:
 	  case t_armchair:
 	  case t_bench:
+	  case t_table:
+	  case t_desk:
 	   required_str = 8;
 	   break;
    }
@@ -5889,6 +5957,9 @@ void game::runJump()
 	add_msg("You kick it with %d points of power!", mle);
 	fling_player_or_monster(0, &z[mi], angle-90, mle);
 
+	if(mle > 25 && !one_in(1+int(u.skillLevel("melee")/2)))
+		z[mi].add_effect(ME_STUNNED, int(1+int(u.skillLevel("melee")/2)));
+
 //CAT-s: hoya & noiseWhack
 	playSound(38);
 	playSound(94);
@@ -5913,13 +5984,13 @@ void game::runJump()
    {
 //CAt-s: punchMiss
 	playSound(47);
+
 	std::string junk;
-	
-	m.bash(x, y, int(mle*1.4), junk);
+	m.bash(x, y, int(mle*1.5), junk);
 //	add_msg("You kick emty air.");
    }
 
-   u.moves -= 40;
+   u.moves-= 140;
 return;
 
  }
@@ -6078,6 +6149,7 @@ return;
 //   add_msg("The sky starts to dim.");
 //   add_event(EVENT_DIM, int(turn) + 50);
 }
+
 
 
 //Shift player by one tile, look_around(), then restore previous position.
@@ -8034,19 +8106,27 @@ void game::unload(char chInput)
 
 void game::unload()
 {
-//CAT-mgs: from DDA.5
-// if( !u.weapon.is_gun() && u.weapon.contents.size() == 0 
-//	&& (!u.weapon.is_tool() || u.weapon.ammo_type() == AT_NULL 
-//	|| u.weapon.has_flag(IF_NO_UNLOAD)) )
+//CAT-mgs: from DDA.5 
+ if ( u.weapon.has_flag(IF_NO_UNLOAD)
+		|| (!u.weapon.is_gun() && u.weapon.contents.size() == 0 
+		&& (!u.weapon.is_tool() || u.weapon.ammo_type() == AT_NULL)) )
+ {
+	add_msg("You can't unload a %s!", u.weapon.tname(this).c_str());
+	return;
+ }
 
- if( (u.weapon.ammo_type() == AT_NULL || u.weapon.has_flag(IF_NO_UNLOAD)) 
-	|| (!u.weapon.is_gun() && u.weapon.contents.size() == 0  && !u.weapon.is_tool()) )
 
+/*
+ if( !u.weapon.is_gun() && u.weapon.contents.size() == 0 
+	&& (!u.weapon.is_tool() || u.weapon.ammo_type() == AT_NULL 
+	|| u.weapon.has_flag(IF_NO_UNLOAD)) )
  {
 
 	add_msg("You can't unload a %s!", u.weapon.tname(this).c_str());
 	return;
  }
+*/
+
 
  int spare_mag = -1;
  int has_m203 = -1;
@@ -8579,22 +8659,25 @@ void game::plmove(int x, int y)
    }
   }
 
+
+//CAT-mgs:
+  static ter_id last_ter;
+
   if ((!u.has_trait(PF_PARKOUR) && m.move_cost(x, y) > 2) ||
       ( u.has_trait(PF_PARKOUR) && m.move_cost(x, y) > 4    ))
   {
+
    if (veh)
    {
 	add_msg("Moving past this %s is slow!", veh->part_info(vpart).name);
 
 //CAT-s: say "Hoya!"
 //	playSound(38);
-
 	playSound(55); //step
    }
    else
    {
-	add_msg("Moving past this %s is slow!", m.tername(x, y).c_str());
-	
+
 //CAT-s: say "Hoya!" or Splash!
 	if(m.ter(x,y) == t_water_sh || m.ter(x,y) == t_sewage)
 	{
@@ -8602,9 +8685,23 @@ void game::plmove(int x, int y)
 			playSound(27); //splash1.wav
 	}
 	else
-	   playSound(38); //Hoya!
+	{
+		if(last_ter != m.ter(x,y) )
+		{
+		   if( !query_yn("Really step up on this %s?", m.tername(x, y).c_str()) )
+			return;
+		}
+
+		playSound(38); //Hoya!
+	}
+
+	add_msg("Moving past this %s is slow!", m.tername(x, y).c_str());
+
    }
   }
+
+  last_ter= m.ter(x,y);
+
 
   if (m.has_flag(rough, x, y) && (!u.in_vehicle)) {
    if (one_in(5) && u.armor_bash(bp_feet) < rng(2, 5)) {
@@ -9361,9 +9458,7 @@ void game::update_map(int &x, int &y)
     temp.posy = SEEY * 2 * (temp.mapy - levy) + rng(0 - SEEY, SEEY);
 
    } else {
-    if (debugmon)
-     debugmsg("Static NPC fine location %d:%d (%d:%d)", temp.posx, temp.posy,
-              temp.posx + dx * SEEX, temp.posy + dy * SEEY);
+
     temp.posx += dx * SEEX;
     temp.posy += dy * SEEY;
    }

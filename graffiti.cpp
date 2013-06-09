@@ -13,7 +13,7 @@ graffiti::graffiti(std::string newstr)
 
 graffiti::~graffiti()
 {
-// delete contents;
+//  delete this->contents;
 }
 
 graffiti graffiti::operator=(graffiti rhs)

@@ -16,7 +16,7 @@ void mission_start::infect_npc(game *g, mission *miss)
 {
  npc *p = g->find_npc(miss->npc_id);
  if (p == NULL) {
-  debugmsg("mission_start::infect_npc() couldn't find an NPC!");
+  g->add_msg("mission_start::infect_npc() couldn't find an NPC!");
   return;
  }
  p->add_disease(DI_INFECTION, -1, g);
@@ -34,7 +34,7 @@ void mission_start::place_dog(game *g, mission *miss)
  point house = g->cur_om.random_house_in_city(city_id);
  npc* dev = g->find_npc(miss->npc_id);
  if (dev == NULL) {
-  debugmsg("Couldn't find NPC! %d", miss->npc_id);
+  g->add_msg("Couldn't find NPC! %d", miss->npc_id);
   return;
  }
  g->u.i_add( item(g->itypes[itm_dog_whistle], 0) );
@@ -75,7 +75,7 @@ void mission_start::place_npc_software(game *g, mission *miss)
 {
  npc* dev = g->find_npc(miss->npc_id);
  if (dev == NULL) {
-  debugmsg("Couldn't find NPC! %d", miss->npc_id);
+  g->add_msg("Couldn't find NPC! %d", miss->npc_id);
   return;
  }
  g->u.i_add( item(g->itypes[itm_usb_drive], 0) );

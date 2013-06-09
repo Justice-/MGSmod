@@ -243,8 +243,7 @@ void item::put_in(item payload)
 
 std::string item::save_info()
 {
- if (type == NULL)
-  debugmsg("Tried to save an item with NULL type!");
+
  int ammotmp = 0;
 /* TODO: This causes a segfault sometimes, even though we check to make sure
  * curammo isn't NULL.  The crashes seem to occur most frequently when saving an
@@ -1612,10 +1611,10 @@ int item::pick_reload_ammo(player &u, bool interactive)
  if( is_null() )
   return false;
 
- if (!type->is_gun() && !type->is_tool()) {
-  debugmsg("RELOADING NON-GUN NON-TOOL");
+ if (!type->is_gun() && !type->is_tool())
   return false;
- }
+
+
  int has_spare_mag = has_gunmod (itm_spare_mag);
 
  std::vector<int> am;	// List of indicies of valid ammo
@@ -1774,11 +1773,8 @@ bool item::reload(player &u, int index)
       reload_target->curammo->id != ammo_to_use->typeId())
    return false;
   if (reload_target->is_gun() || reload_target->is_gunmod()) {
-   if (!ammo_to_use->is_ammo()) {
-    debugmsg("Tried to reload %s with %s!", tname().c_str(),
-             ammo_to_use->tname().c_str());
+   if (!ammo_to_use->is_ammo())
     return false;
-   }
    reload_target->curammo = dynamic_cast<it_ammo*>((ammo_to_use->type));
   }
   if (single_load || max_load == 1) {	// Only insert one cartridge!

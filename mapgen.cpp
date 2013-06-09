@@ -5,7 +5,6 @@
 #include "game.h"
 #include "rng.h"
 #include "line.h"
-#include "debug.h"
 #include "options.h"
 #include "mapgenformat.h"
 
@@ -13,7 +12,6 @@
 #define sgn(x) (((x) < 0) ? -1 : 1)
 #endif
 
-#define dbg(x) dout((DebugLevel)(x),D_MAP_GEN) << __FILE__ << ":" << __LINE__ << ": "
 
 ter_id grass_or_dirt()
 {
@@ -115,7 +113,6 @@ void map::generate(game *g, overmap *om, const int x, const int y, const int z, 
  int overx = x / 2;
  int overy = y / 2;
  if ( x >= OMAPX * 2 || x < 0 || y >= OMAPY * 2 || y < 0) {
-//  dbg(D_INFO) << "map::generate: In section 1";
 
 //CAT-mgs: never this, always one below?
 //g->add_msg("GENERATE: in section 1");
@@ -164,7 +161,6 @@ void map::generate(game *g, overmap *om, const int x, const int y, const int z, 
 
 
  } else {
-//  dbg(D_INFO) << "map::generate: In section 2";
 
 //CAT-mgs: always this, never one above?
 //g->add_msg("GENERATE: in section 2");
@@ -10000,8 +9996,7 @@ break;
   break;
 
  default:
-  debugmsg("Error: tried to generate map for omtype %d, \"%s\"", terrain_type,
-           oterlist[terrain_type].name.c_str());
+
   for (int i = 0; i < SEEX * 2; i++) {
    for (int j = 0; j < SEEY * 2; j++)
     ter(i, j) = t_floor;
@@ -10203,14 +10198,13 @@ void map::place_items(items_location loc, int chance, int x1, int y1,
 {
  std::vector<itype_id> eligible = (*mapitems)[loc];
 
- if (chance >= 100 || chance <= 0) {
-  debugmsg("map::place_items() called with an invalid chance (%d)", chance);
+ if (chance >= 100 || chance <= 0)
   return;
- }
- if (eligible.size() == 0) { // No items here! (Why was it called?)
-  debugmsg("map::place_items() called for an empty items list (list #%d)", loc);
+
+
+ if (eligible.size() == 0)
   return;
- }
+
 
  int item_chance = 0;	// # of items
  for (int i = 0; i < eligible.size(); i++)
@@ -10222,9 +10216,7 @@ void map::place_items(items_location loc, int chance, int x1, int y1,
   selection = -1;
   while (randnum > 0) {
    selection++;
-   if (selection >= eligible.size())
-    debugmsg("OOB selection (%d of %d); randnum is %d, item_chance %d",
-             selection, eligible.size(), randnum, item_chance);
+
    randnum -= (*itypes)[eligible[selection]]->rarity;
   }
   int tries = 0;
@@ -10263,9 +10255,7 @@ void map::put_items_from(items_location loc, int num, int x, int y, int turn)
   selection = -1;
   while (randnum > 0) {
    selection++;
-   if (selection >= eligible.size())
-    debugmsg("OOB selection (%d of %d); randnum is %d, item_chance %d",
-             selection, eligible.size(), randnum, item_chance);
+
    randnum -= (*itypes)[eligible[selection]]->rarity;
   }
   add_item(x, y, (*itypes)[eligible[selection]], turn);
@@ -10275,16 +10265,15 @@ void map::put_items_from(items_location loc, int num, int x, int y, int turn)
 void map::add_spawn(mon_id type, int count, int x, int y, bool friendly,
                     int faction_id, int mission_id, std::string name)
 {
- if (x < 0 || x >= SEEX * my_MAPSIZE || y < 0 || y >= SEEY * my_MAPSIZE) {
-  debugmsg("Bad add_spawn(%d, %d, %d, %d)", type, count, x, y);
+ if (x < 0 || x >= SEEX * my_MAPSIZE || y < 0 || y >= SEEY * my_MAPSIZE) 
   return;
- }
+
+
  int nonant = int(x / SEEX) + int(y / SEEY) * my_MAPSIZE;
- if(!grid[nonant]){
-  debugmsg("centadodecamonant doesn't exist in grid; within add_spawn(%d, %d, %d, %d)",
-            type, count, x, y);
+ if(!grid[nonant])
   return;
- }
+
+
  x %= SEEX;
  y %= SEEY;
  spawn_point tmp(type, count, x, y, faction_id, mission_id, friendly, name);
@@ -10315,7 +10304,7 @@ void map::add_spawn(monster *mon)
 vehicle *map::add_vehicle(game *g, vhtype_id type, int x, int y, int dir)
 {
  if (x < 0 || x >= SEEX * my_MAPSIZE || y < 0 || y >= SEEY * my_MAPSIZE) {
-  debugmsg("Bad add_vehicle t=%d d=%d x=%d y=%d", type, dir, x, y);
+  g->add_msg("Bad add_vehicle t=%d d=%d x=%d y=%d", type, dir, x, y);
   return 0;
  }
 
@@ -10580,7 +10569,7 @@ bool connects_to(oter_id there, int dir)
    return true;
   return false;
  default:
-  debugmsg("Connects_to with dir of %d", dir);
+//  debugmsg("Connects_to with dir of %d", dir);
   return false;
  }
 }
@@ -11450,12 +11439,8 @@ room_type pick_mansion_room(int x1, int y1, int x2, int y2)
  if (longest >= 8 && shortest <= 6)
   valid.push_back(room_mansion_gallery);
 
- if (valid.empty()) {
-  debugmsg("x: %d - %d, dx: %d\n\
-       y: %d - %d, dy: %d", x1, x2, dx,
-                            y1, y2, dy);
+ if (valid.empty())
   return room_null;
- }
 
  return valid[ rng(0, valid.size() - 1) ];
 }
@@ -11466,12 +11451,7 @@ void build_mansion_room(map *m, room_type type, int x1, int y1, int x2, int y2)
  int cx_low = (x1 + x2) / 2, cx_hi = (x1 + x2 + 1) / 2,
      cy_low = (y1 + y2) / 2, cy_hi = (y1 + y2 + 1) / 2;
 
-/*
- debugmsg("\
-x: %d - %d, dx: %d cx: %d/%d\n\
-x: %d - %d, dx: %d cx: %d/%d", x1, x2, dx, cx_low, cx_hi,
-                               y1, y2, dy, cy_low, cy_hi);
-*/
+
  bool walled_south = (y2 >= SEEY * 2 - 2);
 
  switch (type) {
@@ -11721,7 +11701,7 @@ void map::add_extra(map_extra type, game *g)
  switch (type) {
 
  case mx_null:
-  debugmsg("Tried to generate null map extra.");
+  g->add_msg("Tried to generate null map extra.");
   break;
 
  case mx_helicopter:

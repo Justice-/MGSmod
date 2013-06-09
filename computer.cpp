@@ -376,7 +376,7 @@ case COMPACT_RESEARCH: {
    fin.open("data/LAB_NOTES");
 
    if (!fin.is_open()) {
-    debugmsg("Couldn't open ./data/LAB_NOTES for reading");
+//    debugmsg("Couldn't open ./data/LAB_NOTES for reading");
     return;
    }
 
@@ -682,7 +682,7 @@ of pureed bone & LSD.");
    else {
     mission *miss = g->find_mission(mission_id);
     if (miss == NULL) {
-     debugmsg("Computer couldn't find its mission!");
+//     debugmsg("Computer couldn't find its mission!");
      return;
     }
     item software(g->itypes[miss->item_id], 0);

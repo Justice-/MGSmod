@@ -268,10 +268,9 @@ void draw_tabs(WINDOW *w, int active_tab, ...)
  for (int i = 0; i < labels.size(); i++)
   total_width += labels[i].length() + 6; // "< |four| >"
 
- if (total_width > win_width) {
-  //debugmsg("draw_tabs not given enough space! %s", labels[0]);
+ if (total_width > win_width)
   return;
- }
+
 
 // Extra "buffer" space per each side of each tab
  double buffer_extra = (win_width - total_width) / (labels.size() * 2);
@@ -314,31 +313,6 @@ void draw_tabs(WINDOW *w, int active_tab, ...)
  }
 }
 
-void realDebugmsg(const char* filename, const char* line, const char *mes, ...)
-{
-//CAT-mgs: 
-	return;
-
- va_list ap;
- va_start(ap, mes);
- char buff[1024];
- vsprintf(buff, mes, ap);
- va_end(ap);
- attron(c_red);
-
- erase();
- refresh();
- mvprintw(0, 0, "DEBUG: %s                \n  Press spacebar...", buff);
- std::ofstream fout;
- fout.open("debug.log", std::ios_base::app | std::ios_base::out);
- fout << filename << "[" << line << "]: " << buff << "\n";
- fout.close();
-
-//CAT-g:
- refresh();
- while(getch() != ' ');
- attroff(c_red);
-}
 
 bool query_yn(const char *mes, ...)
 {
@@ -509,10 +483,9 @@ char popup_getkey(const char *mes, ...)
 
 int menu_vec(const char *mes, std::vector<std::string> options)
 {
- if (options.size() == 0) {
-  debugmsg("0-length menu (\"%s\")", mes);
+ if (options.size() == 0)
   return -1;
- }
+
  std::string title = mes;
  int height = 3 + options.size(), width = title.length() + 2;
  for (int i = 0; i < options.size(); i++) {

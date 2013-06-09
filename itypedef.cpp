@@ -2347,7 +2347,7 @@ A 40mm grenade with a concussive explosion.",
 mfb(AMMO_EXPLOSIVE));
 
 AMMO("66mm HEAT", 0, 0, AT_66MM,        c_red,  STEEL,
-     1,  1,  5,  20,  40,  8, 15, 1, "\
+     1,  220,  5,  20,  40,  8, 15, 1, "\
 A 60mm High Explosive Anti Tank round. They can blow through up to two feet of concrete.",
 mfb(AMMO_EXPLOSIVE_BIG)|mfb(AMMO_TRAIL));
 
@@ -4319,7 +4319,7 @@ This shelter has been damaged, and needs repairs.");
 
 TOOL("M72 LAW (packed)", 30, 500, ')', c_red, STEEL, MNULL,
 // VOL WGT DAM CUT HIT MAX DEF USE SEC FUEL  REVERT    FUNCTION
-    6, 13,  6,  0,  0, 1,   1,  1,  0, AT_66MM, itm_null, &iuse::LAW, 0,"\
+    6, 13,  6,  0,  0, 1,   1,  1,  0, AT_66MM, itm_null, &iuse::LAW, mfb(IF_NO_UNLOAD),"\
 An M72 LAW, packed in its storage form. (a)ctivate it to pop it out\n\
 and make it ready to fire. Once activated, it cannot be repacked.");
 
@@ -4453,8 +4453,6 @@ MELEE("a poppy bud",   1, 400,',', c_magenta,	VEGGY,	MNULL,
 	 1,  0, -8,  0, -3, 0, "\
 Contains some substances commonly produced by mutated poppy flower");
 
- if (itypes.size() > num_items)
-  debugmsg("%d items, %d itypes", itypes.size(), num_all_items);
 
 
 MELEE("Null 2 - num_items",0,0,'#',c_white,MNULL,MNULL,0,0,0,0,0,0,"");
@@ -4711,9 +4709,6 @@ attacks with no penalty.",
 "counter-attack", TEC_COUNTER, 4
 );
 
-
- if (itypes.size() != num_all_items)
-  debugmsg("%d items, %d itypes (+bio)", itypes.size(), num_all_items - 1);
 
 // Finally, load up artifacts!
  std::ifstream fin;

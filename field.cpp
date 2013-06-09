@@ -19,11 +19,16 @@ bool map::process_fields(game *g)
  return found_field;
 }
 
+
+
 bool map::process_fields_in_submap(game *g, int gridn)
 {
+
  bool found_field = false;
  field *cur;
  field_id curtype;
+
+
  for (int locx = 0; locx < SEEX; locx++) {
   for (int locy = 0; locy < SEEY; locy++) {
    cur = &(grid[gridn]->fld[locx][locy]);
@@ -33,18 +38,20 @@ bool map::process_fields_in_submap(game *g, int gridn)
    curtype = cur->type;
    if (!found_field && curtype != fd_null)
     found_field = true;
-   if (cur->density > 3 || cur->density < 1)
-    debugmsg("Whoooooa density of %d", cur->density);
 
-  if (cur->age == 0)	// Don't process "newborn" fields
+   if (cur->density > 3 || cur->density < 1)
+	cur->density= 1;
+
+  if(cur->age == 0)	// Don't process "newborn" fields
    curtype = fd_null;
+
 
   int part;
   vehicle *veh;
   switch (curtype) {
 
    case fd_null:
-    break;	// Do nothing, obviously.  OBVIOUSLY.
+    break;	// Do nothing
 
    case fd_blood:
    case fd_bile:
@@ -79,7 +86,25 @@ bool map::process_fields_in_submap(game *g, int gridn)
    case fd_sap:
     break; // It doesn't do anything.
 
+
+
    case fd_fire: {
+
+//CAT-mgs: fire burn outside view
+	if(cur->lastUpdate > 10)
+	{
+		int trm= int(g->turn) - cur->lastUpdate;
+		if(trm < 1) trm= 1;
+
+		if(trm > 100)
+			cur->density= -1; 
+
+//		g->add_msg("TRM: %d  AGE: %d", trm, cur->age);
+	}
+
+	cur->lastUpdate= int(g->turn);
+
+
 // Consume items as fuel to help us grow/last longer.
     bool destroyed = false;
     int vol = 0, smoke = 0, consumed = 0;
@@ -152,10 +177,12 @@ bool map::process_fields_in_submap(game *g, int gridn)
         cur->age -= 300;
         smoke += 6;
         break;
+
        default:
         cur->age += rng(80 * vol, 300 * vol);
         smoke++;
       }
+
       destroyed = true;
       consumed++;
 
@@ -217,9 +244,10 @@ bool map::process_fields_in_submap(game *g, int gridn)
 
 // If we consumed a lot, the flames grow higher
     while (cur->density < 3 && cur->age < 0) {
-     cur->age += 300;
+     cur->age += 200;
      cur->density++;
     }
+
 
 // If the flames are in a pit, it can't spread to non-pit
     bool in_pit = (ter(x, y) == t_pit);
@@ -291,7 +319,10 @@ bool map::process_fields_in_submap(game *g, int gridn)
       }
      }
     }
-   } break;
+   } 
+
+   break;
+
 
    case fd_smoke:
     for (int i = -1; i <= 1; i++) {
@@ -661,10 +692,14 @@ bool map::process_fields_in_submap(game *g, int gridn)
      grid[gridn]->fld[locx][locy] = field();
     }
    }
+
+
   }
  }
+
  return found_field;
 }
+
 
 void map::step_in_field(int x, int y, game *g)
 {

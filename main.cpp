@@ -10,7 +10,6 @@
 #include "color.h"
 #include "options.h"
 #include "mapbuffer.h"
-#include "debug.h"
 #include <sys/stat.h>
 #include <cstdlib>
 #include <signal.h>
@@ -19,9 +18,6 @@ void exit_handler(int s);
 
 int main(int argc, char *argv[])
 {
-#ifdef ENABLE_LOGGING
-  setupDebug();
-#endif
  int seed = time(NULL);
 
 //args: world seeding only.

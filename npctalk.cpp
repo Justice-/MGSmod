@@ -5,7 +5,7 @@
 #include "rng.h"
 #include "line.h"
 #include "keypress.h"
-#include "debug.h"
+
 #include <vector>
 #include <string>
 #include <sstream>
@@ -42,7 +42,7 @@
 
 #define SUCCESS_MISSION(type) ret.back().miss = type
 
-#define dbg(x) dout((DebugLevel)(x),D_GAME) << __FILE__ << ":" << __LINE__ << ": "
+
 
 std::string dynamic_line(talk_topic topic, game *g, npc *p);
 std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p);
@@ -1348,11 +1348,10 @@ int topic_category(talk_topic topic)
 void talk_function::assign_mission(game *g, npc *p)
 {
  int selected = p->chatbin.mission_selected;
- if (selected == -1 || selected >= p->chatbin.missions.size()) {
-  debugmsg("mission_selected = %d; missions.size() = %d!",
-           selected, p->chatbin.missions.size());
+ if (selected == -1 || selected >= p->chatbin.missions.size())
   return;
- }
+
+
  mission *miss = g->find_mission( p->chatbin.missions[selected] );
  g->assign_mission(p->chatbin.missions[selected]);
  miss->npc_id = p->id;
@@ -1364,11 +1363,9 @@ void talk_function::assign_mission(game *g, npc *p)
 void talk_function::mission_success(game *g, npc *p)
 {
  int selected = p->chatbin.mission_selected;
- if (selected == -1 || selected >= p->chatbin.missions_assigned.size()) {
-  debugmsg("mission_selected = %d; missions_assigned.size() = %d!",
-           selected, p->chatbin.missions_assigned.size());
+ if (selected == -1 || selected >= p->chatbin.missions_assigned.size())
   return;
- }
+
  int index = p->chatbin.missions_assigned[selected];
  mission *miss = g->find_mission(index);
  npc_opinion tmp( 0, 0, 1 + (miss->value / 1000), -1, miss->value);
@@ -1379,11 +1376,9 @@ void talk_function::mission_success(game *g, npc *p)
 void talk_function::mission_failure(game *g, npc *p)
 {
  int selected = p->chatbin.mission_selected;
- if (selected == -1 || selected >= p->chatbin.missions_assigned.size()) {
-  debugmsg("mission_selected = %d; missions_assigned.size() = %d!",
-           selected, p->chatbin.missions_assigned.size());
+ if (selected == -1 || selected >= p->chatbin.missions_assigned.size())
   return;
- }
+
  npc_opinion tmp( -1, 0, -1, 1, 0);
  p->op_of_u += tmp;
  g->mission_failed(p->chatbin.missions_assigned[selected]);
@@ -1393,11 +1388,9 @@ void talk_function::clear_mission(game *g, npc *p)
 {
  int selected = p->chatbin.mission_selected;
  p->chatbin.mission_selected = -1;
- if (selected == -1 || selected >= p->chatbin.missions_assigned.size()) {
-  debugmsg("mission_selected = %d; missions_assigned.size() = %d!",
-           selected, p->chatbin.missions_assigned.size());
+ if (selected == -1 || selected >= p->chatbin.missions_assigned.size())
   return;
- }
+
  mission *miss = g->find_mission( p->chatbin.missions_assigned[selected] );
  p->chatbin.missions_assigned.erase( p->chatbin.missions_assigned.begin() +
                                      selected);
@@ -1423,10 +1416,9 @@ void talk_function::assign_base(game *g, npc *p)
 {
 	// TODO: decide what to do upon assign? maybe pathing required
 	basecamp* camp = g->m.camp_at(g->u.posx, g->u.posy);
-	if(!camp) {
-//		dbg(D_ERROR) << "talk_function::assign_base: Assigned to base but no base here.";
+	if(!camp)
 		return;
-	}
+
 
 	g->add_msg("%s waits at %s", p->name.c_str(), camp->camp_name().c_str());
 	p->mission = NPC_MISSION_BASE;
@@ -1616,10 +1608,9 @@ void talk_function::start_training(game *g, npc *p)
 
 void parse_tags(std::string &phrase, player *u, npc *me)
 {
- if (u == NULL || me == NULL) {
-  debugmsg("Called parse_tags() with NULL pointers!");
+ if (u == NULL || me == NULL)
   return;
- }
+
  size_t fa, fb;
  std::string tag;
  do {
@@ -1658,10 +1649,10 @@ void parse_tags(std::string &phrase, player *u, npc *me)
      case 1: phrase.replace(fa, l, "..."); break;
      case 2: phrase.replace(fa, l, "!");   break;
     }
-   } else if (tag != "") {
-    debugmsg("Bad tag. '%s' (%d - %d)", tag.c_str(), fa, fb);
+   } else if (tag != "")
     phrase.replace(fa, fb - fa + 1, "????");
-   }
+
+
   }
  } while (fa != std::string::npos && fb != std::string::npos);
 }

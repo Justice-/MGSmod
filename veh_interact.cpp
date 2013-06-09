@@ -676,10 +676,9 @@ item consume_vpart_item (game *g, vpart_id vpid){
     }
 
     // bug?
-    if(candidates.size() == 0){
-       debugmsg("part not found");
+    if(candidates.size() == 0)
        return item();
-    }
+
 
     int selection;
     // no choice?
@@ -723,13 +722,13 @@ void complete_vehicle (game *g)
 {
     if (g->u.activity.values.size() < 7)
     {
-        debugmsg ("Invalid activity ACT_VEHICLE values:%d", g->u.activity.values.size());
+        g->add_msg("Invalid activity ACT_VEHICLE values:%d", g->u.activity.values.size());
         return;
     }
     vehicle *veh = g->m.veh_at (g->u.activity.values[0], g->u.activity.values[1]);
     if (!veh)
     {
-        debugmsg ("Activity ACT_VEHICLE: vehicle not found");
+        g->add_msg("Activity ACT_VEHICLE: vehicle not found");
         return;
     }
     char cmd = (char) g->u.activity.index;
@@ -750,7 +749,8 @@ void complete_vehicle (game *g)
     case 'i':
         partnum = veh->install_part (dx, dy, (vpart_id) part);
         if(partnum < 0)
-            debugmsg ("complete_vehicle install part fails dx=%d dy=%d id=%d", dx, dy, part);
+            g->add_msg("complete_vehicle install part fails dx=%d dy=%d id=%d", dx, dy, part);
+
         used_item = consume_vpart_item (g, (vpart_id) part);
         veh->get_part_properties_from_item(g, partnum, used_item); //transfer damage, etc.
         tools.push_back(component(itm_welder, welder_charges));
@@ -779,10 +779,6 @@ void complete_vehicle (game *g)
         g->u.practice ("mechanics", (vpart_list[part].difficulty + dd) * 5 + 20);
         break;
     case 'f':
-//CAT-mgs:
-//        if (!g->pl_refill_vehicle(*veh, part, true))
-//            debugmsg ("complete_vehicle refill broken");
-
         g->pl_refill_vehicle(*veh, part);
         break;
     case 'o':

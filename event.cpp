@@ -19,7 +19,7 @@ void event::actualize(game *g)
      if (fac)
       tmp.randomize_from_faction(g, fac);
      else
-      debugmsg("EVENT_HELP run with invalid faction_id");
+      g->add_msg("EVENT_HELP run with invalid faction_id");
     } else
      tmp.randomize(g);
     tmp.attitude = NPCATT_DEFEND;
@@ -65,6 +65,7 @@ void event::actualize(game *g)
     g->add_event(EVENT_SPAWN_WYRMS, int(g->turn) + rng(15, 25));
   } break;
 
+
   case EVENT_AMIGARA: {
    int num_horrors = rng(3, 5);
    int faultx = -1, faulty = -1;
@@ -81,11 +82,13 @@ void event::actualize(game *g)
      }
     }
    }
+
    monster horror(g->mtypes[mon_amigara_horror]);
    for (int i = 0; i < num_horrors; i++) {
     int tries = 0;
     int monx = -1, mony = -1;
     do {
+     tries++;
      if (horizontal) {
       monx = rng(faultx, faultx + 2 * SEEX - 8);
       for (int n = -1; n <= 1; n++) {
@@ -99,10 +102,10 @@ void event::actualize(game *g)
         monx = faultx + n;
       }
      }
-     tries++;
-    } while ((monx == -1 || mony == -1 || g->is_empty(monx, mony)) &&
-             tries < 10);
-    if (tries < 10) {
+    } while ((monx == -1 || mony == -1 
+			|| g->is_empty(monx, mony)) && tries < 90);
+
+    if (tries < 90) {
      horror.spawn(monx, mony);
      g->z.push_back(horror);
     }

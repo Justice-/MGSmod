@@ -26,7 +26,6 @@ special_game* get_special_game(special_game_id id)
    ret = new defense_game;
    break;
   default:
-   debugmsg("Missing something in get_special_game()?");
    ret = new special_game;
    break;
  }

@@ -3,9 +3,8 @@
 #include "rng.h"
 #include "game.h"
 #include "line.h"
-#include "debug.h"
 
-#define dbg(x) dout((DebugLevel)(x),D_NPC) << __FILE__ << ":" << __LINE__ << ": "
+
 #define TARGET_PLAYER -2
 
 // A list of items used for escape, in order from least to most valuable
@@ -133,10 +132,6 @@ void npc::execute_action(game *g, npc_action action, int target)
   tarx = g->z[target].posx;
   tary = g->z[target].posy;
  }
-/*
-  debugmsg("%s ran execute_action() with target = %d! Action %s",
-           name.c_str(), target, npc_action_name(action).c_str());
-*/
 
  std::vector<point> line;
  if (tarx != posx || tary != posy) {
@@ -156,8 +151,7 @@ void npc::execute_action(game *g, npc_action action, int target)
  case npc_reload: {
   moves -= weapon.reload_time(*this);
   int ammo_index = weapon.pick_reload_ammo(*this, false);
-  if (!weapon.reload(*this, ammo_index))
-//   debugmsg("NPC reload failed.");
+
   recoil = 6;
   if (g->u_see(posx, posy, linet))
    g->add_msg("%s reloads %s %s.", name.c_str(), (male ? "his" : "her"),
@@ -194,11 +188,11 @@ void npc::execute_action(game *g, npc_action action, int target)
     index = i;
    }
   }
-  if (index == -1) {
-//   debugmsg("NPC tried to wield a loaded gun, but has none!");
+  if (index == -1)
    move_pause();
-  } else
+  else
    wield(g, index);
+
  } break;
 
  case npc_wield_empty_gun:
@@ -213,11 +207,11 @@ void npc::execute_action(game *g, npc_action action, int target)
     ammo_found = (ammo_found || am);
    }
   }
-  if (index == -1) {
-//   debugmsg("NPC tried to wield a gun, but has none!");
+  if (index == -1)
    move_pause();
-  } else
+  else
    wield(g, index);
+
  } break;
 
  case npc_heal:
@@ -327,11 +321,9 @@ void npc::execute_action(game *g, npc_action action, int target)
    int p1;
    vehicle *veh = g->m.veh_at(g->u.posx, g->u.posy, p1);
 
-   if (!veh) {
-//    debugmsg("Following an embarked player with no vehicle at their location?");
-    // TODO: change to wait? - for now pause
+   if(!veh)
     move_pause();
-   } else {
+   else {
     int p2 = veh->free_seat();
     if (p2 < 0) {
      // TODO: be angry at player, switch to wait or leave - for now pause
@@ -385,13 +377,6 @@ void npc::execute_action(game *g, npc_action action, int target)
   g->add_msg("Unknown NPC action (%d).", action);
  }
 
-/*
- if (oldmoves == moves) {
-  dbg(D_ERROR) << "map::veh_at: NPC didn't use its moves.";
-  debugmsg("NPC didn't use its moves.  Action %d.  Turning on debug mode.", action);
-  g->debugmon = true;
- }
-*/
 
 }
 
@@ -501,10 +486,10 @@ npc_action npc::method_of_attack(game *g, int target, int danger)
  } else if (target >= 0) {
   tarx = g->z[target].posx;
   tary = g->z[target].posy;
- } else { // This function shouldn't be called...
-//  debugmsg("Ran npc::method_of_attack without a target!");
+ } 
+ else
   return npc_pause;
- }
+
 
  int dist = rl_dist(posx, posy, tarx, tary), target_HP;
  if (target == TARGET_PLAYER)
@@ -972,11 +957,7 @@ void npc::move_to(game *g, int x, int y)
   y = rng(posy - 1, posy + 1);
  }
  if (rl_dist(posx, posy, x, y) > 1) {
-/*
-  debugmsg("Tried to move_to more than one space! (%d, %d) to (%d, %d)",
-           posx, posy, x, y);
-  debugmsg("Route is size %d.", path.size());
-*/
+
   int linet;
   std::vector<point> newpath;
   if (g->m.sees(posx, posy, x, y, -1, linet))
@@ -987,8 +968,6 @@ void npc::move_to(game *g, int x, int y)
  if (x == posx && y == posy)	// We're just pausing!
   moves -= 100;
  else if (g->mon_at(x, y) != -1) {	// Shouldn't happen, but it might.
-  //monster *m = &(g->z[g->mon_at(x, y)]);
-  //debugmsg("Bumped into a monster, %d, a %s",g->mon_at(x, y),m->name().c_str());
   melee_monster(g, g->mon_at(x, y));
  } else if (g->u.posx == x && g->u.posy == y) {
   say(g, "<let_me_pass>");
@@ -1043,7 +1022,7 @@ void npc::avoid_friendly_fire(game *g, int target)
   if (!one_in(3))
    say(g, "<move> so I can shoot that %s!", g->z[target].name().c_str());
  } else {
-//  debugmsg("npc::avoid_friendly_fire() called with no target!");
+  g->add_msg("npc::avoid_friendly_fire() called with no target!");
   move_pause();
   return;
  }
@@ -1476,7 +1455,7 @@ void npc::alt_attack(game *g, int target)
   tarx = g->z[target].posx;
   tary = g->z[target].posy;
  } else {
-//  debugmsg("npc::alt_attack() called with target = %d", target);
+  g->add_msg("npc::alt_attack() called with target = %d", target);
   move_pause();
   return;
  }
@@ -1612,12 +1591,12 @@ void npc::activate_item(game *g, int index)
  }
 }
 
+
 bool thrown_item(item *used)
 {
- if (used == NULL) {
-//  debugmsg("npcmove.cpp's thrown_item() called with NULL item");
+ if (used == NULL)
   return false;
- }
+
  itype_id type = itype_id(used->type->id);
  return (used->active || type == itm_knife_combat || type == itm_spear_wood);
 }
@@ -1727,10 +1706,11 @@ void npc::heal_self(game *g)
    default:       amount_healed =  3 + 2   * sklevel[sk_firstaid];
   }
   use_charges(itm_bandages, 1);
- } else {
-//  debugmsg("NPC tried to heal self, but has no bandages / first aid");
+ } 
+ else
   move_pause();
- }
+
+
  int t;
  if (g->u_see(posx, posy, t))
   g->add_msg("%s heals %sself.", name.c_str(), (male ? "him" : "her"));
@@ -1761,10 +1741,9 @@ void npc::use_painkiller(game *g)
   }
  }
 
- if (index == -1) {
-//  debugmsg("NPC tried to use painkillers, but has none!");
+ if (index == -1)
   move_pause();
- } else {
+ else {
   eat(g, index);
   moves = 0;
  }
@@ -1800,7 +1779,6 @@ void npc::pick_and_eat(game *g)
  }
 
  if (index == -1) {
-//  debugmsg("NPC tried to eat food, but couldn't find any!");
   move_pause();
   return;
  }

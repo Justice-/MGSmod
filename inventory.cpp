@@ -6,32 +6,25 @@
 
 item& inventory::operator[] (int i)
 {
- if (i < 0 || i > items.size()) {
-  debugmsg("Attempted to access item %d in an inventory (size %d)",
-           i, items.size());
+ if (i < 0 || i > items.size())
   return nullitem;
- }
 
  return items[i][0];
 }
 
 std::vector<item>& inventory::stack_at(int i)
 {
- if (i < 0 || i > items.size()) {
-  debugmsg("Attempted to access stack %d in an inventory (size %d)",
-           i, items.size());
+ if (i < 0 || i > items.size())
   return nullstack;
- }
+
  return items[i];
 }
 
 std::vector<item> inventory::const_stack(int i) const
 {
- if (i < 0 || i > items.size()) {
-  debugmsg("Attempted to access stack %d in an inventory (size %d)",
-           i, items.size());
+ if (i < 0 || i > items.size())
   return nullstack;
- }
+
  return items[i];
 }
 
@@ -214,8 +207,7 @@ void inventory::form_from_map(game *g, point origin, int range)
 std::vector<item> inventory::remove_stack(int index)
 {
  if (index < 0 || index >= items.size()) {
-  debugmsg("Tried to remove_stack(%d) from an inventory (size %d)",
-           index, items.size());
+
   std::vector<item> nullvector;
   return nullvector;
  }
@@ -226,11 +218,9 @@ std::vector<item> inventory::remove_stack(int index)
 
 item inventory::remove_item(int index)
 {
- if (index < 0 || index >= items.size()) {
-  debugmsg("Tried to remove_item(%d) from an inventory (size %d)",
-           index, items.size());
+ if (index < 0 || index >= items.size())
   return nullitem;
- }
+
  item ret = items[index][0];
  items[index].erase(items[index].begin());
  if (items[index].empty())
@@ -240,15 +230,12 @@ item inventory::remove_item(int index)
 
 item inventory::remove_item(int stack, int index)
 {
- if (stack < 0 || stack >= items.size()) {
-  debugmsg("Tried to remove_item(%d, %d) from an inventory (size %d)",
-           stack, index, items.size());
+ if (stack < 0 || stack >= items.size())
   return nullitem;
- } else if (index < 0 || index >= items[stack].size()) {
-  debugmsg("Tried to remove_item(%d, %d) from an inventory (stack is size %d)",
-           stack, index, items[stack].size());
+ else
+ if(index < 0 || index >= items[stack].size())
   return nullitem;
- }
+
 
  item ret = items[stack][index];
  items[stack].erase(items[stack].begin() + index);
@@ -275,11 +262,9 @@ item inventory::remove_item_by_quantity(int index, int quantity)
 {
 // using this assumes the item has charges
 
- if (index < 0 || index >= items.size()) {
-  debugmsg("Quantity: Tried to remove_item(%d) from an inventory (size %d)",
-           index, items.size());
+ if (index < 0 || index >= items.size())
   return nullitem;
- }
+
 
  item ret = items[index][0];
  ret.charges = quantity;

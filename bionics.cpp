@@ -502,10 +502,9 @@ void player::activate_bionic(int b, game *g)
 
 bool player::install_bionics(game *g, it_bionic* type)
 {
- if (type == NULL) {
-  debugmsg("Tried to install NULL bionic");
+ if (type == NULL)
   return false;
- }
+
  std::string bio_name = type->name.substr(5);	// Strip off "CBM: "
 
  WINDOW* w = newwin(25, 80, (TERMY > 25) ? (TERMY-25)/2 : 0, (TERMX > 80) ? (TERMX-80)/2 : 0);

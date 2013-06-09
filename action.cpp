@@ -14,7 +14,7 @@ void game::load_keyboard_settings()
   fin.open("data/keymap.txt");
  }
  if (!fin) { // Still can't open it--probably bad permissions
-  debugmsg("Can't open data/keymap.txt.  This may be a permissions issue.");
+//  debugmsg("Can't open data/keymap.txt.  This may be a permissions issue.");
   return;
  }
  while (!fin.eof()) {
@@ -24,20 +24,13 @@ void game::load_keyboard_settings()
    getline(fin, id); // Empty line, chomp it
   else if (id[0] != '#') {
    action_id act = look_up_action(id);
-   if (act == ACTION_NULL)
-    debugmsg("\
-Warning!  data/keymap.txt contains an unknown action, \"%s\"\n\
-Fix data/keymap.txt at your next chance!", id.c_str());
-   else {
+
+   if(act != ACTION_NULL)
+   {
     while (fin.peek() != '\n' && !fin.eof()) {
      char ch;
      fin >> ch;
-     if (keymap.find(ch) != keymap.end())
-      debugmsg("\
-Warning!  '%c' assigned twice in the keymap!\n\
-%s is being ignored.\n\
-Fix data/keymap.txt at your next chance!", ch, id.c_str());
-     else
+     if (keymap.find(ch) == keymap.end())
       keymap[ ch ] = act;
     }
    }
@@ -52,7 +45,7 @@ void game::save_keymap()
  std::ofstream fout;
  fout.open("data/keymap.txt");
  if (!fout) { // It doesn't exist
-  debugmsg("Can't open data/keymap.txt.");
+//  debugmsg("Can't open data/keymap.txt.");
   fout.close();
   return;
  }

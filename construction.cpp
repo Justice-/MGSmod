@@ -708,6 +708,8 @@ bool construct::able_furniture(game *g, point p)
   case t_chair:
   case t_armchair:
   case t_bench:
+  case t_table:
+  case t_desk:
    required_str = 8;
    break;
   default:
@@ -886,7 +888,7 @@ void construct::done_vehicle(game *g, point p)
     vehicle *veh = g->m.add_vehicle (g, veh_custom, p.x, p.y, 270);
     if (!veh)
     {
-        debugmsg ("error constructing vehicle");
+//        debugmsg ("error constructing vehicle");
         return;
     }
     veh->name = name;

@@ -1,10 +1,8 @@
 #include "mapbuffer.h"
 #include "game.h"
 #include "output.h"
-#include "debug.h"
 #include <fstream>
 
-#define dbg(x) dout((DebugLevel)(x),D_MAP) << __FILE__ << ":" << __LINE__ << ": "
 
 mapbuffer MAPBUFFER;
 
@@ -48,7 +46,6 @@ void mapbuffer::make_volatile()
 
 bool mapbuffer::add_submap(int x, int y, int z, submap *sm)
 {
-// dbg(D_INFO) << "mapbuffer::add_submap( x["<< x <<"], y["<< y <<"], z["<< z <<"], submap["<< sm <<"])";
 
  tripoint p(x, y, z);
  if (submaps.count(p) != 0)
@@ -64,14 +61,12 @@ bool mapbuffer::add_submap(int x, int y, int z, submap *sm)
 
 submap* mapbuffer::lookup_submap(int x, int y, int z)
 {
-// dbg(D_INFO) << "mapbuffer::lookup_submap( x["<< x <<"], y["<< y <<"], z["<< z <<"])";
 
  tripoint p(x, y, z);
 
  if (submaps.count(p) == 0)
   return NULL;
 
-// dbg(D_INFO) << "mapbuffer::lookup_submap success: "<< submaps[p];
 
  return submaps[p];
 }
@@ -189,10 +184,9 @@ void mapbuffer::save()
 
 void mapbuffer::load()
 {
- if (!master_game) {
-  debugmsg("Can't load mapbuffer without a master_game");
+ if (!master_game)
   return;
- }
+
  std::map<tripoint, submap*>::iterator it;
  std::ifstream fin;
  fin.open("save/maps.txt");

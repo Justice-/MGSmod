@@ -42,14 +42,6 @@ void settlement::set_population()
 int settlement::num(oter_id ter)
 {
  return -1;
-/*
- if (ter < ot_set_house || ter > ot_wall) {
-  debugmsg("settlement::num requested bad oter_id (%s)",
-           oterlist[ter].name.c_str());
-  return -1;
- }
- return buildings[ter - ot_set_house];
-*/
 }
 
 void settlement::add_building(oter_id ter)

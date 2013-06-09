@@ -9,12 +9,12 @@
 #include <cmath>
 #include <stdlib.h>
 #include <fstream>
-#include "debug.h"
+
 
 #define SGN(a) (((a)<0) ? -1 : 1)
 #define INBOUNDS(x, y) \
  (x >= 0 && x < SEEX * my_MAPSIZE && y >= 0 && y < SEEY * my_MAPSIZE)
-#define dbg(x) dout((DebugLevel)(x),D_MAP) << __FILE__ << ":" << __LINE__ << ": "
+
 
 //CAT-mgs:
 int cat_px, cat_py;
@@ -35,7 +35,6 @@ map::map()
  else
   my_MAPSIZE = MAPSIZE;
 
-// dbg(D_INFO) << "map::map(): my_MAPSIZE: " << my_MAPSIZE;
  veh_in_active_range = true;
 }
 
@@ -108,7 +107,8 @@ vehicle* map::veh_at(const int x, const int y, int &part_num)
   part_num = it->second.second;
   return it->second.first;
  }
- debugmsg ("vehicle part cache cache indacated vehicle not found :/");
+
+// debugmsg ("vehicle part cache cache indacated vehicle not found :/");
  return NULL;
 }
 
@@ -199,27 +199,26 @@ void map::update_vehicle_list(const int to) {
 void map::board_vehicle(game *g, int x, int y, player *p)
 {
  if (!p) {
-  debugmsg ("map::board_vehicle: null player");
+  g->add_msg("map::board_vehicle: null player");
   return;
  }
 
  int part = 0;
  vehicle *veh = veh_at(x, y, part);
  if (!veh) {
-  debugmsg ("map::board_vehicle: vehicle not found");
+  g->add_msg("map::board_vehicle: vehicle not found");
   return;
  }
 
  const int seat_part = veh->part_with_feature (part, vpf_seat);
  if (part < 0) {
-  debugmsg ("map::board_vehicle: boarding %s (not seat)",
+  g->add_msg("map::board_vehicle: boarding %s (not seat)",
             veh->part_info(part).name);
   return;
  }
+
  if (veh->parts[seat_part].has_flag(vehicle_part::passenger_flag)) {
   player *psg = veh->get_passenger (seat_part);
-  debugmsg ("map::board_vehicle: passenger (%s) is already there",
-            psg ? psg->name.c_str() : "<null>");
   return;
  }
 
@@ -253,18 +252,17 @@ void map::unboard_vehicle(game *g, const int x, const int y)
  int part = 0;
  vehicle *veh = veh_at(x, y, part);
  if (!veh) {
-  debugmsg ("map::unboard_vehicle: vehicle not found");
+  g->add_msg("map::unboard_vehicle: vehicle not found");
   return;
  }
  const int seat_part = veh->part_with_feature (part, vpf_seat, false);
- if (part < 0) {
-  debugmsg ("map::unboard_vehicle: unboarding %s (not seat)",
-            veh->part_info(part).name);
+ if(part < 0)
   return;
- }
+
+
  player *psg = veh->get_passenger(seat_part);
  if (!psg) {
-  debugmsg ("map::unboard_vehicle: passenger not found");
+  g->add_msg("map::unboard_vehicle: passenger not found");
   return;
  }
  psg->in_vehicle = false;
@@ -281,10 +279,9 @@ void map::unboard_vehicle(game *g, const int x, const int y)
 
 void map::destroy_vehicle (vehicle *veh)
 {
- if (!veh) {
-  debugmsg("map::destroy_vehicle was passed NULL");
+ if (!veh)
   return;
- }
+
  const int sm = veh->smx + veh->smy * my_MAPSIZE;
  for (int i = 0; i < grid[sm]->vehicles.size(); i++) {
   if (grid[sm]->vehicles[i] == veh) {
@@ -294,7 +291,7 @@ void map::destroy_vehicle (vehicle *veh)
    return;
   }
  }
- debugmsg ("destroy_vehicle can't find it! sm=%d", sm);
+// debugmsg ("destroy_vehicle can't find it! sm=%d", sm);
 }
 
 bool map::displace_vehicle (game *g, int &x, int &y, const int dx, const int dy, bool test=false)
@@ -306,11 +303,9 @@ bool map::displace_vehicle (game *g, int &x, int &y, const int dx, const int dy,
  int dstx = x2;
  int dsty = y2;
 
- if (!inbounds(srcx, srcy)){
-  debugmsg ("map::displace_vehicle: coords out of bounds %d,%d->%d,%d",
-            srcx, srcy, dstx, dsty);
+ if (!inbounds(srcx, srcy))
   return false;
- }
+
 
  const int src_na = int(srcx / SEEX) + int(srcy / SEEY) * my_MAPSIZE;
  srcx %= SEEX;
@@ -333,7 +328,7 @@ bool map::displace_vehicle (game *g, int &x, int &y, const int dx, const int dy,
   }
  }
  if (our_i < 0) {
-  debugmsg ("displace_vehicle our_i=%d", our_i);
+  g->add_msg("displace_vehicle our_i=%d", our_i);
   return false;
  }
  // move the vehicle
@@ -341,7 +336,7 @@ bool map::displace_vehicle (game *g, int &x, int &y, const int dx, const int dy,
  // don't let it go off grid
  if (!inbounds(x2, y2)){
   veh->stop();
-  debugmsg ("stopping vehicle, displaced dx=%d, dy=%d", dx,dy);
+  g->add_msg("stopping vehicle, displaced dx=%d, dy=%d", dx,dy);
   return false;
  }
 
@@ -359,13 +354,10 @@ bool map::displace_vehicle (game *g, int &x, int &y, const int dx, const int dy,
  for (int i = 0; i < psg_parts.size(); i++) {
   player *psg = psgs[i];
   const int p = psg_parts[i];
-  if (!psg) {
-   debugmsg ("empty passenger part %d pcoord=%d,%d u=%d,%d?", p,
-             veh->global_x() + veh->parts[p].precalc_dx[0],
-             veh->global_y() + veh->parts[p].precalc_dy[0],
-                      g->u.posx, g->u.posy);
+
+  if(!psg)
    continue;
-  }
+
   int trec = rec -psgs[i]->skillLevel("driving");
   if (trec < 0) trec = 0;
   // add recoil
@@ -460,8 +452,8 @@ bool map::vehproceed(game* g){
    if(!veh)
       return false;
 
-   if (!inbounds(x, y)){
-      debugmsg ("stopping out-of-map vehicle. (x,y)=(%d,%d)",x,y);
+   if(!inbounds(x, y)){
+      g->add_msg("stopping out-of-map vehicle. (x,y)=(%d,%d)",x,y);
       veh->stop();
       veh->of_turn = 0;
       return true;
@@ -728,7 +720,7 @@ bool map::vehproceed(game* g){
       for (int ps = 0; ps < ppl.size(); ps++) {
          player *psg = veh->get_passenger (ppl[ps]);
          if (!psg) {
-            debugmsg ("throw passenger: empty passenger at part %d", ppl[ps]);
+//            debugmsg ("throw passenger: empty passenger at part %d", ppl[ps]);
             continue;
          }
          const int throw_roll = rng (vel2/100, vel2/100 * 2);
@@ -1035,7 +1027,7 @@ bool map::is_outside(const int x, const int y)
    out = (terrain != t_floor && terrain != t_rock_floor && terrain != t_skin_groundsheet 
 		&& terrain != t_fema_groundsheet && terrain != t_dirtfloor && terrain != t_floor_wax
 		&& terrain != t_elevator && terrain != t_table && terrain != t_chair && terrain != t_bench
-		&& terrain != t_desk && terrain != t_counter); //&& terrain != t_indoor_hole
+		&& terrain != t_desk && terrain != t_counter && terrain != t_indoor_hole); 
   }
  }
 
@@ -1777,6 +1769,7 @@ case t_wall_log:
   if (str >= result && !one_in(4)) {
    sound += "crunch.";
    ter(x, y) = t_dirt;
+   add_item(x, y, (*itypes)[itm_stick], 0);
 //CAT-s: 
    if(playWav)
 	playSound(92);
@@ -1791,9 +1784,12 @@ case t_wall_log:
   break;
 
  case t_shrub:
-  if (str >= rng(0, 30) && str >= rng(0, 30) && str >= rng(0, 30) && one_in(2)){
+  result = rng(0, 30);
+  if (res) *res = result;
+  if (str >= result && str >= rng(0, 30) && one_in(2)){
    sound += "crunch.";
    ter(x, y) = t_underbrush;
+   add_item(x, y, (*itypes)[itm_stick], 0);
 //CAT-s: 
    if(playWav)
 	playSound(92);
@@ -2420,11 +2416,9 @@ bool map::open_door(const int x, const int y, const bool inside)
 
 void map::translate(const ter_id from, const ter_id to)
 {
- if (from == to) {
-  debugmsg("map::translate %s => %s", terlist[from].name.c_str(),
-                                      terlist[from].name.c_str());
+ if (from == to)
   return;
- }
+
  
  for (int x = 0; x < SEEX * my_MAPSIZE; x++) {
   for (int y = 0; y < SEEY * my_MAPSIZE; y++) {
@@ -2777,7 +2771,7 @@ trap_id& map::tr_at(const int x, const int y)
  const int lx = x % SEEX;
  const int ly = y % SEEY;
  if (lx < 0 || lx >= SEEX || ly < 0 || ly >= SEEY) {
-  debugmsg("tr_at contained bad x:y %d:%d", lx, ly);
+//  debugmsg("tr_at contained bad x:y %d:%d", lx, ly);
   nultrap = tr_null;
   return nultrap;	// Out-of-bounds, return our null trap
  }
@@ -2806,7 +2800,7 @@ void map::disarm_trap(game *g, const int x, const int y)
   int skillLevel = g->u.skillLevel("traps");
 
  if (tr_at(x, y) == tr_null) {
-  debugmsg("Tried to disarm a trap where there was none (%d %d)", x, y);
+//  debugmsg("Tried to disarm a trap where there was none (%d %d)", x, y);
   return;
  }
 
@@ -3065,7 +3059,9 @@ void map::draw(game *g, WINDOW* w, const point center)
 	  {
 
 //CAT-mgs: for indoors show "roof"
-		if( is_outside(realx, realy) || g->levz < 0 )
+		if( ter(realx, realy) == t_hole 
+			|| ter(realx, realy) == t_indoor_hole
+			|| is_outside(realx, realy) || g->levz < 0 )
 			mvwputch(w, catY, catX, c_black, ' ');
 		else
 			mvwputch(w, catY, catX, c_dkgray, '#');
@@ -3204,12 +3200,97 @@ void map::drawsq(WINDOW* w, player &u, const int x, const int y, const bool inve
  if(move_cost(x, y) == 0 && has_flag(swimmable, x, y) && !u.underwater)
   show_items = false;	// Can only see underwater items if WE are underwater
 
+ int veh_part = 0;
+ vehicle *veh = veh_at(x, y, veh_part);
+
+ if(field_at(x, y).type != fd_null
+			&& fieldlist[field_at(x, y).type].sym != '&') 
+ {
+//CAT: with night vision...
+	if(lightning)
+		tercol= c_white;
+	else
+	if(nv)
+		tercol= c_ltgreen;
+	else
+		tercol = fieldlist[field_at(x, y).type].color[field_at(x, y).density - 1];
 
 
-// If there's a trap here, and we have sufficient perception, draw that instead
+	drew_field = true;
+	if(fieldlist[field_at(x, y).type].sym == '*')
+	{
+		switch (rng(1, 5)) 
+		{
+			case 1: sym = '*'; break;
+			case 2: sym = '0'; break;
+			case 3: sym = '8'; break;
+			case 4: sym = '&'; break;
+			case 5: sym = '+'; break;
+		}
+	}
+	else
+	if(fieldlist[field_at(x, y).type].sym != '%' || i_at(x, y).size() > 0)
+	{
+		sym = fieldlist[field_at(x, y).type].sym;
+		drew_field = false;
+	}
+
+ }
+ else
+ if(veh) 
+ {
+   sym = special_symbol (veh->face.dir_symbol(veh->part_sym(veh_part)));
+
+   if(normal_tercol)
+     tercol = veh->part_color(veh_part);
+ }
+
+
+ if(!drew_field && show_items 
+	&& !has_flag(container, x, y) && i_at(x, y).size() > 0)
+ {
+
+//CAT: with night vision...
+	if(lightning)
+		tercol= c_white;
+	else
+	if(nv)
+		tercol= c_ltgreen;
+	else
+	if(normal_tercol)
+	   tercol = i_at(x, y)[i_at(x, y).size() - 1].color();
+
+	if ((terlist[ter(x, y)].sym != '.'))
+		hi = true;
+	else
+	{
+
+		if(sym == '4')
+			graf= true;	
+		else
+		if (i_at(x, y).size() > 1)
+			invert = !invert;
+
+		sym = i_at(x, y)[i_at(x, y).size() - 1].symbol();
+	}
+
+
+ }
+ else
  if(tr_at(x, y) != tr_null 
 	&& u.per_cur - u.encumb(bp_eyes) >= (*traps)[tr_at(x, y)]->visibility) 
  {
+
+//CAT: with night vision...
+	if(lightning)
+		tercol= c_white;
+	else
+	if(nv)
+		tercol= c_ltgreen;
+	else
+	if(normal_tercol)
+		tercol = (*traps)[tr_at(x, y)]->color;	
+
 	if ((*traps)[tr_at(x, y)]->sym == '%')
 	{
 		switch(rng(1, 5))
@@ -3223,88 +3304,11 @@ void map::drawsq(WINDOW* w, player &u, const int x, const int y, const bool inve
 	}
 	else
 		sym = (*traps)[tr_at(x, y)]->sym;
-	
-//CAT: with night vision...
-	if(lightning)
-		tercol= c_white;
-	else
-	if(nv)
-		tercol= c_ltgreen;
-	else
-	if(normal_tercol)
-		tercol = (*traps)[tr_at(x, y)]->color;	
- }
- else
- if(field_at(x, y).type != fd_null
-			&& fieldlist[field_at(x, y).type].sym != '&') 
- {
-	drew_field = true;
-	if (fieldlist[field_at(x, y).type].sym == '*')
-	{
-		switch (rng(1, 5)) 
-		{
-			case 1: sym = '*'; break;
-			case 2: sym = '0'; break;
-			case 3: sym = '8'; break;
-			case 4: sym = '&'; break;
-			case 5: sym = '+'; break;
-		}
-	}
-	else
-	if(fieldlist[field_at(x, y).type].sym != '%'
-		|| i_at(x, y).size() > 0)
-	{
-		sym = fieldlist[field_at(x, y).type].sym;
-		drew_field = false;
-	}
-
-//CAT: with night vision...
-	if(lightning)
-		tercol= c_white;
-	else
-	if(nv)
-		tercol= c_ltgreen;
-	else
-		tercol = fieldlist[field_at(x, y).type].color[field_at(x, y).density - 1];
- }
- else
- if(show_items && !has_flag(container, x, y)
-		&& i_at(x, y).size() > 0 && !drew_field)
- {
-	if ((terlist[ter(x, y)].sym != '.'))
-		hi = true;
-	else
-	{
-		if (i_at(x, y).size() > 1)
-			invert = !invert;
-
-		sym = i_at(x, y)[i_at(x, y).size() - 1].symbol();
-	}
-
-//CAT: with night vision...
-	if(lightning)
-		tercol= c_white;
-	else
-	if(nv)
-		tercol= c_ltgreen;
-	else
-	if(normal_tercol)
-	   tercol = i_at(x, y)[i_at(x, y).size() - 1].color();
- }
-
-
- int veh_part = 0;
- vehicle *veh = veh_at(x, y, veh_part);
- if(veh) 
- {
-   sym = special_symbol (veh->face.dir_symbol(veh->part_sym(veh_part)));
-
-   if(normal_tercol)
-     tercol = veh->part_color(veh_part);
  }
  else
  if(graffiti_at(x,y).contents)
    graf = true;
+
 
 
 //CAT: yellow pavement (and railings?) have high visibility
@@ -3481,14 +3485,7 @@ std::vector<point> map::route(const int Fx, const int Fy, const int Tx, const in
  int linet = 0;
  if (clear_path(Fx, Fy, Tx, Ty, -1, 2, 2, linet))
   return line_to(Fx, Fy, Tx, Ty, linet);
-/*
- if (move_cost(Tx, Ty) == 0)
-  debugmsg("%d:%d wanted to move to %d:%d, a %s!", Fx, Fy, Tx, Ty,
-           tername(Tx, Ty).c_str());
- if (move_cost(Fx, Fy) == 0)
-  debugmsg("%d:%d, a %s, wanted to move to %d:%d!", Fx, Fy,
-           tername(Fx, Fy).c_str(), Tx, Ty);
-*/
+
  std::vector<point> open;
  astar_list list[SEEX * MAPSIZE][SEEY * MAPSIZE];
  int score	[SEEX * MAPSIZE][SEEY * MAPSIZE];
@@ -3580,11 +3577,9 @@ std::vector<point> map::route(const int Fx, const int Fy, const int Tx, const in
   while (cur.x != Fx || cur.y != Fy) {
    //debugmsg("Retracing... (%d:%d) => [%d:%d] => (%d:%d)", Tx, Ty, cur.x, cur.y, Fx, Fy);
    tmp.push_back(cur);
-   if (rl_dist(cur.x, cur.y, parent[cur.x][cur.y].x, parent[cur.x][cur.y].y)>1){
-    debugmsg("Jump in our route! %d:%d->%d:%d", cur.x, cur.y,
-             parent[cur.x][cur.y].x, parent[cur.x][cur.y].y);
+   if (rl_dist(cur.x, cur.y, parent[cur.x][cur.y].x, parent[cur.x][cur.y].y)>1)
     return ret;
-   }
+
    cur = parent[cur.x][cur.y];
   }
   for (int i = tmp.size() - 1; i >= 0; i--)
@@ -3723,10 +3718,8 @@ void map::saven(overmap *om, unsigned const int turn, const int worldx, const in
  const int n = gridx + gridy * my_MAPSIZE;
 
  if ( !grid[n] || grid[n]->ter[0][0] == t_null)
- {
-//  dbg(D_ERROR) << "map::saven grid NULL!";
   return;
- }
+
  const int abs_x = om->pos().x * OMAPX * 2 + worldx + gridx,
            abs_y = om->pos().y * OMAPY * 2 + worldy + gridy;
 
@@ -3768,7 +3761,6 @@ bool map::loadn(game *g, const int worldx, const int worldy, const int worldz, c
    }
   }
  } else { // It doesn't exist; we must generate it!
-//  dbg(D_INFO|D_WARNING) << "map::loadn: Missing mapbuffer data. Regenerating.";
 
 
   map tmp_map(itypes, mapitems, traps);

@@ -44,7 +44,7 @@ bool monster::can_move_to(map &m, int x, int y)
 	return false;
 */
 
- if(	!one_in(10)
+ if(	!one_in(30)
 		&& (m.ter(x,y) == t_railing_v || m.ter(x,y) == t_railing_h) )
 	return false;
 
@@ -214,11 +214,13 @@ void monster::move(game *g)
   moves = 0;
   return;
  }
+
  if (has_effect(ME_STUNNED)) {
   stumble(g, false);
   moves = 0;
-  return;
+//  return;
  }
+
  if (has_effect(ME_DOWNED)) {
   moves = 0;
   return;
@@ -638,11 +640,31 @@ void monster::hit_player(game *g, player &p, bool can_grab)
 void monster::move_to(game *g, int x, int y)
 {
  int mondex = g->mon_at(x, y);
- if (mondex == -1) { //...assuming there's no monster there
-  if (has_effect(ME_BEARTRAP)) {
-   moves = 0;
-   return;
+ if (mondex == -1) 
+ { 
+
+  if (has_effect(ME_BEARTRAP))
+  {
+	moves = 0;
+	return;
   }
+
+  if(!has_flag(MF_DIGS) 
+	&& !has_flag(MF_FLIES) && g->m.tr_at(posx, posy) != tr_null)
+  { 
+	// Monster stepped on a trap!
+	trap* tr = g->traps[g->m.tr_at(posx, posy)];
+
+	if( dice(3, sk_dodge + 1) < dice(3, tr->avoidance) )
+	{
+		trapfuncm f;
+		(f.*(tr->actm))(g, this, posx, posy);
+
+		moves= 0;
+		return;
+	}
+  }
+
   if (plans.size() > 0)
    plans.erase(plans.begin());
   if (has_flag(MF_SWIMS) && g->m.has_flag(swimmable, x, y))
@@ -650,21 +672,17 @@ void monster::move_to(game *g, int x, int y)
   if (!has_flag(MF_DIGS) && !has_flag(MF_FLIES) &&
       (!has_flag(MF_SWIMS) || !g->m.has_flag(swimmable, x, y)))
    moves -= (g->m.move_cost(x, y) - 2) * 50;
+
   posx = x;
   posy = y;
   footsteps(g, x, y);
-  if (g->m.has_flag(sharp, posx, posy) && !one_in(4))
+  if(g->m.has_flag(sharp, posx, posy) && !one_in(4))
      hurt(rng(2, 3));
-  if (g->m.has_flag(rough, posx, posy) && one_in(6))
+  else
+  if(g->m.has_flag(rough, posx, posy) && one_in(6))
      hurt(rng(1, 2));
-  if (!has_flag(MF_DIGS) && !has_flag(MF_FLIES) &&
-      g->m.tr_at(posx, posy) != tr_null) { // Monster stepped on a trap!
-   trap* tr = g->traps[g->m.tr_at(posx, posy)];
-   if (dice(3, sk_dodge + 1) < dice(3, tr->avoidance)) {
-    trapfuncm f;
-    (f.*(tr->actm))(g, this, posx, posy);
-   }
-  }
+
+
 // Diggers turn the dirt into dirtmound
   if (has_flag(MF_DIGS))
    g->m.ter(posx, posy) = t_dirtmound;
@@ -675,6 +693,7 @@ void monster::move_to(game *g, int x, int y)
 // If there IS a monster there, and we fight monsters, fight it!
   hit_monster(g, mondex);
 }
+
 
 /* Random walking even when we've moved
  * To simulate zombie stumbling and ineffective movement

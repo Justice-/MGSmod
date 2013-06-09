@@ -3647,15 +3647,12 @@ you can, I need to know you're alright.";
 
 void iuse::artifact(game *g, player *p, item *it, bool t)
 {
- if (!it->is_artifact()) {
-  debugmsg("iuse::artifact called on a non-artifact item! %s",
-           it->tname().c_str());
+ if(!it->is_artifact())
   return;
- } else if (!it->is_tool()) {
-  debugmsg("iuse::artifact called on a non-tool artifact! %s",
-           it->tname().c_str());
+ else
+ if(!it->is_tool())
   return;
- }
+
  it_artifact_tool *art = dynamic_cast<it_artifact_tool*>(it->type);
  int num_used = rng(1, art->effects_activated.size());
  if (num_used < art->effects_activated.size())

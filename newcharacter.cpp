@@ -133,13 +133,14 @@ bool player::create(game *g, character_type type, std::string tempname)
      }
     }
    } break;
+
    case PLTYPE_TEMPLATE: {
     std::ifstream fin;
     std::stringstream filename;
     filename << "data/" << tempname << ".template";
     fin.open(filename.str().c_str());
     if (!fin.is_open()) {
-     debugmsg("Couldn't open %s!", filename.str().c_str());
+//     debugmsg("Couldn't open %s!", filename.str().c_str());
      return false;
     }
     std::string(data);

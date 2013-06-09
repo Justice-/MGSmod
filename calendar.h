@@ -4,7 +4,7 @@
 // How many minutes exist when the game starts - 8:00 AM
 #define STARTING_MINUTES 480
 // The number of days in a season - this also defines moon cycles
-#define DAYS_IN_SEASON 14
+#define DAYS_IN_SEASON 7
 
 // Convert minutes, hours, days to turns
 #define MINUTES(x) ((x) * 10)

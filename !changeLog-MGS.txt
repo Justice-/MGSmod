@@ -1,43 +1,37 @@
+TO DO, or NOT TO DO:
++ resurect corpses?
++ max. skills at 10
 + add cows and cow milking?
 + add horses and horse riding?
-+ make extra action to discourage walking on top of furniture?
++ half moon should light up room?
++ feeling pain from hotness while still "comfortable"?
++ g->add_msg("map::board_vehicle: vehicle not found");?
++ monsters hestitating to attack, stumbling?
 + make NPCs go around holes?
 + zombies hang onto the cars?
-+ check bionics/nutation effects, infra vision, claryvojance, super-hearing?
-+ kick monsters (charge), work for furniture too?
-+ limit car bashing sound to viewscreen (monster walking over car)?
++ check bionics/mutation effects, infra vision, claryvojance, super-hearing?
 + put monsters on fire with lit torches, candles and fire arrows?
-+ fires to burn outside of player view?
-+ random vehicle spawn more out of order?
-+ silenced shot sound effect, and laser, railgun too, what else?
++ random vehicle spawn more broken and out of order?
 + make boltcutters and screwdriver requisite to hotwire car?
-+ wind and smell?
++ introduce wind to combine it wind smell, animals run away when smell you?
 + Balance temperature in hellmouth/lava?
 + Amigara horror, no faulty yellow line?
 + Helmouth, stairs down blocked off? --- not coded
 + Nuke plant, where is it? --- not coded
-+ new building and random vehicles spawning on roads?
-+ three rows in killscreen?
-+ make root wals flammable2 (burn to ash)?
-+ fire exstinguisher (spray) sound effect?
 + scores and scoreboard?
 + zombies drawn in unseen areas?
 + rework indoor flag?
 + make burst fire more usefull/deadly?
 + make throwing radio_on (mp3_on, firecrackers) actually useful?
-+ half/full moon too bright?
++ moon-light too bright?
 + put cigarettes and bandana in char startup inventory?
-+ bucher corpse on altar to grant you wish, and summon demons (blood graffity for instructions)?
-+ jackhammer, or some genmeral construction sound?
++ bucher corpse on altar to grant you wish, and summon demons?
 + disable sunlight glare when not ouside?
 + fix gunmods Slax mentioned in the thread?
-+ include indoor flag?
-+ use map, extend noted locations?
-+ reading novels (and other) give correct morale boost?
++ reading novels (and other) giving correct morale boost?
 + targeting "bullet time" when stimulated over some point?
 + "you winish waiting" mesage when interupted?
-+ burst fire missing sound effects and not all bulets actually shot?
-+ info say romance novel +4 morale but gives 20, drama novel info says +2 but it gives 8?
++ burst fire missing sound effects when shooting close targets?
 + pet food, animal training and adopting beside whistle?
 + "fuel tank empty" show x2 when boarding vehicle without fuel, why?
 + make jumpstart requirement sometimes, beside hot-wiring?
@@ -45,37 +39,42 @@
 + less radios, more cell phones... find some use for two way radio and radios?
 + move_furnoture() doesn't account for viewoffset?
 + RPG7+scope, exploding barrels!?
-+ burst bullet sounds doesn't trigger all when shooting close?
 + proper distance calculation in [Map] - overmap?
 + replace refresh_all() with draw()?
-+ cell treatment in labs remove bionics if you have arm, leg, fetus
++ cell treatment in labs remove bionics if you have arm, leg, fetus?
 + show "#" for numbered multidrop/pickup, whichever is missing?
 + failed mission tab screwed up? sound effects?
-+ beds don't invert color when items on them?
-+ show burst number under "Weapon:"?
-+ healing NPCs, does that work?
-+ push furniture around, and jump key, throw ghjkl, 1234...?
++ beds don't invert color when items on them, some corpses too?
++ show burst bullets number under "Weapon:"?
++ healing NPCs, does that work? (they heal themselves)
 + add H&K G80 railgun to mountable turrets?
 + clear options extra option menu and disable SAFE mode operations?
 + automated sliding doors, opened with science ID card?
++ check night vision - fields, yellow lines?
 + curved roads?
-+ if there is Old Snake character menu should jumps automatically to "predefined char" to start game?
 + cargo elevator for underground Metal Gear storage?
-+ Amigara horor text box drawing, in mine (fault line, t_fault)?
 + "shock where?" (tazer) message pops-up out of it self, when reloading fast - keypress gobbled?
 + secreet area, can only be oppened on full moon
+
+
+MGSmod rev.44b
+- chain-kill morale boost, combo multiplier up to x10
+- kick & shoot: ability to kick/push while targeting
+- with skilfull kick/push possible to stun monster
+- kill count for zombies killed by explosions or fire
+- extra action to discourage walking on top of furniture
+- equilized animation timing for close and far away targets
+- no more eternally burning fires outside of player's view
+
 
 
 MGSmod rev.41b
 - kick action, push monsters thru windows or in hole
 - kick action, push furniture which can push monsters
-
 - secret bell tower room, may contain laser, plasma, railgun...
-
 - sound effects for lasers and other fusion & plutonium firearm
 - sound effects for jackhammer, flamethrower & fire extinguisher
 - included game sound and actual sound effect for silencers
-
 - vehicle parts not blocking view anymore 
 - railings prevent monsters to stupidly fall into holes
 - three row of "Kill Count" monsters

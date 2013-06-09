@@ -429,7 +429,7 @@ const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
 {"lava",             '~', c_red,     4, tr_lava,
 	mfb(transparent)|mfb(liquid)},
 {"bed",              '#', c_magenta, 5, tr_null,
-        mfb(transparent)|mfb(container)|mfb(flammable2)|mfb(collapses)|
+        mfb(transparent)|mfb(flammable2)|mfb(collapses)|
         mfb(deconstruct)|mfb(place_item)},
 {"toilet",           '&', c_white,   4, tr_null,
 	mfb(transparent)|mfb(bashable)|mfb(l_flammable)|mfb(collapses)},
@@ -461,8 +461,7 @@ const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
 {"trash can",        '&', c_ltcyan,  3, tr_null,
         mfb(transparent)|mfb(flammable2)|mfb(collapses)|mfb(container)|mfb(place_item)},
 {"desk",             '#', c_ltred,   3, tr_null,
-        mfb(transparent)|mfb(flammable2)|mfb(collapses)|mfb(deconstruct)|
-        mfb(container)|mfb(place_item)},
+        mfb(transparent)|mfb(flammable2)|mfb(collapses)|mfb(deconstruct)|mfb(place_item)},
 {"sandbox", '#', c_yellow, 3, tr_null,
 	mfb(transparent)|mfb(deconstruct)},
 {"slide",            '#', c_ltcyan,  4, tr_null,
@@ -804,15 +803,27 @@ const field_t fieldlist[] = {
 
 };
 
+
 struct field {
  field_id type;
  signed char density;
  int age;
- field() { type = fd_null; density = 1; age = 0; };
- field(field_id t, unsigned char d, unsigned int a) {
+ int lastUpdate;
+
+ field()
+ {
+	type = fd_null; 
+	density = 1;
+	age = 0; 
+//	lastUpdate= 0;
+ }
+
+ field(field_id t, unsigned char d, unsigned int a)
+ {
   type = t;
   density = d;
   age = a;
+//  lastUpdate= 0;
  }
 
  bool is_null()

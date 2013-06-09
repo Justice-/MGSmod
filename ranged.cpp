@@ -76,11 +76,8 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
  ammotmp = item(curammo, 0);
  ammotmp.charges = 1;
 
- if (!weapon->is_gun() && !weapon->is_gunmod()) {
-  debugmsg("%s tried to fire a non-gun (%s).", p.name.c_str(),
-                                               weapon->tname().c_str());
-  return;
- }
+ if (!weapon->is_gun() && !weapon->is_gunmod()) 
+	return;
 
  bool is_bolt = false;
  unsigned int effects = curammo->ammo_effects;
@@ -136,10 +133,9 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
  for(int curshot = 0; curshot < num_shots; curshot++)
  {
 
-//CAT-mgs: *** ^^^
-
   // Drop a shell casing if appropriate.
   itype_id casing_type = itm_null;
+
   switch(curammo->type) {
   case AT_SHOT: casing_type = itm_shot_hull; break;
   case AT_9MM: casing_type = itm_9mm_casing; break;
@@ -154,9 +150,17 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
   case AT_3006: casing_type = itm_3006_casing; break;
   case AT_308: casing_type = itm_308_casing; break;
   case AT_40MM: casing_type = itm_40mm_casing; break;
-  default: /*No casing for other ammo types.*/ break;
+  default: 
+	break;
   }
-  if (casing_type != itm_null) {
+
+  if(casing_type != itm_null) 
+  {
+
+//CAT-s: shellDrop sound
+	if(one_in(2))
+		playSound(41);
+
    int x = p.posx - 1 + rng(0, 2);
    int y = p.posy - 1 + rng(0, 2);
    std::vector<item>& items = m.i_at(x, y);
@@ -167,15 +171,13 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
      items[i].charges++;
      break;
     }
+
    if (i == items.size()) {
     item casing;
     casing.make(itypes[casing_type]);
     // Casing needs a charges of 1 to stack properly with other casings.
     casing.charges = 1;
     m.add_item(x, y, casing);
-
-//CAT-s: shellDrop sound
-	playSound(41);
 
    }
   }
@@ -200,6 +202,7 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
 
   int trange = calculate_range(p, tarx, tary);
   double missed_by = calculate_missed_by(p, trange, weapon);
+
 
 // Calculate a penalty based on the monster's speed
   double monster_speed_penalty = 1.0;
@@ -238,11 +241,11 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
 	else
 		p.recoil += recoil_add(p);
 
-	
+
+
 //CAT-mgs: *** vvv
   if (missed_by >= 1.0) {
 // We missed D:
-
 
    missed = true;
    if (!burst) {
@@ -263,22 +266,33 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
   }
 
 
+//CAT-mgs: trajectory *** vvv
   int dam= weapon->gun_damage();
   for( int i= 0; i < trajectory.size() &&
        ( dam > 0 || (effects & (AMMO_FLAME | AMMO_TRAIL)) ); i++ )
   {
 
+
 	// Drawing the bullet uses player u, and not player p, because it's drawn
 	// relative to YOUR position, which may not be the gunman's position.
-	if(i%2 == 0 && u_see(trajectory[i].x, trajectory[i].y, junk))
+	if(u_see(trajectory[i].x, trajectory[i].y, junk))
 	{
 //CAT:
 		char bullet = '.';
+//		if(i%2 == 0)
+//			bullet = '*';
+
 		nc_color cat_col= c_ltred;
+		if(curammo->type == AT_FUSION)
+		{
+			bullet = '*';
+			cat_col= c_yellow;	
+		}
+		else
 		if(curammo->type == AT_PLASMA)
 		{
 			bullet = 'o';
-			cat_col= c_yellow;	
+			cat_col= c_magenta;	
 		}
 		else
 		if(effects & mfb(AMMO_TRAIL))
@@ -329,6 +343,7 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
 
 	    return;
 	}
+
 
 
 	int tx = trajectory[i].x, ty = trajectory[i].y;
@@ -389,17 +404,18 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
 	else
 	    m.shoot(this, tx, ty, dam, i == trajectory.size() - 1, effects);
 
-
 //CAT: 
 	if(&p == &u)
-		ts.tv_nsec = BULLET_SPEED;
+		ts.tv_nsec = (BULLET_SPEED*100)/(trajectory.size()*9);
 	else  
-		ts.tv_nsec = BULLET_SPEED / 100;
+		ts.tv_nsec = BULLET_SPEED/(trajectory.size()*9); //BULLET_SPEED / 100;
 
 	wrefresh(w_terrain);
 	nanosleep(&ts, NULL);
 
   } // Done with the trajectory!
+
+
 
   int lastx = trajectory[trajectory.size() - 1].x;
   int lasty = trajectory[trajectory.size() - 1].y;
@@ -413,6 +429,7 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
       ((curammo->m1 == WOOD && !one_in(5)) ||
        (curammo->m1 != WOOD && !one_in(15))  ))
     m.add_item(lastx, lasty, ammotmp);
+
  }
 
  if (weapon->num_charges() == 0)
@@ -635,12 +652,11 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 
  if(relevent)
  {
-	mvwprintz(w_target, 2, 1, c_white, "Press 'f' or ENTER to fire, ESC to exit.");
-	mvwprintz(w_target, 3, 1, c_white, "Press SPACE or '.' to take a kneeling shot.");
+	mvwprintz(w_target, 2, 1, c_white, "ENTER or 'f' to fire,'z' to kick, ESC to exit.");
+	mvwprintz(w_target, 3, 1, c_white, "SPACE or '.' to pause and take a kneeling shot.");
  }
  else
 	 mvwprintz(w_target, 2, 1, c_white, "Move the aim with directional keys.");
-
 
 
 
@@ -934,6 +950,7 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 
 			u.moves= 0;
 			u.process_active_items(this);
+			turn.increment();
 
 			return ret;
 		}
@@ -961,6 +978,12 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 			playSound(6);
 		}
 	}
+	else 
+	if(ch == 'z')
+	{
+		runJump(true);
+		u.recoil= 45;
+	}
 
 	if(u.recoil > 3)
 		u.recoil= int(u.recoil/2);
@@ -968,9 +991,12 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
 	if(u.recoil > 0 && u.recoil < 3)
 		u.recoil= 3;
 
-	u.moves= 0;
+//	u.moves= 0;
+
 	monmove();
 	update_stair_monsters();
+
+	turn.increment();
 
  } while (true);
 
@@ -1032,13 +1058,13 @@ int time_to_fire(player &p, it_gun* firing)
      time = 30;
    else
      time = (200 - 20 * p.skillLevel("launcher"));
- } else {
-   debugmsg("Why is shooting %s using %s skill?", (firing->name).c_str(), firing->skill_used->name().c_str());
+ } else
    time =  0;
- }
 
  return time;
 }
+
+
 
 //CAT-s: *** whole lot ***
 void make_gun_sound_effect(game *g, player &p, bool burst, item* weapon)
@@ -1049,24 +1075,24 @@ void make_gun_sound_effect(game *g, player &p, bool burst, item* weapon)
 
 // g->add_msg("GUN NOISE= %d", noise);
 
-//CAT-mgs:
- if( weapon->has_gunmod(itm_silencer) >= 0 )
+ if(weapon->curammo->type == AT_PLASMA)
  {
-	g->sound(p.posx, p.posy, noise, "Ptseeww!");
-//CAT-s: silencer
-	playSound(36);
-
+	g->sound(p.posx, p.posy, 8, "Zwrrm!");
+//CAT-s: plasma
+	playSound(99);
  }
- else
+ else 
  if(weapon->curammo->type == AT_FUSION
 	|| weapon->curammo->type == AT_BATT
-	|| weapon->curammo->type == AT_PLUT)
+	|| weapon->curammo->type == AT_PLUT
+	|| weapon->curammo->type == AT_PLASMA)
  {
-	g->sound(p.posx, p.posy, 8, "Fzzt!");
+	g->sound(p.posx, p.posy, 7, "Fzzt!");
 //CAT-s: laser
 	playSound(37);
  }
- else if (weapon->curammo->type == AT_40MM)
+ else 
+ if (weapon->curammo->type == AT_40MM)
  {
 	g->sound(p.posx, p.posy, 8, "Thunk!");
 
@@ -1092,6 +1118,14 @@ void make_gun_sound_effect(game *g, player &p, bool burst, item* weapon)
 	&& weapon->curammo->type != AT_ARROW)
  {
 
+//CAT-mgs:
+	 if( weapon->has_gunmod(itm_silencer) >= 0 )
+	 {
+//CAT-s: silencer
+		playSound(36);
+		gunsound = "Ptseeww!";
+	 }
+	 else
 	 if (noise < 5) {
 	  if (burst)
 	   gunsound = "Brrrip!"; 
@@ -1118,7 +1152,8 @@ void make_gun_sound_effect(game *g, player &p, bool burst, item* weapon)
 	  else
 	   gunsound = "blam!"; 
 
-//CAT:
+//CAT: uh, too fast to be heard, or too fast for SDL to process?
+//	   Sleep(1);
 	   playSound(70);
 	 }
 	 else

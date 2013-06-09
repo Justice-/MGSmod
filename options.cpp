@@ -142,7 +142,7 @@ void load_options()
   create_default_options();
   fin.open("data/options.txt");
   if (!fin.is_open()) {
-   debugmsg("Could neither read nor create ./data/options.txt");
+//   debugmsg("Could neither read nor create ./data/options.txt");
    return;
   }
  }
@@ -157,7 +157,7 @@ void load_options()
   else {
    option_key key = lookup_option_key(id);
    if (key == OPT_NULL) {
-    debugmsg("Bad option: %s", id.c_str());
+//    debugmsg("Bad option: %s", id.c_str());
     getline(fin, id);
    } else if (option_is_bool(key)) {
     std::string val;
@@ -375,7 +375,7 @@ char option_max_options(option_key id)
         break;
       case OPT_VIEWPORT_X:
       case OPT_VIEWPORT_Y:
-        ret = 93; // TODO Set up min/max values so weird numbers don't have to be used.
+        ret = 13; // TODO Set up min/max values so weird numbers don't have to be used.
         break;
       default:
         ret = 2;

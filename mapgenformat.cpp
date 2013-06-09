@@ -39,11 +39,10 @@ void formatted_set_terrain(map* m, const int startx, const int starty, const cha
    x = startx;
   }
   else {
+
    if(fdata.bindings.find(*p) == fdata.bindings.end())
-   {
-    debugmsg("No binding for \'%c.\'", *p);
     fdata.bindings[*p] = new internal::statically_determine_terrain();
-   }
+
    ter_id id = (*fdata.bindings[*p])(m, x, y);
    if(id != t_null)
     m->ter(x, y)= id;

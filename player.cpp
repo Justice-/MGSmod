@@ -437,7 +437,7 @@ void player::update_bodytemp(game *g) // TODO bionics, diseases and humidity (no
 
 
 //CAT-mgs: after release addition, plus change
-	temp_conv += int(900 * heat_intensity /(fire_dist * fire_dist));
+	temp_conv += int(700 * heat_intensity /(fire_dist * fire_dist));
       blister_count += int(heat_intensity/(fire_dist * fire_dist));
     }
    }
@@ -1830,13 +1830,13 @@ void player::disp_morale(game* g)
  wborder(w, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
             LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
  mvwprintz(w, 1,  1, c_white, "Morale Modifiers:");
- mvwprintz(w, 2,  1, c_ltgray, "Name");
- mvwprintz(w, 2, 20, c_ltgray, "Value");
+// mvwprintz(w, 2,  1, c_ltgray, "Name");
+// mvwprintz(w, 2, 32, c_ltgray, "Value");
 
  for (int i = 0; i < morale.size(); i++) {
   int b = morale[i].bonus;
 
-  int bpos = 24;
+  int bpos = 34;
   if (abs(b) >= 10)
    bpos--;
   if (abs(b) >= 100)
@@ -1844,21 +1844,21 @@ void player::disp_morale(game* g)
   if (b < 0)
    bpos--;
 
-  mvwprintz(w, i + 3,  1, (b < 0 ? c_red : c_green),
-            morale[i].name(morale_data).c_str());
-  mvwprintz(w, i + 3, bpos, (b < 0 ? c_red : c_green), "%d", b);
+  mvwprintz(w, i + 2,  1, (b < 0 ? c_red : c_green), morale[i].name(morale_data).c_str());
+  mvwprintz(w, i + 2, bpos, (b < 0 ? c_red : c_green), "%d", b);
  }
 
  int mor = morale_level();
- int bpos = 24;
+ int bpos = 34;
   if (abs(mor) >= 10)
    bpos--;
   if (abs(mor) >= 100)
    bpos--;
   if (mor < 0)
    bpos--;
- mvwprintz(w, 20, 1, (mor < 0 ? c_red : c_green), "Total:");
- mvwprintz(w, 20, bpos, (mor < 0 ? c_red : c_green), "%d", mor);
+
+ mvwprintz(w, 23, 1, (mor < 0 ? c_red : c_green), "Total:");
+ mvwprintz(w, 23, bpos, (mor < 0 ? c_red : c_green), "%d", mor);
 
  wrefresh(w);
  getch();
@@ -2531,8 +2531,7 @@ void player::hit(game *g, body_part bphurt, int side, int dam, int cut)
     hp_cur[hp_leg_r] = 0;
   }
  break;
- default:
-  debugmsg("Wacky body part hit!");
+
  }
  if (has_trait(PF_ADRENALINE) && !has_disease(DI_ADRENALINE) &&
      (hp_cur[hp_head] < 25 || hp_cur[hp_torso] < 15))
@@ -2600,8 +2599,6 @@ void player::hurt(game *g, body_part bphurt, int side, int dam)
     hp_cur[hp_leg_r] = 0;
   }
  break;
- default:
-  debugmsg("Wacky body part hurt!");
  }
  if (has_trait(PF_ADRENALINE) && !has_disease(DI_ADRENALINE) &&
      (hp_cur[hp_head] < 25 || hp_cur[hp_torso] < 15))
@@ -2621,8 +2618,6 @@ void player::heal(body_part healed, int side, int dam)
   healpart = hp_torso;
  break;
  case bp_hands:
-// Shouldn't happen, but fall through to arms
-  debugmsg("Heal against hands!");
  case bp_arms:
   if (side == 0)
    healpart = hp_arm_l;
@@ -2630,8 +2625,6 @@ void player::heal(body_part healed, int side, int dam)
    healpart = hp_arm_r;
  break;
  case bp_feet:
-// Shouldn't happen, but fall through to legs
-  debugmsg("Heal against feet!");
  case bp_legs:
   if (side == 0)
    healpart = hp_leg_l;
@@ -2639,7 +2632,6 @@ void player::heal(body_part healed, int side, int dam)
    healpart = hp_leg_r;
  break;
  default:
-  debugmsg("Wacky body part healed!");
   healpart = hp_torso;
  }
  hp_cur[healpart] += dam;
@@ -2800,9 +2792,6 @@ void player::get_sick(game *g)
   health++;
  if (one_in(12))
   health -= 1;
-
- if (g->debugmon)
-  debugmsg("Health: %d", health);
 
  if (has_trait(PF_DISIMMUNE))
   return;
@@ -3033,6 +3022,7 @@ void player::suffer(game *g)
      add_morale(MORALE_FEELING_BAD, -20, -100);
    }
   }
+
   if ((has_trait(PF_SCHIZOPHRENIC) || has_artifact_with(AEP_SCHIZO)) &&
       one_in(2400)) { // Every 4 hours or so
    monster phantasm;
@@ -3580,10 +3570,9 @@ void player::process_active_items(game *g)
    return;
   } // if (weapon.has_flag(IF_CHARGE))
 
-  if (!weapon.is_tool()) {
-   debugmsg("%s is active, but it is not a tool.", weapon.tname().c_str());
+  if (!weapon.is_tool())
    return;
-  }
+
   tmp = dynamic_cast<it_tool*>(weapon.type);
   (use.*tmp->use)(g, this, &weapon, true);
   if (tmp->turns_per_charge > 0 && int(g->turn) % tmp->turns_per_charge == 0)
@@ -4147,7 +4136,8 @@ bool player::eat(game *g, int index)
    if (!is_npc())
     g->add_msg("You can't eat your %s.", weapon.tname(g).c_str());
    else
-    debugmsg("%s tried to eat a %s", name.c_str(), weapon.tname(g).c_str());
+    g->add_msg("%s tried to eat a %s", name.c_str(), weapon.tname(g).c_str());
+
    return false;
   }
  } else {
@@ -4165,7 +4155,8 @@ bool player::eat(game *g, int index)
    if (!is_npc())
     g->add_msg("You can't eat your %s.", inv[index].tname(g).c_str());
    else
-    debugmsg("%s tried to eat a %s", name.c_str(), inv[index].tname(g).c_str());
+    g->add_msg("%s tried to eat a %s", name.c_str(), inv[index].tname(g).c_str());
+
    return false;
   }
  }
@@ -4185,10 +4176,10 @@ bool player::eat(game *g, int index)
   charge_power(charge);
  } else { // It's real food!  i.e. an it_comest
 // Remember, comest points to the it_comest data
-  if (comest == NULL) {
-   debugmsg("player::eat(%s); comest is NULL!", eaten->tname(g).c_str());
+
+  if (comest == NULL)
    return false;
-  }
+
   if (comest->tool != itm_null) {
    bool has = has_amount(comest->tool, 1);
    if (g->itypes[comest->tool]->count_by_charges())
@@ -4696,6 +4687,11 @@ void player::use(game *g, char let)
     inv.add_item(copy);
    return;
   }
+
+//CAT-s: 
+  playSound(0);
+  playSound(1);
+
   char gunlet = g->inv("Select gun to modify:");
   it_gunmod *mod = static_cast<it_gunmod*>(used->type);
   item* gun = &(i_at(gunlet));
@@ -4848,8 +4844,10 @@ press 'U' while wielding the unloaded gun.", gun->tname(g).c_str());
   inv.add_item(copy);
 }
 
+
 void player::read(game *g, char ch)
 {
+
  vehicle *veh = g->m.veh_at (posx, posy);
  if (veh && veh->player_in_control (this)) {
   g->add_msg("It's bad idea to read while driving.");
@@ -4858,11 +4856,10 @@ void player::read(game *g, char ch)
 
 // Check if reading is okay
 //CAT-g: read under candle light
-// if (g->light_level() < 8 && LL_LIT > g->lm.at(0, 0)) {
- if (g->light_level() < 3 && g->lm.at(0, 0) < LL_LIT) {
-
-  g->add_msg("It's too dark to read!");
-  return;
+ if(g->light_level() < 8 && g->lm.at(0, 0) < LL_LIT) 
+ {
+	g->add_msg("It's too dark to read!");
+	return;
  }
 
 // Find the object
@@ -5007,9 +5004,7 @@ int player::encumb(body_part bp, int &layers, int &armorenc, int &warmth)
  int ret = 0;
  it_armor* armor;
  for (int i = 0; i < worn.size(); i++) {
-  if (!worn[i].is_armor())
-   debugmsg("%s::encumb hit a non-armor item at worn[%d] (%s)", name.c_str(),
-            i, worn[i].tname().c_str());
+
   armor = dynamic_cast<it_armor*>(worn[i].type);
 
   if (armor->covers & mfb(bp)) {

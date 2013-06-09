@@ -13,7 +13,6 @@
 #include "keypress.h"
 #include <cstring>
 #include <ostream>
-#include "debug.h"
 #include "cursesdef.h"
 #include "options.h"
 
@@ -111,7 +110,8 @@ oter_id shop(int dir)
   case 1: ret = oter_id(ret + 1); break;
   case 2: ret = oter_id(ret + 2); break;
   case 3: ret = oter_id(ret + 3); break;
-  default: debugmsg("Bad rotation of shop."); return ot_null;
+  default: 
+	return ot_null;
  }
  return ret;
 }
@@ -128,7 +128,8 @@ oter_id house(int dir)
   case 1:  return base ? ot_house_base_east  : ot_house_east;
   case 2:  return base ? ot_house_base_south : ot_house_south;
   case 3:  return base ? ot_house_base_west  : ot_house_west;
-  default: debugmsg("Bad rotation of house."); return ot_null;
+  default: 
+	return ot_null;
  }
 }
 
@@ -297,10 +298,9 @@ std::string const& overmap::note(int const x, int const y, int const z) const
 
 void overmap::add_note(int const x, int const y, int const z, std::string const & message)
 {
- if (z < -OVERMAP_DEPTH || z > OVERMAP_HEIGHT) {
-  debugmsg("Attempting to add not to overmap for blank layer %d", z);
+ if (z < -OVERMAP_DEPTH || z > OVERMAP_HEIGHT)
   return;
- }
+
 
  for (int i = 0; i < layer[z + OVERMAP_DEPTH].notes.size(); i++) {
   if (layer[z + OVERMAP_DEPTH].notes[i].x == x && layer[z + OVERMAP_DEPTH].notes[i].y == y) {
@@ -318,10 +318,9 @@ void overmap::add_note(int const x, int const y, int const z, std::string const 
 point overmap::find_note(int const x, int const y, int const z, std::string const& text) const
 {
  point ret(-1, -1);
- if (z < -OVERMAP_DEPTH || z > OVERMAP_HEIGHT) {
-  debugmsg("Attempting to find note on overmap for blank layer %d", z);
+ if (z < -OVERMAP_DEPTH || z > OVERMAP_HEIGHT)
   return ret;
- }
+
 
  int closest = 9999;
  for (int i = 0; i < layer[z + OVERMAP_DEPTH].notes.size(); i++) {
@@ -337,10 +336,9 @@ point overmap::find_note(int const x, int const y, int const z, std::string cons
 
 point overmap::display_notes(game* g, int const z) const
 {
- if (z < -OVERMAP_DEPTH || z > OVERMAP_HEIGHT) {
-  debugmsg("Attempting to display notes on overmap for blank layer %d", z);
+ if (z < -OVERMAP_DEPTH || z > OVERMAP_HEIGHT)
   return point(-1, -1);
- }
+
 
  std::string title = "Notes:";
  WINDOW* w_notes = newwin(25, 80, (TERMY > 25) ? (TERMY-25)/2 : 0, (TERMX > 80) ? (TERMX-80)/2 : 0);
@@ -1016,11 +1014,9 @@ int overmap::closest_city(point p)
 
 point overmap::random_house_in_city(int city_id)
 {
- if (city_id < 0 || city_id >= cities.size()) {
-  debugmsg("overmap::random_house_in_city(%d) (max %d)", city_id,
-           cities.size() - 1);
+ if (city_id < 0 || city_id >= cities.size())
   return point(-1, -1);
- }
+
  std::vector<point> valid;
  int startx = cities[city_id].x - cities[city_id].s,
      endx   = cities[city_id].x + cities[city_id].s,
@@ -1188,9 +1184,9 @@ void overmap::draw(WINDOW *w, game *g, int z, int &cursx, int &cursy,
      if (note_here)
       note_text = vert.note(omx, omy, z);
 
-    } else
-     debugmsg("No data loaded! omx: %d omy: %d", omx, omy);
+    }
 */
+
 // </Out of bounds replacement>
 //CAT-mgs: this doesn't get triggered ^^^ ?
 
@@ -1225,8 +1221,7 @@ void overmap::draw(WINDOW *w, game *g, int z, int &cursx, int &cursy,
       ter_color = c_red;
       ter_sym = '*';
      } else {
-      if (cur_ter >= num_ter_types || cur_ter < 0)
-       debugmsg("Bad ter %d (%d, %d)", cur_ter, omx, omy);
+
       ter_color = oterlist[cur_ter].color;
       ter_sym = oterlist[cur_ter].sym;
      }
@@ -1452,7 +1447,6 @@ void overmap::first_house(int &x, int &y)
   }
  }
  if (valid.size() == 0) {
-  debugmsg("Couldn't find a shelter!");
   x = 1;
   y = 1;
   return;
@@ -2240,10 +2234,9 @@ bool overmap::is_road(oter_id base, int x, int y, int z)
  } else if (base >= ot_ants_ns && base <= ot_ants_queen) {
   min = ot_ants_ns;
   max = ot_ants_queen;
- } else	{ // Didn't plan for this!
-  debugmsg("Bad call to is_road, %s", oterlist[base].name.c_str());
+ } else
   return false;
- }
+
  if (x < 0 || x >= OMAPX || y < 0 || y >= OMAPY) {
   for (int i = 0; i < roads_out.size(); i++) {
    if (abs(roads_out[i].x - x) + abs(roads_out[i].y - y) <= 1)
@@ -2651,20 +2644,17 @@ void overmap::place_special(overmap_special special, tripoint p)
 
 // Finally, place monsters if applicable
  if (special.monsters != "GROUP_NULL") {
+
   if (special.monster_pop_min == 0 || special.monster_pop_max == 0 ||
-      special.monster_rad_min == 0 || special.monster_rad_max == 0   ) {
-   debugmsg("Overmap special %s has bad spawn: pop(%d, %d) rad(%d, %d)",
-            oterlist[special.ter].name.c_str(), special.monster_pop_min,
-            special.monster_pop_max, special.monster_rad_min,
-            special.monster_rad_max);
+      special.monster_rad_min == 0 || special.monster_rad_max == 0   )
    return;
-  }
 
   int population = rng(special.monster_pop_min, special.monster_pop_max);
   int radius     = rng(special.monster_rad_min, special.monster_rad_max);
   zg.push_back(
      mongroup(special.monsters, p.x * 2, p.y * 2, p.z, radius, population));
  }
+
 }
 
 void overmap::place_mongroups()
@@ -2852,6 +2842,7 @@ void overmap::open(game *g)
 
 // Set position IDs
  fin.open(terfilename.c_str());
+
 // DEBUG VARS
  int nummg = 0;
  if (fin.is_open()) {
@@ -2925,11 +2916,9 @@ void overmap::open(game *g)
               datatype == 'w' || datatype == 'c') {
     std::string itemdata;
     getline(fin, itemdata);
-    if (npcs.empty()) {
-     debugmsg("Overmap %d:%d:%d tried to load object data, without an NPC!",
-              loc.x, loc.y);
-     debugmsg(itemdata.c_str());
-    } else {
+
+    if(!npcs.empty())
+    {
      item tmp(itemdata, g);
      npc* last = &(npcs.back());
      switch (datatype) {
